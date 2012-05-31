@@ -6,8 +6,8 @@
 #include <boost/python/class.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <numpy/arrayobject.h>
-#include <psddl_pyana/EvtGetter.h>
-#include <psddl_pyana/EnvGetter.h>
+#include <psddl_python/EvtGetter.h>
+#include <psddl_python/EnvGetter.h>
 
 namespace Psana {
   extern void createWrappers();

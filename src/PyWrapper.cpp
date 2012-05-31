@@ -48,7 +48,7 @@
 #include <PSEvt/EventId.h>
 #include <PSEvt/ProxyDictI.h>
 #include <ConfigSvc/ConfigSvc.h>
-#include <psddl_pyana/GenericGetter.h>
+#include <psddl_python/GenericGetter.h>
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
