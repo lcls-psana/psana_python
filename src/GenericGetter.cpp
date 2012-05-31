@@ -1,6 +1,6 @@
 #include <string>
 #include <map>
-#include "psddl_pyana/GenericGetter.h"
+#include <psddl_pyana/GenericGetter.h>
 
 using std::string;
 using std::map;
@@ -35,16 +35,17 @@ GenericGetter* GenericGetter::getGetterByType(const char* typeNameGeneric) {
 
 void GenericGetter::addGetter(GenericGetter* getter) {
   getter_map[getter->getTypeName()] = getter;
-  //printf("~~~ adding %s\n", getter->getTypeName());
+  printf("~~~ adding %s\n", getter->getTypeName());
   if (getter->getTypeId() != -1) {
     char name[64];
     sprintf(name, "@EnvType_%d_V%d", getter->getTypeId(), getter->getVersion());
     getter_map[name] = getter;
-    //printf("~~~ adding %s\n", name);
+    printf("~~~ adding %s\n", name);
   }
 }
 
 template<class T> T* GenericGetter::getGetterByType(const char* typeName) {
+  printf("~~~ looking for %s\n", typeName);
   GenericGetter* getter = GenericGetter::getGetterByType(typeName);
   if (getter->getGetterTypeInfo() != typeid(T)) {
     return NULL;

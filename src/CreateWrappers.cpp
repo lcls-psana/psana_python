@@ -1,7 +1,9 @@
+//#include <psddl_pyana/acqiris.ddl.wrapper.h>
+
 #define DECL(ns) namespace ns { extern void createWrappers(); }
 
 namespace Psana {
-#include "psddl_pyana/CreateWrappers.h"
+  #include <psana_python/CreateWrappers.h>
 }
 
 #undef DECL
@@ -10,7 +12,7 @@ namespace Psana {
 namespace Psana {
   namespace CreateWrappers {
     void createWrappers() {
-#include "psddl_pyana/CreateWrappers.h"
+      #include <psana_python/CreateWrappers.h>
     }
   }
 }

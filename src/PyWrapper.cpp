@@ -23,7 +23,7 @@
 //-----------------------
 // This Class's Header --
 //-----------------------
-#include <psddl_pyana/PyWrapper.h>
+#include <psana_python/PyWrapper.h>
 
 //-----------------
 // C/C++ Headers --
@@ -36,18 +36,18 @@
 #include <numpy/arrayobject.h>
 #include <string>
 #include <set>
-#include "python/Python.h"
+#include <python/Python.h>
 
 //-------------------------------
 // Collaborating Class Headers --
 //-------------------------------
-#include "MsgLogger/MsgLogger.h"
-#include "PSEnv/Env.h"
-#include "PSEnv/EpicsStore.h"
-#include "PSEvt/Event.h"
-#include "PSEvt/EventId.h"
-#include "PSEvt/ProxyDictI.h"
-#include "ConfigSvc/ConfigSvc.h"
+#include <MsgLogger/MsgLogger.h>
+#include <PSEnv/Env.h>
+#include <PSEnv/EpicsStore.h>
+#include <PSEvt/Event.h>
+#include <PSEvt/EventId.h>
+#include <PSEvt/ProxyDictI.h>
+#include <ConfigSvc/ConfigSvc.h>
 #include <psddl_pyana/GenericGetter.h>
 
 //-----------------------------------------------------------------------
@@ -91,7 +91,10 @@ namespace Psana {
   }
 
   static EnvGetter* getEnvGetterByType(const string& typeName) {
-    return (EnvGetter*) GenericGetter::getGetterByType(typeName.c_str());
+    printf("~~~ getEnvGetterByType('%s')\n", typeName.c_str());
+    EnvGetter* result = (EnvGetter*) GenericGetter::getGetterByType(typeName.c_str());
+    printf("~~~ getEnvGetterByType('%s') returns %p\n", typeName.c_str(), result);
+    return result;
   }
 
   namespace CreateWrappers {
@@ -201,6 +204,7 @@ namespace Psana {
     }
 
     object getConfigByType(const char* typeName, const char* detectorSourceName) {
+      printf("~~~ getConfigByType('%s', '%s')\n", typeName, detectorSourceName);
       const Source detectorSource(detectorSourceName);
       EnvGetter *getter = getEnvGetterByType(typeName);
       if (getter) {
