@@ -13,7 +13,7 @@
 // 	$Id$
 //
 // Description:
-//	Class PyWrapper
+//	Class PythonHelp
 //
 // Author List:
 //   Joseph S. Barrera III
@@ -23,7 +23,7 @@
 //-----------------------
 // This Class's Header --
 //-----------------------
-#include <psana_python/PyWrapper.h>
+#include <psana_python/PythonHelp.h>
 
 //-----------------
 // C/C++ Headers --

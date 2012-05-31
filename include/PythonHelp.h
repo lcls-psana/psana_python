@@ -1,5 +1,5 @@
-#ifndef PSANA_PYWRAPPER_H
-#define PSANA_PYWRAPPER_H 1
+#ifndef PSANA_PYTHONHELP_H
+#define PSANA_PYTHONHELP_H 1
 
 #include <string>
 #include <boost/python.hpp>
@@ -14,4 +14,4 @@ namespace Psana {
   extern boost::shared_ptr<PyObject> call(PyObject* method, PSEvt::Event& evt, PSEnv::Env& env, const std::string& name, const std::string& className);
 }
 
-#endif // PSANA_PYWRAPPER_H
+#endif // PSANA_PYTHONHELP_H
