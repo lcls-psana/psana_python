@@ -1,5 +1,5 @@
-#ifndef PSANA_PYWRAPPER_H
-#define PSANA_PYWRAPPER_H
+#ifndef PSANA_PYTHONMODULE_H
+#define PSANA_PYTHONMODULE_H
 
 #include "python/Python.h"
 #include "PSEvt/Event.h"
@@ -11,14 +11,14 @@ using PSEnv::Env;
 
 namespace psana {
 
-class PyWrapper : public Module {
+class PythonModule : public Module {
 public:
 
   // Default constructor
-  PyWrapper(const std::string& name, PyObject* instance) ;
+  PythonModule(const std::string& name, PyObject* instance) ;
 
   // Destructor
-  virtual ~PyWrapper() ;
+  virtual ~PythonModule() ;
 
   /// Method which is called once at the beginning of the job
   virtual void beginJob(Event& evt, Env& env);
@@ -65,4 +65,4 @@ private:
 
 } // namespace psana
 
-#endif // PSANA_PYWRAPPER_H
+#endif // PSANA_PYTHONMODULE_H

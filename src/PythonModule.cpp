@@ -1,4 +1,4 @@
-#include "psana_python/PyWrapper.h"
+#include "psana_python/PythonModule.h"
 #include "MsgLogger/MsgLogger.h"
 #include "psana/Exceptions.h"
 #include "PSEvt/EventId.h"
@@ -12,7 +12,7 @@
 
 namespace {
 
-  const char logger[] = "PyWrapper";
+  const char logger[] = "PythonModule";
 
   struct PyRefDelete {
     void operator()(PyObject* obj) { Py_CLEAR(obj); }
@@ -43,7 +43,7 @@ static PyObject* getMethodByName(PyObject* instance, char* name) {
   return method;
 }
 
-PyWrapper::PyWrapper(const std::string& name, PyObject* instance)
+PythonModule::PythonModule(const std::string& name, PyObject* instance)
   : Module(name)
   , m_moduleName(name)
   , m_instance(instance)
@@ -69,7 +69,7 @@ PyWrapper::PyWrapper(const std::string& name, PyObject* instance)
 //--------------
 // Destructor --
 //--------------
-PyWrapper::~PyWrapper ()
+PythonModule::~PythonModule ()
 {
   Py_CLEAR(m_instance);
   Py_CLEAR(m_beginJob);
@@ -83,21 +83,21 @@ PyWrapper::~PyWrapper ()
 
 /// Method which is called once at the beginning of the job
 void 
-PyWrapper::beginJob(Event& evt, Env& env)
+PythonModule::beginJob(Event& evt, Env& env)
 {
   call(m_beginJob, evt, env);
 }
 
 /// Method which is called at the beginning of the run
 void 
-PyWrapper::beginRun(Event& evt, Env& env)
+PythonModule::beginRun(Event& evt, Env& env)
 {
   call(m_beginRun, evt, env);
 }
 
 /// Method which is called at the beginning of the calibration cycle
 void 
-PyWrapper::beginCalibCycle(Event& evt, Env& env)
+PythonModule::beginCalibCycle(Event& evt, Env& env)
 {
   call(m_beginCalibCycle, evt, env);
 }
@@ -105,48 +105,43 @@ PyWrapper::beginCalibCycle(Event& evt, Env& env)
 /// Method which is called with event data, this is the only required 
 /// method, all other methods are optional
 void 
-PyWrapper::event(Event& evt, Env& env)
+PythonModule::event(Event& evt, Env& env)
 {
   call(m_event, evt, env);
 }
   
 /// Method which is called at the end of the calibration cycle
 void 
-PyWrapper::endCalibCycle(Event& evt, Env& env)
+PythonModule::endCalibCycle(Event& evt, Env& env)
 {
   call(m_endCalibCycle, evt, env);
 }
 
 /// Method which is called at the end of the run
 void 
-PyWrapper::endRun(Event& evt, Env& env)
+PythonModule::endRun(Event& evt, Env& env)
 {
   call(m_endRun, evt, env);
 }
 
 /// Method which is called once at the end of the job
 void 
-PyWrapper::endJob(Event& evt, Env& env)
+PythonModule::endJob(Event& evt, Env& env)
 {
   call(m_endJob, evt, env);
 }
 
 // call specific method
 void
-PyWrapper::call(PyObject* method, Event& evt, Env& env)
+PythonModule::call(PyObject* method, Event& evt, Env& env)
 {
   if (not method) return;
 
-#if 0
   PyObjPtr res(Psana::call(method, evt, env, name(), className()));
-#else
-  PyObjPtr res(Psana::call(method, evt, env, m_moduleName, m_moduleName)); // XXX
-#endif
   if (not res) {
     PyErr_Print();
     throw ExceptionGenericPyError(ERR_LOC, "exception raised while calling Python method");
   }
 }
-
 
 } // namespace psana

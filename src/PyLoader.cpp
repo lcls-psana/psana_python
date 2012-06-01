@@ -27,7 +27,7 @@
 #include <MsgLogger/MsgLogger.h>
 #include <psana/Exceptions.h>
 #include <psana/Module.h>
-#include <psana_python/PyWrapper.h>
+#include <psana_python/PythonModule.h>
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -67,10 +67,8 @@ namespace {
 // 		-- Public Function Member Definitions --
 //		----------------------------------------
 
-namespace psana {
-
 // Load one user module. The name of the module has a format [Package.]Class[:name]
-PyWrapper* moduleFactory(const std::string& name)
+extern "C" PythonModule* moduleFactory(const std::string& name)
 {
   // Make class name and module name. Use psana for package name if not given.
   // Full name should be package name . class name.
@@ -142,11 +140,12 @@ PyWrapper* moduleFactory(const std::string& name)
     throw ExceptionPyLoadError(ERR_LOC, "Python class " + className + " does not define event() method");
   }
 
-  PyWrapper* wrapper = new PyWrapper(fullName, instance);
+  PythonModule* wrapper = new PythonModule(fullName, instance);
   return wrapper;
 }
-} // namespace psana
 
+#if 0
 extern "C" psana::Module* moduleFactory(const std::string& name) {
-  return psana::moduleFactory(name);
+  return /*psana::*/ x_moduleFactory(name);
 }
+#endif
