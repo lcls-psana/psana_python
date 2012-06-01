@@ -1,6 +1,4 @@
 #include "psana_python/PyWrapper.h"
-
-#include "psana_python/GenericWrapper.h"
 #include "MsgLogger/MsgLogger.h"
 #include "psana/Exceptions.h"
 #include "PSEvt/EventId.h"
@@ -46,7 +44,7 @@ static PyObject* getMethodByName(PyObject* instance, char* name) {
 }
 
 PyWrapper::PyWrapper(const std::string& name, PyObject* instance)
-  : GenericWrapper(name)
+  : Module(name)
   , m_moduleName(name)
   , m_instance(instance)
   , m_beginJob(0)

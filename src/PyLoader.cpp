@@ -13,22 +13,21 @@
 //-----------------------
 // This Class's Header --
 //-----------------------
-#include "psana_python/PyLoader.h"
-#include "psana_python/PyWrapper.h"
-#include "psana_python/GenericWrapperModule.h"
-#include "ConfigSvc/ConfigSvc.h"
-#include "psana/Module.h"
 
 //-----------------
 // C/C++ Headers --
 //-----------------
-#include "python/Python.h"
+#include <python/Python.h>
+#include <string>
 
 //-------------------------------
 // Collaborating Class Headers --
 //-------------------------------
-#include "psana/Exceptions.h"
-#include "MsgLogger/MsgLogger.h"
+#include <ConfigSvc/ConfigSvc.h>
+#include <MsgLogger/MsgLogger.h>
+#include <psana/Exceptions.h>
+#include <psana/Module.h>
+#include <psana_python/PyWrapper.h>
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -71,7 +70,7 @@ namespace {
 namespace psana {
 
 // Load one user module. The name of the module has a format [Package.]Class[:name]
-GenericWrapper* X_loadWrapper(const std::string& name)
+PyWrapper* moduleFactory(const std::string& name)
 {
   // Make class name and module name. Use psana for package name if not given.
   // Full name should be package name . class name.
@@ -143,22 +142,11 @@ GenericWrapper* X_loadWrapper(const std::string& name)
     throw ExceptionPyLoadError(ERR_LOC, "Python class " + className + " does not define event() method");
   }
 
-  GenericWrapper* wrapper = new PyWrapper(fullName, instance);
+  PyWrapper* wrapper = new PyWrapper(fullName, instance);
   return wrapper;
 }
 } // namespace psana
 
-#if 0
-extern "C" GenericWrapper* z_moduleFactory(const std::string& name) {
-  return X_z_loadWrapper(name);
-}
-#endif
-
-extern "C" GenericWrapper* wrapperFactory(const std::string& name) {
-  return psana::X_loadWrapper(name);
-}
-
 extern "C" psana::Module* moduleFactory(const std::string& name) {
-  GenericWrapper* wrapper = psana::X_loadWrapper(name);
-  return new GenericWrapperModule(wrapper);
+  return psana::moduleFactory(name);
 }

@@ -1,18 +1,17 @@
 #ifndef PSANA_PYWRAPPER_H
 #define PSANA_PYWRAPPER_H
 
-#include "psana_python/GenericWrapper.h"
 #include "python/Python.h"
 #include "PSEvt/Event.h"
 #include "PSEnv/Env.h"
+#include "psana/Module.h"
 
 using PSEvt::Event;
 using PSEnv::Env;
-using psana::GenericWrapper;
 
 namespace psana {
 
-class PyWrapper : public GenericWrapper {
+class PyWrapper : public Module {
 public:
 
   // Default constructor
