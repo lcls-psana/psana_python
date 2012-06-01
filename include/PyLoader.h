@@ -2,7 +2,7 @@
 #define PSANA_PYLOADER_H
 
 #include <string>
-#include <GenericWrapper/GenericWrapper.h>
+#include <psana_python/GenericWrapper.h>
 
 namespace psana {
 

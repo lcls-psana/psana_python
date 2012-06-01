@@ -1,7 +1,7 @@
 #ifndef PSANA_PYWRAPPER_H
 #define PSANA_PYWRAPPER_H
 
-#include "GenericWrapper/GenericWrapper.h"
+#include "psana_python/GenericWrapper.h"
 #include "python/Python.h"
 #include "PSEvt/Event.h"
 #include "PSEnv/Env.h"

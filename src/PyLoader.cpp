@@ -15,7 +15,9 @@
 //-----------------------
 #include "psana_python/PyLoader.h"
 #include "psana_python/PyWrapper.h"
+#include "psana_python/GenericWrapperModule.h"
 #include "ConfigSvc/ConfigSvc.h"
+#include "psana/Module.h"
 
 //-----------------
 // C/C++ Headers --
@@ -25,7 +27,7 @@
 //-------------------------------
 // Collaborating Class Headers --
 //-------------------------------
-#include "psana_python/Exceptions.h"
+#include "psana/Exceptions.h"
 #include "MsgLogger/MsgLogger.h"
 
 //-----------------------------------------------------------------------
@@ -145,3 +147,18 @@ GenericWrapper* X_loadWrapper(const std::string& name)
   return wrapper;
 }
 } // namespace psana
+
+#if 0
+extern "C" GenericWrapper* z_moduleFactory(const std::string& name) {
+  return X_z_loadWrapper(name);
+}
+#endif
+
+extern "C" GenericWrapper* wrapperFactory(const std::string& name) {
+  return psana::X_loadWrapper(name);
+}
+
+extern "C" psana::Module* moduleFactory(const std::string& name) {
+  GenericWrapper* wrapper = psana::X_loadWrapper(name);
+  return new GenericWrapperModule(wrapper);
+}

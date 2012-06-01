@@ -1,8 +1,8 @@
 #include "psana_python/PyWrapper.h"
 
-#include "GenericWrapper/GenericWrapper.h"
+#include "psana_python/GenericWrapper.h"
 #include "MsgLogger/MsgLogger.h"
-#include "psana_python/Exceptions.h"
+#include "psana/Exceptions.h"
 #include "PSEvt/EventId.h"
 #include <psana_python/PythonHelp.h>
 #include <cstdio>
