@@ -2,7 +2,7 @@
 
 #include "GenericWrapper/GenericWrapper.h"
 #include "MsgLogger/MsgLogger.h"
-//#include "psana/Exceptions.h"
+#include "psana_python/Exceptions.h"
 #include "PSEvt/EventId.h"
 #include <psana_python/PythonHelp.h>
 #include <cstdio>
@@ -142,11 +142,11 @@ PyWrapper::call(PyObject* method, Event& evt, Env& env)
 #if 0
   PyObjPtr res(Psana::call(method, evt, env, name(), className()));
 #else
-  PyObjPtr res(Psana::call(method, evt, env, m_moduleName, m_moduleName));
+  PyObjPtr res(Psana::call(method, evt, env, m_moduleName, m_moduleName)); // XXX
 #endif
   if (not res) {
     PyErr_Print();
-    //throw ExceptionGenericPyError(ERR_LOC, "exception raised while calling Python method"); // XXX@@@
+    throw ExceptionGenericPyError(ERR_LOC, "exception raised while calling Python method");
   }
 }
 
