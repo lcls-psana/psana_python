@@ -26,7 +26,6 @@
 // Collaborating Class Headers --
 //-------------------------------
 #include "psana_python/Exceptions.h"
-//#include "psana/GenericWrapperModule.h" ////
 #include "MsgLogger/MsgLogger.h"
 
 //-----------------------------------------------------------------------
