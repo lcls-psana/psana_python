@@ -25,7 +25,7 @@
 //-------------------------------
 // Collaborating Class Headers --
 //-------------------------------
-//#include "psana/Exceptions.h"
+#include "psana_python/Exceptions.h"
 //#include "psana/GenericWrapperModule.h" ////
 #include "MsgLogger/MsgLogger.h"
 
@@ -97,22 +97,21 @@ GenericWrapper* X_loadWrapper(const std::string& name)
   // try to import module
   PyObjPtr mod(PyImport_ImportModule((char*)moduleName.c_str()), PyRefDelete());
   if (not mod) {
-    //XXXthrow ExceptionPyLoadError(ERR_LOC, "failed to import module " + moduleName + ": " + ::pyExcStr());
+    throw ExceptionPyLoadError(ERR_LOC, "failed to import module " + moduleName + ": " + ::pyExcStr());
   }
 
   // there must be a class defined with this name
   PyObjPtr cls(PyObject_GetAttrString(mod.get(), (char*)className.c_str()), PyRefDelete());
   if (not cls) {
-    //XXXthrow ExceptionPyLoadError(ERR_LOC, "Python module " + moduleName + " does not define class " + className);
+    throw ExceptionPyLoadError(ERR_LOC, "Python module " + moduleName + " does not define class " + className);
   }
 
   // make sure class (or whatever else) is callable
   if (not PyCallable_Check(cls.get())) {
-    //XXXthrow ExceptionPyLoadError(ERR_LOC, "Python object " + moduleName + " cannot be instantiated (is not callable)");
+    throw ExceptionPyLoadError(ERR_LOC, "Python object " + moduleName + " cannot be instantiated (is not callable)");
   }
 
   // make an instance
-
   // Create empty positional args list.
   PyObjPtr args(PyTuple_New(0), PyRefDelete());
 
@@ -130,7 +129,7 @@ GenericWrapper* X_loadWrapper(const std::string& name)
   // Create the instance by calling the constructor
   PyObject* instance = PyObject_Call(cls.get(), args.get(), kwargs.get());
   if (not instance) {
-    //XXXthrow ExceptionPyLoadError(ERR_LOC, "error making an instance of class " + className + ": " + ::pyExcStr());
+    throw ExceptionPyLoadError(ERR_LOC, "error making an instance of class " + className + ": " + ::pyExcStr());
   }
 
   // Set m_className and m_fullName attributes.
@@ -140,7 +139,7 @@ GenericWrapper* X_loadWrapper(const std::string& name)
   // check that instance has at least an event() method
   if (not PyObject_HasAttrString(instance, "event")) {
     Py_CLEAR(instance);
-    //XXXthrow ExceptionPyLoadError(ERR_LOC, "Python class " + className + " does not define event() method");
+    throw ExceptionPyLoadError(ERR_LOC, "Python class " + className + " does not define event() method");
   }
 
   GenericWrapper* wrapper = new PyWrapper(fullName, instance);
