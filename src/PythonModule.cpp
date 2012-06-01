@@ -10,6 +10,8 @@
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
 //-----------------------------------------------------------------------
 
+using std::string;
+
 namespace {
 
   const char logger[] = "PythonModule";
@@ -20,7 +22,7 @@ namespace {
   typedef boost::shared_ptr<PyObject> PyObjPtr;
 
   // return string describing Python exception
-  std::string pyExcStr()
+  string pyExcStr()
   {
     PyObject *ptype;
     PyObject *pvalue;
@@ -28,7 +30,7 @@ namespace {
 
     PyErr_Fetch(&ptype, &pvalue, &ptraceback);
     PyObject* errstr = PyObject_Str(pvalue);
-    std::string msg = PyString_AsString(errstr);
+    string msg = PyString_AsString(errstr);
 
     Py_CLEAR(errstr);
     Py_CLEAR(ptype);
@@ -61,7 +63,7 @@ static PyObject* getMethodByName(PyObject* instance, char* name) {
   return method;
 }
 
-PythonModule::PythonModule(const std::string& name, PyObject* instance)
+PythonModule::PythonModule(const string& name, PyObject* instance)
   : Module(name)
   , m_moduleName(name)
   , m_instance(instance)
@@ -163,19 +165,19 @@ PythonModule::call(PyObject* method, Event& evt, Env& env)
 }
 
 // Load one user module. The name of the module has a format [Package.]Class[:name]
-extern "C" PythonModule* moduleFactory(const std::string& name)
+extern "C" PythonModule* moduleFactory(const string& name)
 {
   // Make class name and module name. Use psana for package name if not given.
   // Full name should be package name . class name.
-  std::string fullName = name;
-  std::string moduleName = name;
-  std::string::size_type p1 = moduleName.find(':');
-  if (p1 != std::string::npos) {
+  string fullName = name;
+  string moduleName = name;
+  string::size_type p1 = moduleName.find(':');
+  if (p1 != string::npos) {
     moduleName.erase(p1);
   }
-  std::string className = moduleName;
+  string className = moduleName;
   p1 = className.find('.');
-  if (p1 == std::string::npos) {
+  if (p1 == string::npos) {
     moduleName = "psana." + moduleName;
     fullName = "psana." + fullName;
   } else {
