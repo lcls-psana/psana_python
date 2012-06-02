@@ -1,18 +1,8 @@
-DECL(Acqiris)
-DECL(Camera)
-DECL(CsPad)
-DECL(CsPad2x2)
-DECL(Encoder)
-DECL(Epics)
-DECL(EvrData)
-DECL(FCCD)
-DECL(Gsc16ai)
-DECL(Ipimb)
-DECL(Lusi)
-DECL(PNCCD)
-DECL(Princeton)
-DECL(Pulnix)
-DECL(Timepix)
-// DECL(Bld)
-// DECL(ControlData)
-// DECL(Opel1k)
+#ifndef PSANA_CREATEWRAPPERS_H
+#define PSANA_CREATEWRAPPERS_H
+
+namespace Psana {
+  extern void createWrappers();
+}
+
+#endif // PSANA_CREATEWRAPPERS_H

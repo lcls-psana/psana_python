@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// TO DO:
+// XXX TO DO:
 //
 // Python wrappers should use attributes instead of functions
 // e.g. ConfigV1.pvControls[i] instead of ConfigV1.pvControls()[i]
@@ -28,9 +28,7 @@
 //-----------------
 // C/C++ Headers --
 //-----------------
-#include <boost/python/class.hpp>
-#include <boost/python/copy_const_reference.hpp>
-#include <boost/python/def.hpp>
+#include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/utility.hpp>
 #include <numpy/arrayobject.h>
@@ -46,9 +44,10 @@
 #include <PSEnv/EpicsStore.h>
 #include <PSEvt/Event.h>
 #include <PSEvt/EventId.h>
-#include <PSEvt/ProxyDictI.h>
 #include <ConfigSvc/ConfigSvc.h>
 #include <psddl_python/GenericGetter.h>
+#include <psddl_python/EvtGetter.h>
+#include <psddl_python/EnvGetter.h>
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -296,34 +295,9 @@ namespace Psana {
     return object(none); // @@@
   }
 
-#if 0
-  // Src is a module type aka fullName
-  object getBySrcAndKey_Event(Event& evt, const string& typeNameGeneric, Src& src, const string& key) {
-    string typeName = getTypeNameWithHighestVersion("Evt", typeNameGeneric);
-    if (typeName == "") {
-      return object(none);
-    }
-
-    // @@@
-    // bool exists = evt.exists
-
-    EvtGetter *g = evtGetter_map[typeName];
-    return g->get(evt, src, key);
-  }
-
-  // Src is a module type aka fullName
-  object getBySrc_Event(Event& evt, const string& typeNameGeneric, Src& src) {
-    return getBySrcAndKey_Event(evt, typeNameGeneric, src, string());
-  }
-#endif
-
   static bool createWrappersDone = false;
 
-#if 111
-#define std_vector_class_(T)\
-  boost::python::class_<vector<T> >("std::vector<" #T ">")        \
-    .def(boost::python::vector_indexing_suite<std::vector<T> >())
-#endif
+#define std_vector_class_(T) class_<vector<T> >("std::vector<" #T ">").def(vector_indexing_suite<vector<T> >())
 
   void createWrappers()
   {

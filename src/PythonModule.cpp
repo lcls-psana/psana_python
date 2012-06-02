@@ -1,10 +1,34 @@
-#include "psana_python/PythonModule.h"
-#include "MsgLogger/MsgLogger.h"
-#include "psana/Exceptions.h"
-#include "PSEvt/EventId.h"
-#include <psana_python/PythonHelp.h>
+//--------------------------------------------------------------------------
+// File and Version Information:
+// 	$Id: PSAnaApp.cpp 3280 2012-05-01 16:41:53Z salnikov@SLAC.STANFORD.EDU $
+//
+// Description:
+//	Class PSAnaApp
+//
+// Author List:
+//  Andy Salnikov, Joseph S. Barrera III
+//
+//------------------------------------------------------------------------
+
+//-----------------------
+// This Class's Header --
+//-----------------------
+#include <psana_python/PythonModule.h>
+
+//-----------------
+// C/C++ Headers --
+//-----------------
 #include <cstdio>
 #include <cctype>
+
+//-------------------------------
+// Collaborating Class Headers --
+//-------------------------------
+#include <MsgLogger/MsgLogger.h>
+#include <PSEvt/EventId.h>
+#include <psana/Exceptions.h>
+#include <psana_python/PythonHelp.h>
+#include <psana_python/CreateWrappers.h>
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -63,17 +87,7 @@ static PyObject* getMethodByName(PyObject* instance, char* name) {
   return method;
 }
 
-PythonModule::PythonModule(const string& name, PyObject* instance)
-  : Module(name)
-  , m_moduleName(name)
-  , m_instance(instance)
-  , m_beginJob(0)
-  , m_beginRun(0)
-  , m_beginCalibCycle(0)
-  , m_event(0)
-  , m_endCalibCycle(0)
-  , m_endRun(0)
-  , m_endJob(0)
+PythonModule::PythonModule(const string& name, PyObject* instance) : Module(name), m_instance(instance)
 {
   m_beginJob = getMethodByName(m_instance, "beginJob");
   m_beginRun = getMethodByName(m_instance, "beginRun");
@@ -99,56 +113,6 @@ PythonModule::~PythonModule ()
   Py_CLEAR(m_endCalibCycle);
   Py_CLEAR(m_endRun);
   Py_CLEAR(m_endJob);
-}
-
-/// Method which is called once at the beginning of the job
-void 
-PythonModule::beginJob(Event& evt, Env& env)
-{
-  call(m_beginJob, evt, env);
-}
-
-/// Method which is called at the beginning of the run
-void 
-PythonModule::beginRun(Event& evt, Env& env)
-{
-  call(m_beginRun, evt, env);
-}
-
-/// Method which is called at the beginning of the calibration cycle
-void 
-PythonModule::beginCalibCycle(Event& evt, Env& env)
-{
-  call(m_beginCalibCycle, evt, env);
-}
-
-/// Method which is called with event data, this is the only required 
-/// method, all other methods are optional
-void 
-PythonModule::event(Event& evt, Env& env)
-{
-  call(m_event, evt, env);
-}
-  
-/// Method which is called at the end of the calibration cycle
-void 
-PythonModule::endCalibCycle(Event& evt, Env& env)
-{
-  call(m_endCalibCycle, evt, env);
-}
-
-/// Method which is called at the end of the run
-void 
-PythonModule::endRun(Event& evt, Env& env)
-{
-  call(m_endRun, evt, env);
-}
-
-/// Method which is called once at the end of the job
-void 
-PythonModule::endJob(Event& evt, Env& env)
-{
-  call(m_endJob, evt, env);
 }
 
 // call specific method
@@ -201,12 +165,11 @@ extern "C" PythonModule* moduleFactory(const string& name)
     throw ExceptionPyLoadError(ERR_LOC, "Python module " + moduleName + " does not define class " + className);
   }
 
-  // make sure class (or whatever else) is callable
+  // make sure class is callable
   if (not PyCallable_Check(cls.get())) {
     throw ExceptionPyLoadError(ERR_LOC, "Python object " + moduleName + " cannot be instantiated (is not callable)");
   }
 
-  // make an instance
   // Create empty positional args list.
   PyObjPtr args(PyTuple_New(0), PyRefDelete());
 
@@ -221,7 +184,7 @@ extern "C" PythonModule* moduleFactory(const string& name)
     PyDict_SetItemString(kwargs.get(), key.c_str(), PyString_FromString(value));
   }
 
-  // Create the instance by calling the constructor
+  // Construct the instance.
   PyObject* instance = PyObject_Call(cls.get(), args.get(), kwargs.get());
   if (not instance) {
     throw ExceptionPyLoadError(ERR_LOC, "error making an instance of class " + className + ": " + ::pyExcStr());
