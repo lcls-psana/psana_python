@@ -47,7 +47,7 @@
 #include <ConfigSvc/ConfigSvc.h>
 #include <psddl_python/GenericGetter.h>
 #include <psddl_python/EvtGetter.h>
-#include <psddl_python/EnvGetter.h>
+#include <psana_python/EnvWrapper.h>
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -85,15 +85,9 @@ typedef boost::shared_ptr<PyObject> PyObjPtr;
 
 namespace Psana {
 
+  // XXX get rid of this
   static EvtGetter* getEvtGetterByType(const string& typeName) {
     return (EvtGetter*) GenericGetter::getGetterByType(typeName.c_str());
-  }
-
-  static EnvGetter* getEnvGetterByType(const string& typeName) {
-    printf("~~~ getEnvGetterByType('%s')\n", typeName.c_str());
-    EnvGetter* result = (EnvGetter*) GenericGetter::getGetterByType(typeName.c_str());
-    printf("~~~ getEnvGetterByType('%s') returns %p\n", typeName.c_str(), result);
-    return result;
   }
 
   namespace CreateWrappers {
@@ -108,120 +102,7 @@ namespace Psana {
   static object Event_Class;
   static object EnvWrapper_Class;
 
-  // Need wrapper because EnvObjectStore is boost::noncopyable
-  class EnvObjectStoreWrapper {
-  private:
-    EnvObjectStore& _store;
-  public:
-    EnvObjectStoreWrapper(EnvObjectStore& store) : _store(store) {}
-    // template <typename T> void putProxy(const boost::shared_ptr<PSEvt::Proxy<T> >& proxy, const Pds::Src& source);
-    // template <typename T> void put(const boost::shared_ptr<T>& data, const Pds::Src& source);
-    EnvObjectStore::GetResultProxy getBySrc(const Src& src) { return _store.get(src); }
-    EnvObjectStore::GetResultProxy getBySource(const Source& source, Src* foundSrc = 0) { return _store.get(source, foundSrc); }
 
-    object getByType(const string& typeName, const Source& source) {
-      EnvGetter *getter = getEnvGetterByType(typeName);
-      if (getter) {
-        return getter->get(_store, source);
-      }
-      return object(none);
-    }
-
-    list<EventKey> keys(const Source& source = Source()) const { return _store.keys(); }
-  };
-
-  class EnvWrapper {
-  private:
-    Env& _env;
-    const string& _name;
-    const string& _className;
-  public:
-    EnvWrapper(Env& env, const string& name, const string& className) : _env(env), _name(name), _className(className) {}
-    const string& jobName() const { return _env.jobName(); }
-    const string& instrument() const { return _env.instrument(); }
-    const string& experiment() const { return _env.experiment(); }
-    const unsigned expNum() const { return _env.expNum(); }
-    const string& calibDir() const { return _env.calibDir(); }
-    EnvObjectStoreWrapper configStore() { return EnvObjectStoreWrapper(_env.configStore()); }
-    PSEnv::EnvObjectStore& calibStore() { return _env.calibStore(); }
-    PSEnv::EpicsStore& epicsStore() { return _env.epicsStore(); }
-    RootHistoManager::RootHMgr& rhmgr() { return _env.rhmgr(); }
-    PSHist::HManager& hmgr() { return _env.hmgr(); }
-    Env& getEnv() { return _env; };
-
-    void printAllKeys() {
-      EnvObjectStore& store = _env.configStore();
-      list<EventKey> keys = store.keys(); // , Source());
-      list<EventKey>::iterator it;
-      for (it = keys.begin(); it != keys.end(); it++) {
-        cout << "THIS is an ENV key: " << *it << endl;
-      }
-    }
-
-    void printConfigKeys() {
-      ConfigSvc::ConfigSvc cfg;
-      list<string> keys = cfg.getKeys(_name);
-      list<string>::iterator it;
-      cout << "!!! keys.size() = " << keys.size() << " for " << _name << endl;
-      for (it = keys.begin(); it != keys.end(); it++) {
-        cout << "THIS is an ConfigSvc key: " << *it << endl;
-      }
-    }
-
-    const char* configStr(const string& parameter) {
-      ConfigSvc::ConfigSvc cfg;
-      try {
-        return cfg.getStr(_name, parameter).c_str();
-      } catch (const ConfigSvc::ExceptionMissing& ex) {
-        try {
-          return cfg.getStr(_className, parameter).c_str();
-        } catch (const ConfigSvc::ExceptionMissing& ex) {
-          return 0;
-        }
-      }
-    }
-
-    string configStr2(const string& parameter, const char* _default) {
-      if (_default == 0) {
-        return configStr(parameter);
-      }
-      ConfigSvc::ConfigSvc cfg;
-      try {
-        return cfg.getStr(_name, parameter);
-      } catch (const ConfigSvc::ExceptionMissing& ex) {
-        return cfg.getStr(_className, parameter, _default);
-      }
-    }
-
-    Source configSource(const string& _default) {
-      const char* value = configStr("source");
-      if (value) {
-        return Source(value);
-      } else {
-        return Source(_default);
-      }
-    }
-
-    object getConfigByType(const char* typeName, const char* detectorSourceName) {
-      printf("~~~ getConfigByType('%s', '%s')\n", typeName, detectorSourceName);
-      const Source detectorSource(detectorSourceName);
-      EnvGetter *getter = getEnvGetterByType(typeName);
-      if (getter) {
-        return getter->get(_env.configStore(), detectorSource);
-      }
-      return object(none);
-    }
-
-    object getConfig2(int typeId, const char* detectorSourceName) {
-      char name[64];
-      sprintf(name, "@EnvType_%d_", typeId);
-      return getConfigByType(name, detectorSourceName);
-    }
-
-    object getConfig1(int typeId) {
-      return getConfig2(typeId, "ProcInfo()");
-    }
-  };
 
   object getEnvWrapper(Env& env, const string& name, const string& className) {
     EnvWrapper _envWrapper(env, name, className);
