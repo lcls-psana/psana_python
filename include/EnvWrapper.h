@@ -7,6 +7,7 @@
 #include <PSEnv/Env.h>
 
 namespace Psana {
+  using boost::python::api::object;
 
   class EnvWrapper {
   private:
@@ -31,9 +32,10 @@ namespace Psana {
     const char* configStr(const std::string& parameter);
     std::string configStr2(const std::string& parameter, const char* _default);
     PSEvt::Source configSource(const std::string& _default);
-    boost::python::api::object getConfigByType(const char* typeName, const char* detectorSourceName);
-    boost::python::api::object getConfig2(int typeId, const char* detectorSourceName);
-    boost::python::api::object getConfig1(int typeId);
+    object getConfigByType2(const char* typeName, const char* detectorSourceName);
+    object getConfigByType1(const char* typeName);
+    object getConfig2(int typeId, const char* detectorSourceName);
+    object getConfig1(int typeId);
   };
 }
 

@@ -245,7 +245,8 @@ namespace Psana {
       .def("configStr2", &EnvWrapper::configStr2)
       .def("printAllKeys", &EnvWrapper::printAllKeys)
       .def("printConfigKeys", &EnvWrapper::printConfigKeys)
-      .def("getConfigByType", &EnvWrapper::getConfigByType)
+      .def("get", &EnvWrapper::getConfigByType1)
+      .def("get", &EnvWrapper::getConfigByType2)
       .def("getConfig", &EnvWrapper::getConfig1)
       .def("getConfig", &EnvWrapper::getConfig2)
       ;

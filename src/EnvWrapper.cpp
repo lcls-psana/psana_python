@@ -125,7 +125,7 @@ namespace Psana {
     return result;
   }
 
-  object EnvWrapper::getConfigByType(const char* typeName, const char* detectorSourceName) {
+  object EnvWrapper::getConfigByType2(const char* typeName, const char* detectorSourceName) {
     printf("~~~ getConfigByType('%s', '%s')\n", typeName, detectorSourceName);
     const Source detectorSource(detectorSourceName);
     EnvGetter *getter = getEnvGetterByType(typeName);
@@ -135,13 +135,21 @@ namespace Psana {
     return object((void*) 0);
   }
 
+  object EnvWrapper::getConfigByType1(const char* typeName) {
+    return getConfigByType2(typeName, "");
+  }
+
   object EnvWrapper::getConfig2(int typeId, const char* detectorSourceName) {
+    printf("-> getConfig2(%d, '%s')\n", typeId, detectorSourceName);
+    const char* name0 = Pds::TypeId::name(Pds::TypeId::Type(typeId));
+    printf("-> name0='%s'\n", name0);
     char name[64];
     sprintf(name, "@EnvType_%d_", typeId);
-    return getConfigByType(name, detectorSourceName);
+    return getConfigByType2(name, detectorSourceName);
   }
 
   object EnvWrapper::getConfig1(int typeId) {
+    printf("-> getConfig1(%d)\n", typeId);
     return getConfig2(typeId, "ProcInfo()");
   }
 }
