@@ -13,51 +13,51 @@ using boost::python::api::object;
 //-----------------
 // C/C++ Headers --
 //-----------------
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/utility.hpp>
-#include <numpy/arrayobject.h>
-#include <string>
-#include <set>
-#include <python/Python.h>
+//#include <boost/python.hpp>
+//#include <psddl_python/vector_indexing_suite_nocopy.hpp>
+//#include <boost/utility.hpp>
+//#include <numpy/arrayobject.h>
+//#include <string>
+//#include <set>
+//#include <python/Python.h>
 
 //-------------------------------
 // Collaborating Class Headers --
 //-------------------------------
-#include <MsgLogger/MsgLogger.h>
-#include <PSEnv/Env.h>
-#include <PSEnv/EpicsStore.h>
-#include <PSEvt/Event.h>
-#include <psddl_python/GenericGetter.h>
-#include <psddl_python/EvtGetter.h>
-#include <psana_python/EnvWrapper.h>
+//#include <MsgLogger/MsgLogger.h>
+//#include <PSEnv/Env.h>
+//#include <PSEnv/EpicsStore.h>
+//#include <PSEvt/Event.h>
+//#include <psddl_python/GenericGetter.h>
+//#include <psddl_python/EvtGetter.h>
+//#include <psana_python/EnvWrapper.h>
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
 //-----------------------------------------------------------------------
 
-using boost::python::api::object;
-using boost::python::class_;
-using boost::python::copy_const_reference;
-using boost::python::init;
-using boost::python::no_init;
-using boost::python::numeric::array;
-using boost::python::reference_existing_object;
-using boost::python::return_value_policy;
-using boost::python::vector_indexing_suite;
-
-using std::map;
-using std::set;
-using std::string;
-using std::vector;
-using std::list;
-
-using PSEnv::Env;
-using PSEnv::EpicsStore;
-using PSEvt::Event;
-using Pds::Src;
-
-typedef boost::shared_ptr<PyObject> PyObjPtr;
+//using boost::python::api::object;
+//using boost::python::class_;
+//using boost::python::copy_const_reference;
+//using boost::python::init;
+//using boost::python::no_init;
+//using boost::python::numeric::array;
+//using boost::python::reference_existing_object;
+//using boost::python::return_value_policy;
+//using boost::python::vector_indexing_suite_nocopy;
+//
+//using std::map;
+//using std::set;
+//using std::string;
+//using std::vector;
+//using std::list;
+//
+//using PSEnv::Env;
+//using PSEnv::EpicsStore;
+//using PSEvt::Event;
+//using Pds::Src;
+//
+//typedef boost::shared_ptr<PyObject> PyObjPtr;
 
 
 #endif
@@ -151,5 +151,37 @@ namespace Psana {
   object EnvWrapper::getConfig1(int typeId) {
     printf("-> getConfig1(%d)\n", typeId);
     return getConfig2(typeId, "ProcInfo()");
+  }
+
+  using boost::python::class_;
+  using boost::python::copy_const_reference;
+  using boost::python::init;
+  using boost::python::no_init;
+  using boost::python::numeric::array;
+  using boost::python::reference_existing_object;
+  using boost::python::return_value_policy;
+
+  object EnvWrapper::getBoostPythonClass() {
+    return class_<EnvWrapper>("PSEnv::Env", init<EnvWrapper&>())
+      .def("jobName", &EnvWrapper::jobName, return_value_policy<copy_const_reference>())
+      .def("instrument", &EnvWrapper::instrument, return_value_policy<copy_const_reference>())
+      .def("experiment", &EnvWrapper::experiment, return_value_policy<copy_const_reference>())
+      .def("expNum", &EnvWrapper::expNum)
+      .def("calibDir", &EnvWrapper::calibDir, return_value_policy<copy_const_reference>())
+      .def("configStore", &EnvWrapper::configStore)
+      .def("calibStore", &EnvWrapper::calibStore, return_value_policy<reference_existing_object>())
+      .def("epicsStore", &EnvWrapper::epicsStore, return_value_policy<reference_existing_object>())
+      .def("rhmgr", &EnvWrapper::rhmgr, return_value_policy<reference_existing_object>())
+      .def("hmgr", &EnvWrapper::hmgr, return_value_policy<reference_existing_object>())
+      .def("configSource", &EnvWrapper::configSource)
+      .def("configStr", &EnvWrapper::configStr)
+      .def("configStr2", &EnvWrapper::configStr2)
+      .def("printAllKeys", &EnvWrapper::printAllKeys)
+      .def("printConfigKeys", &EnvWrapper::printConfigKeys)
+      .def("get", &EnvWrapper::getConfigByType1)
+      .def("get", &EnvWrapper::getConfigByType2)
+      .def("getConfig", &EnvWrapper::getConfig1)
+      .def("getConfig", &EnvWrapper::getConfig2)
+      ;
   }
 }

@@ -36,6 +36,7 @@ namespace Psana {
     object getConfigByType1(const char* typeName);
     object getConfig2(int typeId, const char* detectorSourceName);
     object getConfig1(int typeId);
+    static object getBoostPythonClass();
   };
 }
 
