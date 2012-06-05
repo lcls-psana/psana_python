@@ -22,14 +22,12 @@ namespace Psana {
     boost::python::api::object getByType(const string& typeName, const PSEvt::Source& source) {
 
       // XXX also print out [Source& source] string?
-      EnvGetter* getter = (EnvGetter*) GenericGetter::getGetterByType(typeName.c_str());
-      printf("~~~ EnvObjectStoreWrapper::getByType('%s') returns %p\n", typeName.c_str(), getter);
 
+      printf("!!!===!!! EnvObjectStoreWrapper::getByType: faking getMethod(source)\n");
+      GetMethod* getMethod = NULL; // Xxx(source);
 
-      if (getter) {
-        return getter->get(_store, source);
-      }
-      return boost::python::api::object((void*) 0);
+      string typeName2(typeName);
+      return GenericGetter::get(typeName2, getMethod);
     }
 
     list<PSEvt::EventKey> keys(const PSEvt::Source& source = PSEvt::Source()) const { return _store.keys(); }

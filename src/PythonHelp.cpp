@@ -48,6 +48,7 @@
 #include <ConfigSvc/ConfigSvc.h>
 #include <psddl_python/GenericGetter.h>
 #include <psddl_python/EvtGetter.h>
+#include <psddl_python/EvtGetMethod.h>
 #include <psana_python/EnvWrapper.h>
 
 //-----------------------------------------------------------------------
@@ -57,6 +58,7 @@
 using boost::python::api::object;
 using boost::python::class_;
 using boost::python::copy_const_reference;
+using boost::python::return_by_value;
 using boost::python::init;
 using boost::python::no_init;
 using boost::python::numeric::array;
@@ -92,11 +94,6 @@ namespace Psana {
     return string(Pds::TypeId::name(Pds::TypeId::Type(typeId)));
   }
 
-  // XXX get rid of this
-  static EvtGetter* getEvtGetterByType(const string& typeName) {
-    return (EvtGetter*) GenericGetter::getGetterByType(typeName.c_str());
-  }
-
   namespace CreateWrappers {
     extern void createWrappers();
   }
@@ -105,10 +102,8 @@ namespace Psana {
     void operator()(PyObject* obj) { Py_CLEAR(obj); }
   };
 
-  static boost::shared_ptr<char> none((char *)0);
   static object Event_Class;
   static object EnvWrapper_Class;
-
 
 
   object getEnvWrapper(Env& env, const string& name, const string& className) {
@@ -165,11 +160,11 @@ namespace Psana {
     } else {
       detectorSource = Source(detectorSourceName);
     }
-    EvtGetter *getter = getEvtGetterByType(typeName);
-    if (getter) {
-      return getter->get(evt, detectorSource, string());
-    }
-    return object(none);
+
+    printf("!!!===!!! PythonHelp::getByType_Event: faking getMethod(detectorSource)\n");
+    EvtGetMethod method(evt, detectorSource);
+    string typeName2(typeName);
+    return GenericGetter::get(typeName2, &method);
   }
 
   static bool createWrappersDone = false;
@@ -195,7 +190,7 @@ namespace Psana {
     std_vector_class_(unsigned short);
     printf("std_vector_class_(EventKey)...\n");
     std_vector_class_(EventKey);
-    std_vector_class_(string);
+    std_vector_class_(std::string);
 
     class_<PSEnv::EnvObjectStore::GetResultProxy>("PSEnv::EnvObjectStore::GetResultProxy", no_init)
       ;
@@ -215,7 +210,7 @@ namespace Psana {
       class_<PSEvt::Event>("PSEvt::Event", init<Event&>())
       .def("get", &get_Event)
       .def("getByType", &getByType_Event)
-      .def("getAllKeys", &getAllKeys_Event)
+      .def("getAllKeys", &getAllKeys_Event, return_value_policy<return_by_value>())
       .def("run", &run_Event)
       .def("getCppTypeNameForPythonTypeId", &getCppTypeNameForPythonTypeId_Event);
       ;
