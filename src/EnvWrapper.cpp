@@ -30,23 +30,25 @@ namespace Psana {
     }
   }
 
-  const char* EnvWrapper::configStr(const string& parameter) {
+#if 1
+  string EnvWrapper::configStr(const string& parameter) {
     ConfigSvc::ConfigSvc cfg;
     try {
       return cfg.getStr(_name, parameter).c_str();
     } catch (const ConfigSvc::ExceptionMissing& ex) {
+#if 1
+      return cfg.getStr(_className, parameter);
+#else
       try {
-        return cfg.getStr(_className, parameter).c_str();
+        return cfg.getStr(_className, parameter);
       } catch (const ConfigSvc::ExceptionMissing& ex) {
-        return 0;
+        return 0; // XXX raise python exception?
       }
+#endif
     }
   }
 
-  string EnvWrapper::configStr2(const string& parameter, const char* _default) {
-    if (_default == 0) {
-      return configStr(parameter);
-    }
+  string EnvWrapper::configStr2(const string& parameter, const string& _default) {
     ConfigSvc::ConfigSvc cfg;
     try {
       return cfg.getStr(_name, parameter);
@@ -54,7 +56,8 @@ namespace Psana {
       return cfg.getStr(_className, parameter, _default);
     }
   }
-
+#endif
+#if 0
   Source EnvWrapper::configSource(const string& _default) {
     const char* value = configStr("source");
     if (value) {
@@ -63,10 +66,17 @@ namespace Psana {
       return Source(_default);
     }
   }
+#endif
+#if 1
+  Source EnvWrapper::convertToSource(const string& value) {
+    return Source(value);
+  }
+#endif
 
   object EnvWrapper::getConfigByType2(const char* typeName, const char* detectorSourceName) {
+    Pds::Src m_foundSrc;
     const Source detectorSource(detectorSourceName);
-    EnvGetMethod method(_env.configStore(), detectorSource);
+    EnvGetMethod method(_env.configStore(), detectorSource, &m_foundSrc);
     string typeName2(typeName);
     return GenericGetter::get(typeName2, &method);
   }
@@ -76,8 +86,9 @@ namespace Psana {
   }
 
   object EnvWrapper::getConfig2(int typeId, const char* detectorSourceName) {
+    Pds::Src m_foundSrc;
     const Source detectorSource(detectorSourceName);
-    EnvGetMethod method(_env.configStore(), detectorSource);
+    EnvGetMethod method(_env.configStore(), detectorSource, &m_foundSrc);
     return GenericGetter::get(typeId, &method);
   }
 
@@ -106,9 +117,10 @@ namespace Psana {
       .def("epicsStore", &EnvWrapper::epicsStore, return_value_policy<reference_existing_object>())
       .def("rhmgr", &EnvWrapper::rhmgr, return_value_policy<reference_existing_object>())
       .def("hmgr", &EnvWrapper::hmgr, return_value_policy<reference_existing_object>())
-      .def("configSource", &EnvWrapper::configSource)
+      //.def("configSource", &EnvWrapper::configSource)
       .def("configStr", &EnvWrapper::configStr)
-      .def("configStr2", &EnvWrapper::configStr2)
+      .def("configStr", &EnvWrapper::configStr2)
+      .def("Source", &EnvWrapper::convertToSource)
       .def("printAllKeys", &EnvWrapper::printAllKeys)
       .def("printConfigKeys", &EnvWrapper::printConfigKeys)
       .def("get", &EnvWrapper::getConfigByType1)

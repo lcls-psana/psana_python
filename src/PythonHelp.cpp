@@ -88,6 +88,14 @@ typedef boost::shared_ptr<PyObject> PyObjPtr;
 
 namespace Psana {
 
+  string stringValue_EpicsValue(EpicsStore::EpicsValue epicsValue) {
+    return string(epicsValue);
+  }
+
+  double doubleValue_EpicsValue(EpicsStore::EpicsValue epicsValue) {
+    return double(epicsValue);
+  }
+
   // This turns out not to be very useful because
   // e.g. xtc.TypeId.Type.Id_AcqConfig -> "AcqConfig" instead of "Psana::Acqiris::ConfigV1"
   string getCppTypeNameForPythonTypeId_Event(Event& evt, int typeId) {
@@ -161,8 +169,8 @@ namespace Psana {
       detectorSource = Source(detectorSourceName);
     }
 
-    printf("!!!===!!! PythonHelp::getByType_Event: faking getMethod(detectorSource)\n");
-    EvtGetMethod method(evt, detectorSource);
+    EvtGetMethod method(evt);
+    method.addSource(&detectorSource);
     string typeName2(typeName);
     return GenericGetter::get(typeName2, &method);
   }
@@ -216,10 +224,21 @@ namespace Psana {
       ;
 
     class_<EnvObjectStoreWrapper>("PSEnv::EnvObjectStore", init<EnvObjectStore&>())
-      .def("getBySrc", &EnvObjectStoreWrapper::getBySrc)
-      .def("getBySource", &EnvObjectStoreWrapper::getBySource)
-      .def("getByType", &EnvObjectStoreWrapper::getByType)
+      .def("get", &EnvObjectStoreWrapper::getBySrc)
+      .def("get", &EnvObjectStoreWrapper::getBySource)
+      .def("get", &EnvObjectStoreWrapper::getByType1)
+      .def("get", &EnvObjectStoreWrapper::getByType2)
       .def("keys", &EnvObjectStoreWrapper::keys)
+      ;
+
+    class_<Pds::Src>("Pds::Src", no_init)
+      .def("log", &Pds::Src::log)
+      .def("phy", &Pds::Src::phy)
+      ;
+
+    class_<EpicsStore::EpicsValue>("PSEnv::EpicsValue", no_init)
+      .def("stringValue", stringValue_EpicsValue)
+      .def("doubleValue", doubleValue_EpicsValue)
       ;
 
     EnvWrapper_Class = EnvWrapper::getBoostPythonClass();
@@ -241,6 +260,5 @@ namespace Psana {
     PyObjPtr res(PyObject_Call(method, args.get(), NULL), PyRefDelete());
     return res;
   }
-
 
 } // namespace Psana

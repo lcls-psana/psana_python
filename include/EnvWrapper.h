@@ -8,19 +8,20 @@
 
 namespace Psana {
   using boost::python::api::object;
+  using std::string;
 
   class EnvWrapper {
   private:
     PSEnv::Env& _env;
-    const std::string& _name;
-    const std::string& _className;
+    const string& _name;
+    const string& _className;
   public:
-    EnvWrapper(PSEnv::Env& env, const std::string& name, const std::string& className) : _env(env), _name(name), _className(className) {}
-    const std::string& jobName() const { return _env.jobName(); }
-    const std::string& instrument() const { return _env.instrument(); }
-    const std::string& experiment() const { return _env.experiment(); }
+    EnvWrapper(PSEnv::Env& env, const string& name, const string& className) : _env(env), _name(name), _className(className) {}
+    const string& jobName() const { return _env.jobName(); }
+    const string& instrument() const { return _env.instrument(); }
+    const string& experiment() const { return _env.experiment(); }
     const unsigned expNum() const { return _env.expNum(); }
-    const std::string& calibDir() const { return _env.calibDir(); }
+    const string& calibDir() const { return _env.calibDir(); }
     EnvObjectStoreWrapper configStore() { return EnvObjectStoreWrapper(_env.configStore()); }
     PSEnv::EnvObjectStore& calibStore() { return _env.calibStore(); }
     PSEnv::EpicsStore& epicsStore() { return _env.epicsStore(); }
@@ -29,9 +30,15 @@ namespace Psana {
     PSEnv::Env& getEnv() { return _env; };
     void printAllKeys();
     void printConfigKeys();
-    const char* configStr(const std::string& parameter);
-    std::string configStr2(const std::string& parameter, const char* _default);
-    PSEvt::Source configSource(const std::string& _default);
+#if 0
+    const char* configStr(const string& parameter);
+    string configStr2(const string& parameter, const char* _default);
+    PSEvt::Source configSource(const string& _default);
+#else
+    string configStr(const string& parameter);
+    string configStr2(const string& parameter, const string& _default);
+    PSEvt::Source convertToSource(const string& value);
+#endif
     object getConfigByType2(const char* typeName, const char* detectorSourceName);
     object getConfigByType1(const char* typeName);
     object getConfig2(int typeId, const char* detectorSourceName);

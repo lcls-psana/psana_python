@@ -5,6 +5,7 @@
 #include <boost/python.hpp>
 #include <PSEnv/Env.h>
 #include <psddl_python/EnvGetter.h>
+#include <psddl_python/EnvGetMethod.h>
 
 namespace Psana {
 
@@ -16,18 +17,28 @@ namespace Psana {
     EnvObjectStoreWrapper(PSEnv::EnvObjectStore& store) : _store(store) {}
     // template <typename T> void putProxy(const boost::shared_ptr<PSEvt::Proxy<T> >& proxy, const Pds::Src& source);
     // template <typename T> void put(const boost::shared_ptr<T>& data, const Pds::Src& source);
-    PSEnv::EnvObjectStore::GetResultProxy getBySrc(const Pds::Src& src) { return _store.get(src); }
-    PSEnv::EnvObjectStore::GetResultProxy getBySource(const PSEvt::Source& source, Pds::Src* foundSrc = 0) { return _store.get(source, foundSrc); }
 
-    boost::python::api::object getByType(const string& typeName, const PSEvt::Source& source) {
+    PSEnv::EnvObjectStore::GetResultProxy getBySrc(const Pds::Src& src) {
+      return _store.get(src);
+    }
 
-      // XXX also print out [Source& source] string?
+    PSEnv::EnvObjectStore::GetResultProxy getBySource(const PSEvt::Source& source, Pds::Src* foundSrc = 0) {
+      return _store.get(source, foundSrc);
+    }
 
-      printf("!!!===!!! EnvObjectStoreWrapper::getByType: faking getMethod(source)\n");
-      GetMethod* getMethod = NULL; // Xxx(source);
-
+    boost::python::api::object getByType2(const string& typeName, const PSEvt::Source& source, boost::python::list m_src) {
+      Pds::Src foundSrc;
+      EnvGetMethod method(_store, source, &foundSrc);
       string typeName2(typeName);
-      return GenericGetter::get(typeName2, getMethod);
+      boost::python::api::object result = GenericGetter::get(typeName2, &method);
+      m_src.append(foundSrc);
+      printf("%x.%x\n", foundSrc.log(), foundSrc.phy());
+      return result;
+    }
+
+    boost::python::api::object getByType1(const string& typeName, const PSEvt::Source& source) {
+      boost::python::list m_src;
+      return getByType2(typeName, source, m_src);
     }
 
     list<PSEvt::EventKey> keys(const PSEvt::Source& source = PSEvt::Source()) const { return _store.keys(); }
