@@ -34,7 +34,6 @@
 #include <numpy/arrayobject.h>
 #include <string>
 #include <set>
-#include <cxxabi.h>
 #include <python/Python.h>
 
 //-------------------------------
@@ -44,12 +43,9 @@
 #include <PSEnv/Env.h>
 #include <PSEnv/EpicsStore.h>
 #include <PSEvt/Event.h>
-#include <PSEvt/EventId.h>
 #include <ConfigSvc/ConfigSvc.h>
-#include <psddl_python/GenericGetter.h>
-#include <psddl_python/EvtGetter.h>
-#include <psddl_python/EvtGetMethod.h>
 #include <psana_python/EnvWrapper.h>
+#include <psana_python/EventWrapper.h>
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -91,6 +87,7 @@ namespace Psana {
 
 
 
+  extern object EventWrapper_Class;
   extern object Event_Class;
   extern object EnvWrapper_Class;
 
@@ -101,60 +98,6 @@ namespace Psana {
   double doubleValue_EpicsValue(EpicsStore::EpicsValue epicsValue) {
     return double(epicsValue);
   }
-
-
-  boost::shared_ptr<string> get_Event(Event& evt, const string& key) {
-    return boost::shared_ptr<string>(evt.get(key));
-  }
-
-  object getByType_Event(Event& evt, const string& typeName, const string& detectorSourceName) {
-    if (typeName == "PSEvt::EventId") {
-      const boost::shared_ptr<PSEvt::EventId> eventId = evt.get();
-      return object(eventId);
-    }
-
-    //printAllKeys_Event(evt);
-    Source detectorSource;
-    if (detectorSourceName == "") {
-      detectorSource = Source();
-    } else {
-      detectorSource = Source(detectorSourceName);
-    }
-
-    EvtGetMethod method(evt);
-    method.addSource(&detectorSource);
-    string typeName2(typeName);
-    return GenericGetter::get(typeName2, &method);
-  }
-
-  list<string> getAllKeys_Event(Event& evt) {
-    Event::GetResultProxy proxy = evt.get();
-    list<EventKey> keys;
-    proxy.m_dict->keys(keys, Source());
-
-    list<string> keyNames;
-    list<EventKey>::iterator it;
-    for (it = keys.begin(); it != keys.end(); it++) {
-      EventKey& key = *it;
-      cout << "THIS is a key: " << key << endl;
-
-      //cout << "THIS is a key typeid: " << key << endl;
-
-      int status;
-      char* keyName = abi::__cxa_demangle(key.typeinfo()->name(), 0, 0, &status);
-
-      cout << "THIS is a keyName: " << keyName << endl;
-      keyNames.push_back(string(keyName));
-    }
-    return keyNames;
-  }
-
-  int run_Event(Event& evt) {
-    const boost::shared_ptr<PSEvt::EventId> eventId = evt.get();
-    return eventId->run();
-  }
-
-
 
   static bool createWrappersDone = false;
 
@@ -190,12 +133,22 @@ namespace Psana {
       .def("src", &Source::src, return_value_policy<reference_existing_object>())
       ;
 
+#if 0
     Event_Class =
       class_<PSEvt::Event>("PSEvt::Event", init<Event&>())
       .def("get", &get_Event)
       .def("getByType", &getByType_Event)
       .def("getAllKeys", &getAllKeys_Event, return_value_policy<return_by_value>())
       .def("run", &run_Event)
+      ;
+#endif
+
+    EventWrapper_Class =
+      class_<EventWrapper>("PSEvt::Event", init<EventWrapper&>())
+      .def("get", &EventWrapper::get_Event)
+      .def("getByType", &EventWrapper::getByType_Event)
+      .def("getAllKeys", &EventWrapper::getAllKeys_Event, return_value_policy<return_by_value>())
+      .def("run", &EventWrapper::run_Event)
       ;
 
     class_<EnvObjectStoreWrapper>("PSEnv::EnvObjectStore", init<EnvObjectStore&>())

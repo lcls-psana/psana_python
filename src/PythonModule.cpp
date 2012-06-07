@@ -27,10 +27,10 @@
 #include <MsgLogger/MsgLogger.h>
 #include <PSEvt/EventId.h>
 #include <psana/Exceptions.h>
-//#include <psana_python/PythonHelp.h>
 #include <psana_python/CreateWrappers.h>
 #include <boost/python.hpp>
 #include <psana_python/EnvWrapper.h>
+#include <psana_python/EventWrapper.h>
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -124,6 +124,7 @@ PythonModule::~PythonModule ()
   // XXX static?
   object Event_Class;
   object EnvWrapper_Class;
+  object EventWrapper_Class;
 
 
   object getEnvWrapper(Env& env, const string& name, const string& className) {
@@ -132,8 +133,17 @@ PythonModule::~PythonModule ()
     return envWrapper;
   }
 
-  object getEvtWrapper(Event& evt) {
+  object getEventWrapper(Event& event) {
+#if 0
     return object(Event_Class(evt));
+#else
+    printf("getEventWrapper:%d\n", __LINE__);
+    EventWrapper _eventWrapper(event);
+    printf("getEventWrapper:%d\n", __LINE__);
+    object eventWrapper(EventWrapper_Class(_eventWrapper));
+    printf("getEventWrapper:%d\n", __LINE__);
+    return eventWrapper;
+#endif
   }
 
 
@@ -156,7 +166,7 @@ PythonModule::call(PyObject* psana_method, PyObject* pyana_method, bool pyana_no
   PyObjPtr args(PyTuple_New(nargs), PyRefDelete());
   object evtWrapper;
   if (pevt) {
-    evtWrapper = Psana::getEvtWrapper(*pevt);
+    evtWrapper = Psana::getEventWrapper(*pevt);
     PyTuple_SET_ITEM(args.get(), 0, evtWrapper.ptr());
   }
   object envWrapper = Psana::getEnvWrapper(env, name(), className());
