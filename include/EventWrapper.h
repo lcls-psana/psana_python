@@ -24,17 +24,13 @@ namespace Psana {
 
 
 
-    boost::shared_ptr<string> get(const string& key) {
-      return boost::shared_ptr<string>(_event.get(key));
-    }
-
-    object getByType_Event(const string& typeName, const string& detectorSourceName) {
+    object getByType(const string& typeName, const string& detectorSourceName) {
       if (typeName == "PSEvt::EventId") {
         const boost::shared_ptr<PSEvt::EventId> eventId = _event.get();
         return object(eventId);
       }
 
-      //printAllKeys_Event(evt);
+      //printAllKeys(evt);
       Source detectorSource;
       if (detectorSourceName == "") {
         detectorSource = Source();
@@ -48,7 +44,7 @@ namespace Psana {
       return GenericGetter::get(typeName2, &method);
     }
 
-    list<string> getAllKeys_Event() {
+    list<string> getAllKeys() {
       Event::GetResultProxy proxy = _event.get();
       list<EventKey> keys;
       proxy.m_dict->keys(keys, Source());
@@ -70,12 +66,12 @@ namespace Psana {
       return keyNames;
     }
 
-    int run_Event() {
+    int run() {
       const boost::shared_ptr<PSEvt::EventId> eventId = _event.get();
       return eventId->run();
     }
 
-    boost::shared_ptr<string> get_Event(const string& key) {
+    boost::shared_ptr<string> get(const string& key) {
       return boost::shared_ptr<string>(_event.get(key));
     }
 

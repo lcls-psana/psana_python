@@ -44,6 +44,7 @@
 #include <PSEnv/EpicsStore.h>
 #include <PSEvt/Event.h>
 #include <ConfigSvc/ConfigSvc.h>
+#include <psana_python/CreateDeviceWrappers.h>
 #include <psana_python/EnvWrapper.h>
 #include <psana_python/EventWrapper.h>
 
@@ -81,14 +82,7 @@ using Pds::Src;
     .def(vector_indexing_suite_nocopy<vector<T> >())
 
 namespace Psana {
-  namespace CreateWrappers {
-    extern void createDeviceWrappers();
-  }
-
-
-
   extern object EventWrapper_Class;
-  extern object Event_Class;
   extern object EnvWrapper_Class;
 
   string stringValue_EpicsValue(EpicsStore::EpicsValue epicsValue) {
@@ -133,22 +127,12 @@ namespace Psana {
       .def("src", &Source::src, return_value_policy<reference_existing_object>())
       ;
 
-#if 0
-    Event_Class =
-      class_<PSEvt::Event>("PSEvt::Event", init<Event&>())
-      .def("get", &get_Event)
-      .def("getByType", &getByType_Event)
-      .def("getAllKeys", &getAllKeys_Event, return_value_policy<return_by_value>())
-      .def("run", &run_Event)
-      ;
-#endif
-
     EventWrapper_Class =
       class_<EventWrapper>("PSEvt::Event", init<EventWrapper&>())
-      .def("get", &EventWrapper::get_Event)
-      .def("getByType", &EventWrapper::getByType_Event)
-      .def("getAllKeys", &EventWrapper::getAllKeys_Event, return_value_policy<return_by_value>())
-      .def("run", &EventWrapper::run_Event)
+      .def("get", &EventWrapper::get)
+      .def("getByType", &EventWrapper::getByType)
+      .def("getAllKeys", &EventWrapper::getAllKeys, return_value_policy<return_by_value>())
+      .def("run", &EventWrapper::run)
       ;
 
     class_<EnvObjectStoreWrapper>("PSEnv::EnvObjectStore", init<EnvObjectStore&>())
@@ -169,10 +153,30 @@ namespace Psana {
       .def("doubleValue", doubleValue_EpicsValue)
       ;
 
-    EnvWrapper_Class = EnvWrapper::getBoostPythonClass();
+    EnvWrapper_Class = class_<EnvWrapper>("PSEnv::Env", init<EnvWrapper&>())
+      .def("jobName", &EnvWrapper::jobName, return_value_policy<copy_const_reference>())
+      .def("instrument", &EnvWrapper::instrument, return_value_policy<copy_const_reference>())
+      .def("experiment", &EnvWrapper::experiment, return_value_policy<copy_const_reference>())
+      .def("expNum", &EnvWrapper::expNum)
+      .def("calibDir", &EnvWrapper::calibDir, return_value_policy<copy_const_reference>())
+      .def("configStore", &EnvWrapper::configStore)
+      .def("calibStore", &EnvWrapper::calibStore, return_value_policy<reference_existing_object>())
+      .def("epicsStore", &EnvWrapper::epicsStore, return_value_policy<reference_existing_object>())
+      .def("rhmgr", &EnvWrapper::rhmgr, return_value_policy<reference_existing_object>())
+      .def("hmgr", &EnvWrapper::hmgr, return_value_policy<reference_existing_object>())
+      .def("configStr", &EnvWrapper::configStr)
+      .def("configStr", &EnvWrapper::configStr2)
+      .def("Source", &EnvWrapper::convertToSource)
+      .def("printAllKeys", &EnvWrapper::printAllKeys)
+      .def("printConfigKeys", &EnvWrapper::printConfigKeys)
+      .def("get", &EnvWrapper::getConfigByType1)
+      .def("get", &EnvWrapper::getConfigByType2)
+      .def("getConfig", &EnvWrapper::getConfig1)
+      .def("getConfig", &EnvWrapper::getConfig2)
+      .def("assert_psana", &EnvWrapper::assert_psana)
+      ;
 
-    CreateWrappers::createDeviceWrappers();
-
+    createDeviceWrappers();
     createWrappersDone = true;
   }
 }

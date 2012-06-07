@@ -30,20 +30,14 @@ namespace Psana {
     PSEnv::Env& getEnv() { return _env; };
     void printAllKeys();
     void printConfigKeys();
-#if 0
-    const char* configStr(const string& parameter);
-    string configStr2(const string& parameter, const char* _default);
-    PSEvt::Source configSource(const string& _default);
-#else
     string configStr(const string& parameter);
     string configStr2(const string& parameter, const string& _default);
-    PSEvt::Source convertToSource(const string& value);
-#endif
+    PSEvt::Source convertToSource(const string& value) { return Source(value); }
     object getConfigByType2(const char* typeName, const char* detectorSourceName);
     object getConfigByType1(const char* typeName);
     object getConfig2(int typeId, const char* detectorSourceName);
     object getConfig1(int typeId);
-    void assert_psana();
+    void assert_psana() {}
     static object getBoostPythonClass();
   };
 }

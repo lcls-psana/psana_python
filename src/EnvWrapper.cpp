@@ -56,10 +56,6 @@ namespace Psana {
     }
   }
 
-  Source EnvWrapper::convertToSource(const string& value) {
-    return Source(value);
-  }
-
   object EnvWrapper::getConfigByType2(const char* typeName, const char* detectorSourceName) {
     Pds::Src m_foundSrc;
     const Source detectorSource(detectorSourceName);
@@ -82,41 +78,5 @@ namespace Psana {
   object EnvWrapper::getConfig1(int typeId) {
     printf("-> getConfig1(%d)\n", typeId);
     return getConfig2(typeId, "ProcInfo()");
-  }
-
-  void EnvWrapper::assert_psana() {
-  }
-
-  using boost::python::class_;
-  using boost::python::copy_const_reference;
-  using boost::python::init;
-  using boost::python::no_init;
-  using boost::python::numeric::array;
-  using boost::python::reference_existing_object;
-  using boost::python::return_value_policy;
-
-  object EnvWrapper::getBoostPythonClass() {
-    return class_<EnvWrapper>("PSEnv::Env", init<EnvWrapper&>())
-      .def("jobName", &EnvWrapper::jobName, return_value_policy<copy_const_reference>())
-      .def("instrument", &EnvWrapper::instrument, return_value_policy<copy_const_reference>())
-      .def("experiment", &EnvWrapper::experiment, return_value_policy<copy_const_reference>())
-      .def("expNum", &EnvWrapper::expNum)
-      .def("calibDir", &EnvWrapper::calibDir, return_value_policy<copy_const_reference>())
-      .def("configStore", &EnvWrapper::configStore)
-      .def("calibStore", &EnvWrapper::calibStore, return_value_policy<reference_existing_object>())
-      .def("epicsStore", &EnvWrapper::epicsStore, return_value_policy<reference_existing_object>())
-      .def("rhmgr", &EnvWrapper::rhmgr, return_value_policy<reference_existing_object>())
-      .def("hmgr", &EnvWrapper::hmgr, return_value_policy<reference_existing_object>())
-      .def("configStr", &EnvWrapper::configStr)
-      .def("configStr", &EnvWrapper::configStr2)
-      .def("Source", &EnvWrapper::convertToSource)
-      .def("printAllKeys", &EnvWrapper::printAllKeys)
-      .def("printConfigKeys", &EnvWrapper::printConfigKeys)
-      .def("get", &EnvWrapper::getConfigByType1)
-      .def("get", &EnvWrapper::getConfigByType2)
-      .def("getConfig", &EnvWrapper::getConfig1)
-      .def("getConfig", &EnvWrapper::getConfig2)
-      .def("assert_psana", &EnvWrapper::assert_psana)
-      ;
   }
 }
