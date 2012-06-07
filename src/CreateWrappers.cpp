@@ -23,7 +23,7 @@
 //-----------------------
 // This Class's Header --
 //-----------------------
-#include <psana_python/PythonHelp.h>
+#include <psana_python/CreateWrappers.h>
 
 //-----------------
 // C/C++ Headers --

@@ -152,9 +152,6 @@ PythonModule::call(PyObject* psana_method, PyObject* pyana_method, bool pyana_no
       pevt = NULL;
     }
   }
-#if 0
-  PyObjPtr res(Psana::call(method, pevt, penv, name(), className()));
-#else
   int nargs = (pevt == NULL ? 1 : 2);
   PyObjPtr args(PyTuple_New(nargs), PyRefDelete());
   object evtWrapper;
@@ -165,7 +162,6 @@ PythonModule::call(PyObject* psana_method, PyObject* pyana_method, bool pyana_no
   object envWrapper = Psana::getEnvWrapper(env, name(), className());
   PyTuple_SET_ITEM(args.get(), nargs - 1, envWrapper.ptr());
   PyObjPtr res(PyObject_Call(method, args.get(), NULL), PyRefDelete());
-#endif
   if (not res) {
     PyErr_Print();
     throw ExceptionGenericPyError(ERR_LOC, "exception raised while calling Python method");
