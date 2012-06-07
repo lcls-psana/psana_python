@@ -7,8 +7,8 @@
 
 namespace Psana {
   extern boost::shared_ptr<PyObject> call(PyObject* method,
-                                          PSEvt::Event& evt,
-                                          PSEnv::Env& env,
+                                          PSEvt::Event* evt,
+                                          PSEnv::Env* env,
                                           const std::string& name,
                                           const std::string& className);
 }

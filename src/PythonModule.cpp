@@ -27,14 +27,17 @@
 #include <MsgLogger/MsgLogger.h>
 #include <PSEvt/EventId.h>
 #include <psana/Exceptions.h>
-#include <psana_python/PythonHelp.h>
+//#include <psana_python/PythonHelp.h>
 #include <psana_python/CreateWrappers.h>
+#include <boost/python.hpp>
+#include <psana_python/EnvWrapper.h>
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
 //-----------------------------------------------------------------------
 
 using std::string;
+using boost::python::api::object;
 
 namespace {
 
@@ -69,33 +72,28 @@ namespace {
 // 		-- Public Function Member Definitions --
 //		----------------------------------------
 
-namespace psana {
+namespace Psana {
 
 //----------------
 // Constructors --
 //----------------
-static PyObject* getMethodByName(PyObject* instance, char* name) {
-  PyObject* method = PyObject_GetAttrString(instance, name);
-  if (method == NULL) {
-    const int size = strlen(name) + 1;
-    char lname[size];
-    for (int i = 0; i < size; i++) {
-      lname[i] = tolower(name[i]);
-    }
-    method = PyObject_GetAttrString(instance, lname);
-  }
-  return method;
-}
-
 PythonModule::PythonModule(const string& name, PyObject* instance) : Module(name), m_instance(instance)
 {
-  m_beginJob = getMethodByName(m_instance, "beginJob");
-  m_beginRun = getMethodByName(m_instance, "beginRun");
-  m_beginCalibCycle = getMethodByName(m_instance, "beginCalibCycle");
-  m_event = getMethodByName(m_instance, "event");
-  m_endCalibCycle = getMethodByName(m_instance, "endCalibCycle");
-  m_endRun = getMethodByName(m_instance, "endRun");
-  m_endJob = getMethodByName(m_instance, "endJob");
+  m_beginJob = PyObject_GetAttrString(m_instance, "beginJob");
+  m_beginRun = PyObject_GetAttrString(m_instance, "beginRun");
+  m_beginCalibCycle = PyObject_GetAttrString(m_instance, "beginCalibCycle");
+  m_event = PyObject_GetAttrString(m_instance, "event");
+  m_endCalibCycle = PyObject_GetAttrString(m_instance, "endCalibCycle");
+  m_endRun = PyObject_GetAttrString(m_instance, "endRun");
+  m_endJob = PyObject_GetAttrString(m_instance, "endJob");
+
+  // Temporary pyana (XtcExplorer) support
+  m_beginjob = PyObject_GetAttrString(m_instance, "beginjob");
+  m_beginrun = PyObject_GetAttrString(m_instance, "beginrun");
+  m_begincalibcycle = PyObject_GetAttrString(m_instance, "begincalibcycle");
+  m_endcalibcycle = PyObject_GetAttrString(m_instance, "endcalibcycle");
+  m_endrun = PyObject_GetAttrString(m_instance, "endrun");
+  m_endjob = PyObject_GetAttrString(m_instance, "endjob");
 
   Psana::createWrappers();
 }
@@ -113,15 +111,61 @@ PythonModule::~PythonModule ()
   Py_CLEAR(m_endCalibCycle);
   Py_CLEAR(m_endRun);
   Py_CLEAR(m_endJob);
+
+  // Temporary pyana (XtcExplorer) support
+  Py_CLEAR(m_beginjob);
+  Py_CLEAR(m_beginrun);
+  Py_CLEAR(m_begincalibcycle);
+  Py_CLEAR(m_endcalibcycle);
+  Py_CLEAR(m_endrun);
+  Py_CLEAR(m_endjob);
 }
+
+  // XXX static?
+  object Event_Class;
+  object EnvWrapper_Class;
+
+
+  object getEnvWrapper(Env& env, const string& name, const string& className) {
+    EnvWrapper _envWrapper(env, name, className);
+    object envWrapper(EnvWrapper_Class(_envWrapper));
+    return envWrapper;
+  }
+
+  object getEvtWrapper(Event& evt) {
+    return object(Event_Class(evt));
+  }
+
 
 // call specific method
 void
-PythonModule::call(PyObject* method, Event& evt, Env& env)
+PythonModule::call(PyObject* psana_method, PyObject* pyana_method, bool pyana_no_evt, Event& evt, Env& env)
 {
-  if (not method) return;
-
-  PyObjPtr res(Psana::call(method, evt, env, name(), className()));
+  Event* pevt = &evt;
+  PyObject* method = psana_method;
+  if (method == NULL) {
+    method = pyana_method;
+    if (method == NULL) {
+      return;
+    }
+    if (pyana_no_evt) {
+      pevt = NULL;
+    }
+  }
+#if 0
+  PyObjPtr res(Psana::call(method, pevt, penv, name(), className()));
+#else
+  int nargs = (pevt == NULL ? 1 : 2);
+  PyObjPtr args(PyTuple_New(nargs), PyRefDelete());
+  object evtWrapper;
+  if (pevt) {
+    evtWrapper = Psana::getEvtWrapper(*pevt);
+    PyTuple_SET_ITEM(args.get(), 0, evtWrapper.ptr());
+  }
+  object envWrapper = Psana::getEnvWrapper(env, name(), className());
+  PyTuple_SET_ITEM(args.get(), nargs - 1, envWrapper.ptr());
+  PyObjPtr res(PyObject_Call(method, args.get(), NULL), PyRefDelete());
+#endif
   if (not res) {
     PyErr_Print();
     throw ExceptionGenericPyError(ERR_LOC, "exception raised while calling Python method");

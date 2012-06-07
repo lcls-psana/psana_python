@@ -1,3 +1,4 @@
+#if 0
 ////////////////////////////////////////////////////////////////////////////////
 //
 // XXX TO DO:
@@ -88,30 +89,13 @@ typedef boost::shared_ptr<PyObject> PyObjPtr;
 
 namespace Psana {
 
-  string stringValue_EpicsValue(EpicsStore::EpicsValue epicsValue) {
-    return string(epicsValue);
-  }
-
-  double doubleValue_EpicsValue(EpicsStore::EpicsValue epicsValue) {
-    return double(epicsValue);
-  }
-
-  // This turns out not to be very useful because
-  // e.g. xtc.TypeId.Type.Id_AcqConfig -> "AcqConfig" instead of "Psana::Acqiris::ConfigV1"
-  string getCppTypeNameForPythonTypeId_Event(Event& evt, int typeId) {
-    return string(Pds::TypeId::name(Pds::TypeId::Type(typeId)));
-  }
-
-  namespace CreateWrappers {
-    extern void createWrappers();
-  }
-
   struct PyRefDelete {
     void operator()(PyObject* obj) { Py_CLEAR(obj); }
   };
-
-  static object Event_Class;
-  static object EnvWrapper_Class;
+#if 0
+  // XXX static?
+  object Event_Class;
+  object EnvWrapper_Class;
 
 
   object getEnvWrapper(Env& env, const string& name, const string& className) {
@@ -124,141 +108,21 @@ namespace Psana {
     return object(Event_Class(evt));
   }
 
-  boost::shared_ptr<string> get_Event(Event& evt, const string& key) {
-    return boost::shared_ptr<string>(evt.get(key));
-  }
-
-  list<string> getAllKeys_Event(Event& evt) {
-    Event::GetResultProxy proxy = evt.get();
-    list<EventKey> keys;
-    proxy.m_dict->keys(keys, Source());
-
-    list<string> keyNames;
-    list<EventKey>::iterator it;
-    for (it = keys.begin(); it != keys.end(); it++) {
-      EventKey& key = *it;
-      cout << "THIS is a key: " << key << endl;
-
-      //cout << "THIS is a key typeid: " << key << endl;
-
-      int status;
-      char* keyName = abi::__cxa_demangle(key.typeinfo()->name(), 0, 0, &status);
-
-      cout << "THIS is a keyName: " << keyName << endl;
-      keyNames.push_back(string(keyName));
-    }
-    return keyNames;
-  }
-
-  int run_Event(Event& evt) {
-    const boost::shared_ptr<PSEvt::EventId> eventId = evt.get();
-    return eventId->run();
-  }
-
-  object getByType_Event(Event& evt, const string& typeName, const string& detectorSourceName) {
-    if (typeName == "PSEvt::EventId") {
-      const boost::shared_ptr<PSEvt::EventId> eventId = evt.get();
-      return object(eventId);
-    }
-
-    //printAllKeys_Event(evt);
-    Source detectorSource;
-    if (detectorSourceName == "") {
-      detectorSource = Source();
-    } else {
-      detectorSource = Source(detectorSourceName);
-    }
-
-    EvtGetMethod method(evt);
-    method.addSource(&detectorSource);
-    string typeName2(typeName);
-    return GenericGetter::get(typeName2, &method);
-  }
-
-  static bool createWrappersDone = false;
-
-#define std_vector_class_(T)\
-  class_<vector<T> >("std::vector<" #T ">")\
-    .def(vector_indexing_suite_nocopy<vector<T> >())
-
-  void createWrappers()
+  // call specified method
+  boost::shared_ptr<PyObject> call(PyObject* method, Event* evt, Env* env, const string& name, const string& className)
   {
-    if (createWrappersDone) {
-      return;
+    int nargs = (evt == NULL ? 1 : 2);
+    PyObjPtr args(PyTuple_New(nargs), PyRefDelete());
+    object evtWrapper;
+    if (evt) {
+      evtWrapper = Psana::getEvtWrapper(*evt);
+      PyTuple_SET_ITEM(args.get(), 0, evtWrapper.ptr());
     }
-
-    // Required initialization of numpy array support
-    _import_array();
-    array::set_module_and_type("numpy", "ndarray");
-
-    printf("std_vector_class_(int)...\n");
-    std_vector_class_(int);
-    std_vector_class_(short);
-    std_vector_class_(unsigned);
-    std_vector_class_(unsigned short);
-    printf("std_vector_class_(EventKey)...\n");
-    std_vector_class_(EventKey);
-    std_vector_class_(std::string);
-
-    class_<PSEnv::EnvObjectStore::GetResultProxy>("PSEnv::EnvObjectStore::GetResultProxy", no_init)
-      ;
-
-    class_<PSEnv::EpicsStore, boost::noncopyable>("PSEnv::EpicsStore", no_init)
-      .def("value", &EpicsStore::value)
-      ;
-
-    class_<PSEvt::Source>("PSEvt::Source", no_init)
-      .def("match", &Source::match)
-      .def("isNoSource", &Source::isNoSource)
-      .def("isExact", &Source::isExact)
-      .def("src", &Source::src, return_value_policy<reference_existing_object>())
-      ;
-
-    Event_Class =
-      class_<PSEvt::Event>("PSEvt::Event", init<Event&>())
-      .def("get", &get_Event)
-      .def("getByType", &getByType_Event)
-      .def("getAllKeys", &getAllKeys_Event, return_value_policy<return_by_value>())
-      .def("run", &run_Event)
-      .def("getCppTypeNameForPythonTypeId", &getCppTypeNameForPythonTypeId_Event);
-      ;
-
-    class_<EnvObjectStoreWrapper>("PSEnv::EnvObjectStore", init<EnvObjectStore&>())
-      .def("get", &EnvObjectStoreWrapper::getBySrc)
-      .def("get", &EnvObjectStoreWrapper::getBySource)
-      .def("get", &EnvObjectStoreWrapper::getByType1)
-      .def("get", &EnvObjectStoreWrapper::getByType2)
-      .def("keys", &EnvObjectStoreWrapper::keys)
-      ;
-
-    class_<Pds::Src>("Pds::Src", no_init)
-      .def("log", &Pds::Src::log)
-      .def("phy", &Pds::Src::phy)
-      ;
-
-    class_<EpicsStore::EpicsValue>("PSEnv::EpicsValue", no_init)
-      .def("stringValue", stringValue_EpicsValue)
-      .def("doubleValue", doubleValue_EpicsValue)
-      ;
-
-    EnvWrapper_Class = EnvWrapper::getBoostPythonClass();
-
-    CreateWrappers::createWrappers();
-
-    createWrappersDone = true;
-  }
-
-  // call specific method
-  boost::shared_ptr<PyObject> call(PyObject* method, Event& evt, Env& env, const string& name, const string& className)
-  {
-    object envWrapper = Psana::getEnvWrapper(env, name, className);
-    object evtWrapper = Psana::getEvtWrapper(evt);
-
-    PyObjPtr args(PyTuple_New(2), PyRefDelete());
-    PyTuple_SET_ITEM(args.get(), 0, evtWrapper.ptr());
-    PyTuple_SET_ITEM(args.get(), 1, envWrapper.ptr());
+    object envWrapper = Psana::getEnvWrapper(*env, name, className);
+    PyTuple_SET_ITEM(args.get(), nargs - 1, envWrapper.ptr());
     PyObjPtr res(PyObject_Call(method, args.get(), NULL), PyRefDelete());
     return res;
   }
-
+#endif
 } // namespace Psana
+#endif

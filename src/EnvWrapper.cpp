@@ -30,7 +30,6 @@ namespace Psana {
     }
   }
 
-#if 1
   string EnvWrapper::configStr(const string& parameter) {
     ConfigSvc::ConfigSvc cfg;
     try {
@@ -56,22 +55,10 @@ namespace Psana {
       return cfg.getStr(_className, parameter, _default);
     }
   }
-#endif
-#if 0
-  Source EnvWrapper::configSource(const string& _default) {
-    const char* value = configStr("source");
-    if (value) {
-      return Source(value);
-    } else {
-      return Source(_default);
-    }
-  }
-#endif
-#if 1
+
   Source EnvWrapper::convertToSource(const string& value) {
     return Source(value);
   }
-#endif
 
   object EnvWrapper::getConfigByType2(const char* typeName, const char* detectorSourceName) {
     Pds::Src m_foundSrc;
@@ -97,6 +84,9 @@ namespace Psana {
     return getConfig2(typeId, "ProcInfo()");
   }
 
+  void EnvWrapper::assert_psana() {
+  }
+
   using boost::python::class_;
   using boost::python::copy_const_reference;
   using boost::python::init;
@@ -117,7 +107,6 @@ namespace Psana {
       .def("epicsStore", &EnvWrapper::epicsStore, return_value_policy<reference_existing_object>())
       .def("rhmgr", &EnvWrapper::rhmgr, return_value_policy<reference_existing_object>())
       .def("hmgr", &EnvWrapper::hmgr, return_value_policy<reference_existing_object>())
-      //.def("configSource", &EnvWrapper::configSource)
       .def("configStr", &EnvWrapper::configStr)
       .def("configStr", &EnvWrapper::configStr2)
       .def("Source", &EnvWrapper::convertToSource)
@@ -127,6 +116,7 @@ namespace Psana {
       .def("get", &EnvWrapper::getConfigByType2)
       .def("getConfig", &EnvWrapper::getConfig1)
       .def("getConfig", &EnvWrapper::getConfig2)
+      .def("assert_psana", &EnvWrapper::assert_psana)
       ;
   }
 }
