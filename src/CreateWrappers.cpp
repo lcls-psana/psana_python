@@ -82,8 +82,8 @@ using Pds::Src;
     .def(vector_indexing_suite_nocopy<vector<T> >())
 
 namespace Psana {
-  extern object EventWrapper_Class;
-  extern object EnvWrapper_Class;
+  object EventWrapperClass;
+  object EnvWrapperClass;
 
   string stringValue_EpicsValue(EpicsStore::EpicsValue epicsValue) {
     return string(epicsValue);
@@ -127,10 +127,10 @@ namespace Psana {
       .def("src", &Source::src, return_value_policy<reference_existing_object>())
       ;
 
-    EventWrapper_Class =
+    EventWrapperClass =
       class_<EventWrapper>("PSEvt::Event", init<EventWrapper&>())
       .def("get", &EventWrapper::get)
-      .def("getByType", &EventWrapper::getByType)
+      .def("get", &EventWrapper::getByType)
       .def("getAllKeys", &EventWrapper::getAllKeys, return_value_policy<return_by_value>())
       .def("run", &EventWrapper::run)
       ;
@@ -153,7 +153,7 @@ namespace Psana {
       .def("doubleValue", doubleValue_EpicsValue)
       ;
 
-    EnvWrapper_Class = class_<EnvWrapper>("PSEnv::Env", init<EnvWrapper&>())
+    EnvWrapperClass = class_<EnvWrapper>("PSEnv::Env", init<EnvWrapper&>())
       .def("jobName", &EnvWrapper::jobName, return_value_policy<copy_const_reference>())
       .def("instrument", &EnvWrapper::instrument, return_value_policy<copy_const_reference>())
       .def("experiment", &EnvWrapper::experiment, return_value_policy<copy_const_reference>())
@@ -167,6 +167,7 @@ namespace Psana {
       .def("configStr", &EnvWrapper::configStr)
       .def("configStr", &EnvWrapper::configStr2)
       .def("Source", &EnvWrapper::convertToSource)
+      .def("Type", &GenericGetter::getTypeNameForId)
       .def("printAllKeys", &EnvWrapper::printAllKeys)
       .def("printConfigKeys", &EnvWrapper::printConfigKeys)
       .def("get", &EnvWrapper::getConfigByType1)

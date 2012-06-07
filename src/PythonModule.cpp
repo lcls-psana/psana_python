@@ -27,10 +27,10 @@
 #include <MsgLogger/MsgLogger.h>
 #include <PSEvt/EventId.h>
 #include <psana/Exceptions.h>
-#include <psana_python/CreateWrappers.h>
 #include <boost/python.hpp>
 #include <psana_python/EnvWrapper.h>
 #include <psana_python/EventWrapper.h>
+#include <psana_python/CreateWrappers.h>
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -121,32 +121,6 @@ PythonModule::~PythonModule ()
   Py_CLEAR(m_endjob);
 }
 
-  // XXX static?
-  object Event_Class;
-  object EnvWrapper_Class;
-  object EventWrapper_Class;
-
-
-  object getEnvWrapper(Env& env, const string& name, const string& className) {
-    EnvWrapper _envWrapper(env, name, className);
-    object envWrapper(EnvWrapper_Class(_envWrapper));
-    return envWrapper;
-  }
-
-  object getEventWrapper(Event& event) {
-#if 0
-    return object(Event_Class(evt));
-#else
-    printf("getEventWrapper:%d\n", __LINE__);
-    EventWrapper _eventWrapper(event);
-    printf("getEventWrapper:%d\n", __LINE__);
-    object eventWrapper(EventWrapper_Class(_eventWrapper));
-    printf("getEventWrapper:%d\n", __LINE__);
-    return eventWrapper;
-#endif
-  }
-
-
 // call specific method
 void
 PythonModule::call(PyObject* psana_method, PyObject* pyana_method, bool pyana_no_evt, Event& evt, Env& env)
@@ -166,10 +140,12 @@ PythonModule::call(PyObject* psana_method, PyObject* pyana_method, bool pyana_no
   PyObjPtr args(PyTuple_New(nargs), PyRefDelete());
   object evtWrapper;
   if (pevt) {
-    evtWrapper = Psana::getEventWrapper(*pevt);
+    evtWrapper = object(EventWrapperClass(EventWrapper(*pevt)));
     PyTuple_SET_ITEM(args.get(), 0, evtWrapper.ptr());
   }
-  object envWrapper = Psana::getEnvWrapper(env, name(), className());
+  //object envWrapper = object(EnvWrapper_Class(EnvWrapper(env, name(), className())));
+  object envWrapper(EnvWrapperClass(EnvWrapper(env, name(), className())));
+
   PyTuple_SET_ITEM(args.get(), nargs - 1, envWrapper.ptr());
   PyObjPtr res(PyObject_Call(method, args.get(), NULL), PyRefDelete());
   if (not res) {

@@ -22,14 +22,23 @@ namespace Psana {
   public:
     EventWrapper(Event& event) : _event(event) {}
 
+#if 0
+      GetResultProxy get(const std::string& key=std::string(), Pds::Src* foundSrc=0);
+      GetResultProxy get(const Pds::Src& source, const std::string& key=std::string(), Pds::Src* foundSrc=0);
+      GetResultProxy get(const Source& source, const std::string& key=std::string(), Pds::Src* foundSrc=0);
+#endif
 
+    boost::shared_ptr<string> get(const string& key) {
+      return boost::shared_ptr<string>(_event.get(key));
+    }
 
-    object getByType(const string& typeName, const string& detectorSourceName) {
+    object getByType(const string& typeName, Source& detectorSource /*const string& detectorSourceName*/) {
       if (typeName == "PSEvt::EventId") {
         const boost::shared_ptr<PSEvt::EventId> eventId = _event.get();
         return object(eventId);
       }
 
+#if 0
       //printAllKeys(evt);
       Source detectorSource;
       if (detectorSourceName == "") {
@@ -37,6 +46,7 @@ namespace Psana {
       } else {
         detectorSource = Source(detectorSourceName);
       }
+#endif
 
       EvtGetMethod method(_event);
       method.addSource(&detectorSource);
@@ -71,9 +81,6 @@ namespace Psana {
       return eventId->run();
     }
 
-    boost::shared_ptr<string> get(const string& key) {
-      return boost::shared_ptr<string>(_event.get(key));
-    }
 
   };
 

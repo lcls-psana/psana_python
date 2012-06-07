@@ -32,7 +32,7 @@ namespace Psana {
     void printConfigKeys();
     string configStr(const string& parameter);
     string configStr2(const string& parameter, const string& _default);
-    PSEvt::Source convertToSource(const string& value) { return Source(value); }
+    PSEvt::Source convertToSource(const string& value) { return (value == "" ? Source() : Source(value)); }
     object getConfigByType2(const char* typeName, const char* detectorSourceName);
     object getConfigByType1(const char* typeName);
     object getConfig2(int typeId, const char* detectorSourceName);
