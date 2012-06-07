@@ -165,16 +165,16 @@ namespace Psana {
       .def("rhmgr", &EnvWrapper::rhmgr, return_value_policy<reference_existing_object>())
       .def("hmgr", &EnvWrapper::hmgr, return_value_policy<reference_existing_object>())
       .def("configStr", &EnvWrapper::configStr)
-      .def("configStr", &EnvWrapper::configStr2)
-      .def("Source", &EnvWrapper::convertToSource)
-      .def("Type", &GenericGetter::getTypeNameForId)
+      .def("configStr", &EnvWrapper::configStr1)
       .def("printAllKeys", &EnvWrapper::printAllKeys)
       .def("printConfigKeys", &EnvWrapper::printConfigKeys)
-      .def("get", &EnvWrapper::getConfigByType1)
-      .def("get", &EnvWrapper::getConfigByType2)
+      .def("get", &EnvWrapper::get)
+      .def("get", &EnvWrapper::get1)
+      .def("getConfig", &EnvWrapper::getConfig)
       .def("getConfig", &EnvWrapper::getConfig1)
-      .def("getConfig", &EnvWrapper::getConfig2)
       .def("assert_psana", &EnvWrapper::assert_psana)
+      .def("Source", &EnvWrapper::convertToSource)
+      .def("Type", &EnvWrapper::getTypeNameForId)
       ;
 
     createDeviceWrappers();

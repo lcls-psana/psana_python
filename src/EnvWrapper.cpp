@@ -30,24 +30,7 @@ namespace Psana {
     }
   }
 
-  string EnvWrapper::configStr(const string& parameter) {
-    ConfigSvc::ConfigSvc cfg;
-    try {
-      return cfg.getStr(_name, parameter).c_str();
-    } catch (const ConfigSvc::ExceptionMissing& ex) {
-#if 1
-      return cfg.getStr(_className, parameter);
-#else
-      try {
-        return cfg.getStr(_className, parameter);
-      } catch (const ConfigSvc::ExceptionMissing& ex) {
-        return 0; // XXX raise python exception?
-      }
-#endif
-    }
-  }
-
-  string EnvWrapper::configStr2(const string& parameter, const string& _default) {
+  string EnvWrapper::configStr(const string& parameter, const string& _default) {
     ConfigSvc::ConfigSvc cfg;
     try {
       return cfg.getStr(_name, parameter);
@@ -56,7 +39,7 @@ namespace Psana {
     }
   }
 
-  object EnvWrapper::getConfigByType2(const char* typeName, const char* detectorSourceName) {
+  object EnvWrapper::get(const char* typeName, const char* detectorSourceName) {
     Pds::Src m_foundSrc;
     const Source detectorSource(detectorSourceName);
     EnvGetMethod method(_env.configStore(), detectorSource, &m_foundSrc);
@@ -64,19 +47,10 @@ namespace Psana {
     return GenericGetter::get(typeName2, &method);
   }
 
-  object EnvWrapper::getConfigByType1(const char* typeName) {
-    return getConfigByType2(typeName, "");
-  }
-
-  object EnvWrapper::getConfig2(int typeId, const char* detectorSourceName) {
+  object EnvWrapper::getConfig(int typeId, const char* detectorSourceName) {
     Pds::Src m_foundSrc;
     const Source detectorSource(detectorSourceName);
     EnvGetMethod method(_env.configStore(), detectorSource, &m_foundSrc);
     return GenericGetter::get(typeId, &method);
-  }
-
-  object EnvWrapper::getConfig1(int typeId) {
-    printf("-> getConfig1(%d)\n", typeId);
-    return getConfig2(typeId, "ProcInfo()");
   }
 }
