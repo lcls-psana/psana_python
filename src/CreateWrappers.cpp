@@ -131,6 +131,7 @@ namespace Psana {
       class_<EventWrapper>("PSEvt::Event", init<EventWrapper&>())
       .def("get", &EventWrapper::get)
       .def("get", &EventWrapper::getByType)
+      .def("get", &EventWrapper::getByTypeId)
       .def("getAllKeys", &EventWrapper::getAllKeys, return_value_policy<return_by_value>())
       .def("run", &EventWrapper::run)
       ;
