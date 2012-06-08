@@ -104,12 +104,10 @@ namespace Psana {
     _import_array();
     array::set_module_and_type("numpy", "ndarray");
 
-    printf("std_vector_class_(int)...\n");
     std_vector_class_(int);
     std_vector_class_(short);
     std_vector_class_(unsigned);
     std_vector_class_(unsigned short);
-    printf("std_vector_class_(EventKey)...\n");
     std_vector_class_(EventKey);
     std_vector_class_(std::string);
 
@@ -176,6 +174,7 @@ namespace Psana {
       .def("assert_psana", &EnvWrapper::assert_psana)
       .def("Source", &EnvWrapper::convertToSource)
       .def("Type", &EnvWrapper::getTypeNameForId)
+      .def("subprocess", &EnvWrapper::subprocess)
       ;
 
     createDeviceWrappers();

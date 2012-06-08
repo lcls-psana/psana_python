@@ -18,8 +18,9 @@
 //-----------------
 // C/C++ Headers --
 //-----------------
-#include <cstdio>
 #include <cctype>
+#include <cstdio>
+#include <cstdlib>
 
 //-------------------------------
 // Collaborating Class Headers --
@@ -79,6 +80,8 @@ namespace Psana {
 //----------------
 PythonModule::PythonModule(const string& name, PyObject* instance) : Module(name), m_instance(instance)
 {
+  m_pyanaCompat = (getenv("PYANA_COMPAT") != NULL);
+
   m_beginJob = PyObject_GetAttrString(m_instance, "beginJob");
   m_beginRun = PyObject_GetAttrString(m_instance, "beginRun");
   m_beginCalibCycle = PyObject_GetAttrString(m_instance, "beginCalibCycle");
@@ -87,13 +90,24 @@ PythonModule::PythonModule(const string& name, PyObject* instance) : Module(name
   m_endRun = PyObject_GetAttrString(m_instance, "endRun");
   m_endJob = PyObject_GetAttrString(m_instance, "endJob");
 
-  // Temporary pyana (XtcExplorer) support
   m_beginjob = PyObject_GetAttrString(m_instance, "beginjob");
   m_beginrun = PyObject_GetAttrString(m_instance, "beginrun");
   m_begincalibcycle = PyObject_GetAttrString(m_instance, "begincalibcycle");
   m_endcalibcycle = PyObject_GetAttrString(m_instance, "endcalibcycle");
   m_endrun = PyObject_GetAttrString(m_instance, "endrun");
   m_endjob = PyObject_GetAttrString(m_instance, "endjob");
+
+  if (! m_pyanaCompat) {
+    if (m_beginjob ||
+        m_beginrun ||
+        m_begincalibcycle ||
+        m_endcalibcycle ||
+        m_endrun ||
+        m_endjob) {
+      fprintf(stderr, "Error: old pyana-style methods used (e.g. m_beginjob instead of m_beginJob).\n");
+      exit(1);
+    }
+  }
 
   Psana::createWrappers();
 }
@@ -127,14 +141,14 @@ PythonModule::call(PyObject* psana_method, PyObject* pyana_method, bool pyana_no
 {
   Event* pevt = &evt;
   PyObject* method = psana_method;
-  if (method == NULL) {
+  if (method == NULL && m_pyanaCompat) {
     method = pyana_method;
-    if (method == NULL) {
-      return;
-    }
     if (pyana_no_evt) {
       pevt = NULL;
     }
+  }
+  if (method == NULL) {
+    return;
   }
   int nargs = (pevt == NULL ? 1 : 2);
   PyObjPtr args(PyTuple_New(nargs), PyRefDelete());

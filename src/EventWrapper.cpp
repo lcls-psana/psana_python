@@ -1,6 +1,5 @@
 #include <psana_python/EventWrapper.h>
 #include <cxxabi.h>
-//#include <psana_python/EnvObjectStoreWrapper.h>
 #include <string>
 #include <boost/python.hpp>
 #include <PSEvt/Event.h>
@@ -26,7 +25,6 @@ namespace Psana {
   }
 
   object EventWrapper::getByTypeId(int typeId, const string& detectorSourceName) {
-    printf("~~~ getByTypeId(%d, %s)...\n", typeId, detectorSourceName.c_str());
     Source detectorSource;
     if (detectorSourceName == "") {
       detectorSource = Source();
@@ -35,8 +33,6 @@ namespace Psana {
     }
 
     string typeName(GenericGetter::getTypeNameForId(typeId));
-    printf("~~~ getByTypeId(%d, %s): typeName=%s\n", typeId, detectorSourceName.c_str(), typeName.c_str());
-
     EvtGetMethod method(_event);
     method.addSource(&detectorSource);
     string typeName2(typeName);

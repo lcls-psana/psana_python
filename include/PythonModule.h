@@ -10,19 +10,25 @@ namespace Psana {
     // Instance of loaded Python module
     PyObject* m_instance;
 
+    // True if env var PYANA_COMPAT is set.
+    // Enables various pyana-compatible hacks.
+    bool m_pyanaCompat;
+
     // Loaded Python methods
     PyObject* m_beginJob;
-    PyObject* m_beginjob;
     PyObject* m_beginRun;
-    PyObject* m_beginrun;
     PyObject* m_beginCalibCycle;
-    PyObject* m_begincalibcycle;
     PyObject* m_event;
     PyObject* m_endCalibCycle;
-    PyObject* m_endcalibcycle;
     PyObject* m_endRun;
-    PyObject* m_endrun;
     PyObject* m_endJob;
+
+    // Loaded Python methods (only if m_pyanaCompat is true)
+    PyObject* m_beginjob;
+    PyObject* m_beginrun;
+    PyObject* m_begincalibcycle;
+    PyObject* m_endcalibcycle;
+    PyObject* m_endrun;
     PyObject* m_endjob;
 
     // Method to call provided Python method with event and env args

@@ -43,6 +43,7 @@ namespace Psana {
     object getConfig1(int typeId) { return getConfig(typeId, "ProcInfo()"); }
     Source convertToSource(const string& value) { return (value == "" ? Source() : Source(value)); }
     string getTypeNameForId(int typeId) { return GenericGetter::getTypeNameForId(typeId); }
+    bool subprocess() { return 0; } // XXX WITIDE
   };
 }
 
