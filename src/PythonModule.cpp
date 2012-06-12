@@ -104,7 +104,7 @@ PythonModule::PythonModule(const string& name, PyObject* instance) : Module(name
         m_endcalibcycle ||
         m_endrun ||
         m_endjob) {
-      fprintf(stderr, "Error: old pyana-style methods used (e.g. m_beginjob instead of m_beginJob).\n");
+      fprintf(stderr, "Error: old pyana-style methods used (e.g. m_beginjob instead of m_beginJob)\n.");
       exit(1);
     }
   }
@@ -139,27 +139,18 @@ PythonModule::~PythonModule ()
 void
 PythonModule::call(PyObject* psana_method, PyObject* pyana_method, bool pyana_no_evt, Event& evt, Env& env)
 {
-  Event* pevt = &evt;
-  PyObject* method = psana_method;
-  if (method == NULL && m_pyanaCompat) {
-    method = pyana_method;
-    if (pyana_no_evt) {
-      pevt = NULL;
-    }
-  }
+  int nargs = (m_pyanaCompat && pyana_no_evt) ? 1 : 2;
+  PyObject* method = m_pyanaCompat ? pyana_method : psana_method;
   if (method == NULL) {
     return;
   }
-  int nargs = (pevt == NULL ? 1 : 2);
   PyObjPtr args(PyTuple_New(nargs), PyRefDelete());
   object evtWrapper;
-  if (pevt) {
-    evtWrapper = object(EventWrapperClass(EventWrapper(*pevt)));
+  if (nargs > 1) {
+    evtWrapper = object(EventWrapperClass(EventWrapper(evt)));
     PyTuple_SET_ITEM(args.get(), 0, evtWrapper.ptr());
   }
-  //object envWrapper = object(EnvWrapper_Class(EnvWrapper(env, name(), className())));
   object envWrapper(EnvWrapperClass(EnvWrapper(env, name(), className())));
-
   PyTuple_SET_ITEM(args.get(), nargs - 1, envWrapper.ptr());
   PyObjPtr res(PyObject_Call(method, args.get(), NULL), PyRefDelete());
   if (not res) {
