@@ -80,7 +80,12 @@ namespace Psana {
 //----------------
 PythonModule::PythonModule(const string& name, PyObject* instance) : Module(name), m_instance(instance)
 {
-  m_pyanaCompat = (getenv("PYANA_COMPAT") != NULL);
+  const char* pyana_compat = getenv("PYANA_COMPAT");
+  m_pyanaCompat = true;
+  if (pyana_compat && ! strcmp(pyana_compat, "0")) {
+    m_pyanaCompat = false;
+  }
+  printf("m_pyanaCompat = %d\n", m_pyanaCompat);
 
   m_beginJob = PyObject_GetAttrString(m_instance, "beginJob");
   m_beginRun = PyObject_GetAttrString(m_instance, "beginRun");
