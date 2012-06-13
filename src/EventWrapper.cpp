@@ -7,15 +7,11 @@
 #include <psddl_python/GenericGetter.h>
 #include <PSEvt/EventId.h>
 
-using PSEvt::EventKey;
-using PSEvt::Source;
-using boost::python::api::object;
-
 namespace Psana {
 
   object EventWrapper::getByType(const string& typeName, Source& detectorSource) {
     if (typeName == "PSEvt::EventId") {
-      const boost::shared_ptr<PSEvt::EventId> eventId = _event.get();
+      const shared_ptr<PSEvt::EventId> eventId = _event.get();
       return object(eventId);
     }
     EvtGetMethod method(_event);
@@ -57,7 +53,7 @@ namespace Psana {
   }
 
   int EventWrapper::run() {
-    const boost::shared_ptr<PSEvt::EventId> eventId = _event.get();
+    const shared_ptr<PSEvt::EventId> eventId = _event.get();
     return eventId->run();
   }
 }
