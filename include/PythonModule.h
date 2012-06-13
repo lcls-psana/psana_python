@@ -45,7 +45,7 @@ namespace Psana {
     void event(Event& evt, Env& env) { call(m_event, m_event, false, evt, env); }
     void endJob(Event& evt, Env& env) { call(m_endJob, m_endjob, true, evt, env); }
     void endCalibCycle(Event& evt, Env& env) { call(m_endCalibCycle, m_endcalibcycle, true, evt, env); }
-    void endRun(Event& evt, Env& env) { call(m_endRun, m_endrun, false, evt, env); }
+    void endRun(Event& evt, Env& env) { call(m_endRun, m_endrun, true, evt, env); }
   };
 
 } // namespace psana
