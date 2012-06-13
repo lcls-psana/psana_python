@@ -131,6 +131,8 @@ namespace Psana {
       .def("get", &EventWrapper::getByType)
       .def("get", &EventWrapper::getByTypeId)
       .def("getAllKeys", &EventWrapper::getAllKeys, return_value_policy<return_by_value>())
+      .def("put", &EventWrapper::putBoolean)
+      .def("put", &EventWrapper::putList)
       .def("run", &EventWrapper::run)
       ;
 
