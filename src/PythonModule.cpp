@@ -80,12 +80,10 @@ namespace Psana {
 //----------------
 PythonModule::PythonModule(const string& name, PyObject* instance) : Module(name), m_instance(instance)
 {
-  const char* pyana_compat = getenv("PYANA_COMPAT");
-  m_pyanaCompat = true;
-  if (pyana_compat && ! strcmp(pyana_compat, "0")) {
-    m_pyanaCompat = false;
-  }
-  printf("m_pyanaCompat = %d\n", m_pyanaCompat);
+  // Currently, pyana compatibity is enabled unless the PYANA_COMPAT env var is 0.
+  const char* pyana_compat_env = getenv("PYANA_COMPAT");
+  const bool pyana_compat_disabled = pyana_compat_env && (string(pyana_compat_env) ==  "0");
+  m_pyanaCompat = ! pyana_compat_disabled;
 
   m_beginJob = PyObject_GetAttrString(m_instance, "beginJob");
   m_beginRun = PyObject_GetAttrString(m_instance, "beginRun");
@@ -160,7 +158,7 @@ PythonModule::call(PyObject* psana_method, PyObject* pyana_method, bool pyana_no
   PyObjPtr res(PyObject_Call(method, args.get(), NULL), PyRefDelete());
   if (not res) {
     PyErr_Print();
-    throw ExceptionGenericPyError(ERR_LOC, "exception raised while calling Python method");
+    exit(1);
   }
 }
 
