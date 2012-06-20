@@ -1,25 +1,3 @@
-////////////////////////////////////////////////////////////////////////////////
-//
-// XXX TO DO:
-//
-// Python wrappers should use attributes instead of functions
-// e.g. ConfigV1.pvControls[i] instead of ConfigV1.pvControls()[i]
-//
-//
-// http://www.boost.org/doc/libs/1_42_0/libs/python/doc/tutorial/doc/html/python/exposing.html
-//
-// "However, in Python attribute access is fine; it doesn't
-//  neccessarily break encapsulation to let users handle
-//  attributes directly, because the attributes can just be
-//  a different syntax for a method call. Wrapping our
-//  Num class using Boost.Python:"
-//
-// class_<Num>("Num")
-//    .add_property("rovalue", &Num::get)
-//    .add_property("value", &Num::get, &Num::set);
-//
-////////////////////////////////////////////////////////////////////////////////
-
 //--------------------------------------------------------------------------
 // File and Version Information:
 // 	$Id$
@@ -41,7 +19,6 @@
 // C/C++ Headers --
 //-----------------
 #include <boost/python.hpp>
-#include <psddl_python/vector_indexing_suite_nocopy.hpp>
 #include <boost/utility.hpp>
 #include <numpy/arrayobject.h>
 #include <string>
@@ -75,7 +52,6 @@ using boost::python::no_init;
 using boost::python::numeric::array;
 using boost::python::reference_existing_object;
 using boost::python::return_value_policy;
-using boost::python::vector_indexing_suite_nocopy;
 
 using std::map;
 using std::set;
@@ -91,10 +67,6 @@ using PSEvt::EventKey;
 using PSEvt::Source;
 using Pds::Src;
 using Psana::Epics::EpicsPvHeader;
-
-#define std_vector_class_(T)\
-  class_<vector<T> >("std::vector<" #T ">")\
-    .def(vector_indexing_suite_nocopy<vector<T> >())
 
 namespace Psana {
   object EventWrapperClass;
@@ -225,13 +197,6 @@ namespace Psana {
     _import_array();
     array::set_module_and_type("numpy", "ndarray");
 
-    std_vector_class_(int);
-    std_vector_class_(short);
-    std_vector_class_(unsigned);
-    std_vector_class_(unsigned short);
-    std_vector_class_(EventKey);
-    std_vector_class_(std::string);
-
     class_<PSEnv::EnvObjectStore::GetResultProxy>("PSEnv::EnvObjectStore::GetResultProxy", no_init)
       ;
 
@@ -276,7 +241,6 @@ namespace Psana {
       class_<EventWrapper>("PSEvt::Event", init<EventWrapper&>())
       .def("get", &EventWrapper::get)
       .def("get", &EventWrapper::getByType)
-      .def("get", &EventWrapper::getByTypeId)
       .def("getAllKeys", &EventWrapper::getAllKeys, return_value_policy<return_by_value>())
       .def("put", &EventWrapper::putBoolean)
       .def("put", &EventWrapper::putList)
@@ -284,10 +248,8 @@ namespace Psana {
       ;
 
     class_<EnvObjectStoreWrapper>("PSEnv::EnvObjectStore", init<EnvObjectStore&>())
-      .def("get", &EnvObjectStoreWrapper::getBySrc)
-      .def("get", &EnvObjectStoreWrapper::getBySource)
-      .def("get", &EnvObjectStoreWrapper::getByType1)
-      .def("get", &EnvObjectStoreWrapper::getByType2)
+      .def("get", &EnvObjectStoreWrapper::get)
+      .def("foundSrc", &EnvObjectStoreWrapper::foundSrc)
       .def("keys", &EnvObjectStoreWrapper::keys)
       ;
 
@@ -311,13 +273,8 @@ namespace Psana {
       .def("configStr", &EnvWrapper::configStr1)
       .def("printAllKeys", &EnvWrapper::printAllKeys)
       .def("printConfigKeys", &EnvWrapper::printConfigKeys)
-      .def("get", &EnvWrapper::get)
-      .def("get", &EnvWrapper::get1)
-      .def("getConfig", &EnvWrapper::getConfig)
-      .def("getConfig", &EnvWrapper::getConfig1)
       .def("assert_psana", &EnvWrapper::assert_psana)
-      .def("Source", &EnvWrapper::convertToSource)
-      .def("Type", &EnvWrapper::getTypeNameForId)
+      .def("classname", &EnvWrapper::getClassNameForId)
       .def("subprocess", &EnvWrapper::subprocess)
       ;
 

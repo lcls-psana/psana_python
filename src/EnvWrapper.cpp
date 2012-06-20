@@ -38,24 +38,4 @@ namespace Psana {
       return cfg.getStr(_className, parameter, _default);
     }
   }
-
-  object EnvWrapper::get(const char* typeName, const char* detectorSourceName) {
-    Pds::Src m_foundSrc;
-    const Source detectorSource(detectorSourceName);
-    EnvGetMethod method(_env.configStore(), detectorSource, &m_foundSrc);
-    string typeName2(typeName);
-    return GenericGetter::get(typeName2, &method);
-  }
-
-  object EnvWrapper::getConfig(int typeId, const char* detectorSourceName) {
-    Pds::Src m_foundSrc;
-    const Source detectorSource(detectorSourceName);
-    EnvGetMethod method(_env.configStore(), detectorSource, &m_foundSrc);
-    string typeName = GenericGetter::getTypeNameForId(typeId);
-    if (typeName == "") {
-      printf("*** getConfig(%d, '%s'): could not find type name for type id %d\n", typeId, detectorSourceName, typeId);
-      return object();
-    }
-    return GenericGetter::get(typeName, &method);
-  }
 }

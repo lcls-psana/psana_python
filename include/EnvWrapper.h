@@ -35,15 +35,10 @@ namespace Psana {
     void printAllKeys();
     void printConfigKeys();
     string configStr(const string& parameter, const string& _default);
-    object get(const char* typeName, const char* detectorSourceName);
-    object getConfig(int typeId, const char* detectorSourceName);
-    void assert_psana() {}
     string configStr1(const string& parameter) { return configStr(parameter, ""); }
-    object get1(const char* typeName) { return get(typeName, ""); }
-    object getConfig1(int typeId) { return getConfig(typeId, "ProcInfo()"); }
-    Source convertToSource(const string& value) { return (value == "" ? Source() : Source(value)); }
-    string getTypeNameForId(int typeId) { return GenericGetter::getTypeNameForId(typeId); }
-    bool subprocess() { return 0; } // XXX WITIDE
+    void assert_psana() {}
+    string getClassNameForId(int typeId) { return GenericGetter::getClassNameForId(typeId); }
+    bool subprocess() { return 0; } // XXX What is this?
   };
 }
 

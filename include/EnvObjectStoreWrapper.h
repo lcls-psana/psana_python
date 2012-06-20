@@ -18,27 +18,21 @@ namespace Psana {
     // template <typename T> void putProxy(const boost::shared_ptr<PSEvt::Proxy<T> >& proxy, const Pds::Src& source);
     // template <typename T> void put(const boost::shared_ptr<T>& data, const Pds::Src& source);
 
-    PSEnv::EnvObjectStore::GetResultProxy getBySrc(const Pds::Src& src) {
-      return _store.get(src);
-    }
-
-    PSEnv::EnvObjectStore::GetResultProxy getBySource(const PSEvt::Source& source, Pds::Src* foundSrc = 0) {
-      return _store.get(source, foundSrc);
-    }
-
-    boost::python::api::object getByType2(const string& typeName, const PSEvt::Source& source, boost::python::list m_src) {
+    boost::python::api::object get(const string& typeName, const string& sourceName) {
+      PSEvt::Source source = (sourceName == "") ? PSEvt::Source() : PSEvt::Source(sourceName);
       Pds::Src foundSrc;
       EnvGetMethod method(_store, source, &foundSrc);
       string typeName2(typeName);
       boost::python::api::object result = GenericGetter::get(typeName2, &method);
-      m_src.append(foundSrc);
-      printf("%x.%x\n", foundSrc.log(), foundSrc.phy());
       return result;
     }
 
-    boost::python::api::object getByType1(const string& typeName, const PSEvt::Source& source) {
-      boost::python::list m_src;
-      return getByType2(typeName, source, m_src);
+    Pds::Src foundSrc(const string& typeName, const string& sourceName) {
+      PSEvt::Source source = (sourceName == "") ? PSEvt::Source() : PSEvt::Source(sourceName);
+      Pds::Src foundSrc;
+      EnvGetMethod method(_store, source, &foundSrc);
+      printf("%x.%x\n", foundSrc.log(), foundSrc.phy());
+      return foundSrc;
     }
 
     list<PSEvt::EventKey> keys(const PSEvt::Source& source = PSEvt::Source()) const { return _store.keys(); }

@@ -9,28 +9,38 @@
 
 namespace Psana {
 
-  object EventWrapper::getByType(const string& typeName, Source& detectorSource) {
+  object EventWrapper::get(const string& key) {
+    printf("get(key=%s)\n", key.c_str());
+    shared_ptr<string> s(_event.get(key));
+    if (s.get()) {
+      string& ss = *s;
+      printf("get(%s) = %s\n", key.c_str(), ss.c_str());
+      return object(s);
+    }
+    shared_ptr<bool> b(_event.get(key));
+    if (b.get()) {
+      bool bb = *b;
+      printf("get(%s) = %s\n", key.c_str(), (bb ? "true" : "false"));
+      return object(bb);
+    }
+    shared_ptr<boost::python::list> l(_event.get(key));
+    if (l.get()) {
+      boost::python::list ll = *l;
+      printf("get(%s): is a list\n", key.c_str());
+      return object(ll);
+    }
+    printf("WARNING: get(%s) found nothing of a known type\n", key.c_str());
+    return object();
+  }
+
+  object EventWrapper::getByType(const string& typeName, const string& detectorSourceName) {
     if (typeName == "PSEvt::EventId") {
       const shared_ptr<PSEvt::EventId> eventId = _event.get();
       return object(eventId);
     }
     EvtGetMethod method(_event);
-    method.addSource(&detectorSource);
-    string typeName2(typeName);
-    return GenericGetter::get(typeName2, &method);
-  }
-
-  object EventWrapper::getByTypeId(int typeId, const string& detectorSourceName) {
-    Source detectorSource;
-    if (detectorSourceName == "") {
-      detectorSource = Source();
-    } else {
-      detectorSource = Source(detectorSourceName);
-    }
-
-    string typeName(GenericGetter::getTypeNameForId(typeId));
-    EvtGetMethod method(_event);
-    method.addSource(&detectorSource);
+    Source source = (detectorSourceName == "") ? Source() : Source(detectorSourceName);
+    method.addSource(&source);
     string typeName2(typeName);
     return GenericGetter::get(typeName2, &method);
   }
