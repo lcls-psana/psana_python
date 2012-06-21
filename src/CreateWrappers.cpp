@@ -270,11 +270,8 @@ namespace Psana {
       .def("rhmgr", &EnvWrapper::rhmgr, return_value_policy<reference_existing_object>())
       .def("hmgr", &EnvWrapper::hmgr, return_value_policy<reference_existing_object>())
       .def("configStr", &EnvWrapper::configStr)
-      .def("configStr", &EnvWrapper::configStr1)
-      .def("printAllKeys", &EnvWrapper::printAllKeys)
-      .def("printConfigKeys", &EnvWrapper::printConfigKeys)
+      .def("keys", &EnvWrapper::keys)
       .def("assert_psana", &EnvWrapper::assert_psana)
-      .def("classname", &EnvWrapper::getClassNameForId)
       .def("subprocess", &EnvWrapper::subprocess)
       ;
 

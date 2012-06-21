@@ -2,6 +2,7 @@
 #define PSANA_ENVOBJECTSTOREWRAPPER_H
 
 #include <string>
+#include <sstream>
 #include <boost/python.hpp>
 #include <PSEnv/Env.h>
 #include <psddl_python/EnvGetter.h>
@@ -35,7 +36,18 @@ namespace Psana {
       return foundSrc;
     }
 
-    list<PSEvt::EventKey> keys(const PSEvt::Source& source = PSEvt::Source()) const { return _store.keys(); }
+    boost::python::list keys() {
+      boost::python::list l;
+      list<PSEvt::EventKey> keys = _store.keys();
+      list<PSEvt::EventKey>::iterator it;
+      for (it = keys.begin(); it != keys.end(); it++) {
+        std::ostringstream stream;
+        it->print(stream);
+        string key = stream.str();
+        l.append(key);
+      }
+      return l;
+    }
   };
 }
 

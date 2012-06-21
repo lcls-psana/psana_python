@@ -5,6 +5,7 @@
 #include <string>
 #include <boost/python.hpp>
 #include <PSEnv/Env.h>
+#include <ConfigSvc/ConfigSvc.h>
 
 namespace Psana {
   using boost::python::api::object;
@@ -32,13 +33,29 @@ namespace Psana {
     RootHistoManager::RootHMgr& rhmgr() { return _env.rhmgr(); }
     PSHist::HManager& hmgr() { return _env.hmgr(); }
     Env& getEnv() { return _env; };
-    void printAllKeys();
-    void printConfigKeys();
-    string configStr(const string& parameter, const string& _default);
-    string configStr1(const string& parameter) { return configStr(parameter, ""); }
     void assert_psana() {}
-    string getClassNameForId(int typeId) { return GenericGetter::getClassNameForId(typeId); }
     bool subprocess() { return 0; } // XXX What is this?
+
+    boost::python::list keys() {
+      boost::python::list l;
+      ConfigSvc::ConfigSvc cfg;
+      list<string> keys = cfg.getKeys(_name);
+      list<string>::iterator it;
+      for (it = keys.begin(); it != keys.end(); it++) {
+        string& key = *it;
+        l.append(key);
+      }
+      return l;
+    }
+
+    string configStr(const string& parameter, const string& _default) {
+      ConfigSvc::ConfigSvc cfg;
+      try {
+        return cfg.getStr(_name, parameter);
+      } catch (const ConfigSvc::ExceptionMissing& ex) {
+        return cfg.getStr(_className, parameter, _default);
+      }
+    }
   };
 }
 
