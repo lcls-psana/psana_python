@@ -73,44 +73,16 @@ namespace Psana {
   object EnvWrapperClass;
   static bool createWrappersDone = false;
 
-  class EpicsPvHeaderWrapper {
-  private:
-    shared_ptr<EpicsPvHeader> _header;
-  public:
-    EpicsPvHeaderWrapper(shared_ptr<EpicsPvHeader> header) : _header(header) {}
-    int pvId() { return _header->pvId(); }
-    int dbrType() { return _header->dbrType(); }
-    int numElements() { return _header->numElements(); }
-    void print() { _header->print(); }
-    int isCtrl() { return _header->isCtrl(); }
-    int isTime() { return _header->isTime(); }
-    int severity() { return _header->severity(); }
-    int __zero() { return 0; }
-  };
-
   object fail_EpicsStore(const char* typeName, int typeId) {
     fprintf(stderr, "Unrecognized type %s (%d)\n", typeName, typeId);
     return object();
   }
 
-  EpicsPvHeaderWrapper value_EpicsStore(EpicsStore& epicsStore, const std::string& name, int index) {
-    EpicsStore::EpicsValue value(epicsStore.value(name, index));
-    PSEnv::EpicsStoreImpl* m_impl = value.m_impl;
-    return EpicsPvHeaderWrapper(m_impl->getAny(name));
-  }
-
-  EpicsPvHeaderWrapper value_EpicsStore0(EpicsStore& epicsStore, const std::string& name) {
-    return value_EpicsStore(epicsStore, name, 0);
-  }
-
-  object value_EpicsStore_KEEP(EpicsStore& epicsStore, const std::string& name, int index = 0) {
-    EpicsStore::EpicsValue value(epicsStore.value(name, index));
-    PSEnv::EpicsStoreImpl* m_impl = value.m_impl;
-    shared_ptr<EpicsPvHeader> pv = m_impl->getAny(name);
-    if (not pv.get()) {
+  object value_EpicsPvHeader(shared_ptr<EpicsPvHeader> header, int index = 0) {
+    if (not header.get()) {
       return object();
     }
-    const EpicsPvHeader* p = pv.get();
+    const EpicsPvHeader* p = header.get();
     int type = p->dbrType();
     switch (type) {
       case Epics::DBR_STRING:
@@ -188,6 +160,34 @@ namespace Psana {
     }
   }
 
+  class EpicsPvHeaderWrapper {
+  private:
+    shared_ptr<EpicsPvHeader> _header;
+  public:
+    EpicsPvHeaderWrapper(shared_ptr<EpicsPvHeader> header) : _header(header) {}
+    int pvId() { return _header->pvId(); }
+    int dbrType() { return _header->dbrType(); }
+    int numElements() { return _header->numElements(); }
+    void print() { _header->print(); }
+    int isCtrl() { return _header->isCtrl(); }
+    int isTime() { return _header->isTime(); }
+    int severity() { return _header->severity(); }
+    int __zero() { return 0; }
+    object value() {
+      return value_EpicsPvHeader(_header);
+    }
+  };
+
+  EpicsPvHeaderWrapper value_EpicsStore(EpicsStore& epicsStore, const std::string& name, int index) {
+    EpicsStore::EpicsValue value(epicsStore.value(name, index));
+    PSEnv::EpicsStoreImpl* m_impl = value.m_impl;
+    return EpicsPvHeaderWrapper(m_impl->getAny(name));
+  }
+
+  EpicsPvHeaderWrapper value_EpicsStore0(EpicsStore& epicsStore, const std::string& name) {
+    return value_EpicsStore(epicsStore, name, 0);
+  }
+
   void createWrappers() {
     if (createWrappersDone) {
       return;
@@ -228,6 +228,7 @@ namespace Psana {
       .add_property("upper_warning_limit", &EpicsPvHeaderWrapper::__zero)
       .add_property("lower_alarm_limit", &EpicsPvHeaderWrapper::__zero)
       .add_property("upper_alarm_limit", &EpicsPvHeaderWrapper::__zero)
+      .add_property("value", &EpicsPvHeaderWrapper::value)
       ;
 
     class_<PSEvt::Source>("PSEvt::Source", no_init)
