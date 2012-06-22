@@ -30,13 +30,13 @@
 //-------------------------------
 #include <MsgLogger/MsgLogger.h>
 #include <PSEnv/Env.h>
-#include <PSEnv/EpicsStore.h>
+#include <PSEnv/EpicsStore.h> //
 #include <PSEvt/Event.h>
-#include "PSEnv/EpicsStoreImpl.h"
 #include <ConfigSvc/ConfigSvc.h>
 #include <psana_python/CreateDeviceWrappers.h>
 #include <psana_python/EnvWrapper.h>
 #include <psana_python/EventWrapper.h>
+#include <psana_python/EpicsPvHeaderWrapper.h>
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -66,117 +66,11 @@ using PSEvt::Event;
 using PSEvt::EventKey;
 using PSEvt::Source;
 using Pds::Src;
-using Psana::Epics::EpicsPvHeader;
 
 namespace Psana {
   object EventWrapperClass;
   object EnvWrapperClass;
   static bool createWrappersDone = false;
-
-  object fail_EpicsStore(const char* typeName, int typeId) {
-    fprintf(stderr, "Unrecognized type %s (%d)\n", typeName, typeId);
-    return object();
-  }
-
-  object value_EpicsPvHeader(shared_ptr<EpicsPvHeader> header, int index = 0) {
-    if (not header.get()) {
-      return object();
-    }
-    const EpicsPvHeader* p = header.get();
-    int type = p->dbrType();
-    switch (type) {
-      case Epics::DBR_STRING:
-        return fail_EpicsStore("DBR_STRING", type);
-      case Epics::DBR_SHORT:
-        return fail_EpicsStore("DBR_SHORT", type);
-      case Epics::DBR_FLOAT:
-        return fail_EpicsStore("DBR_FLOAT", type);
-      case Epics::DBR_ENUM:
-        return fail_EpicsStore("DBR_ENUM", type);
-      case Epics::DBR_CHAR:
-        return fail_EpicsStore("DBR_CHAR", type);
-      case Epics::DBR_LONG:
-        return fail_EpicsStore("DBR_LONG", type);
-      case Epics::DBR_DOUBLE:
-        return fail_EpicsStore("DBR_DOUBLE", type);
-      case Epics::DBR_STS_STRING:
-        return fail_EpicsStore("DBR_STS_STRING", type);
-      case Epics::DBR_STS_SHORT:
-        return fail_EpicsStore("DBR_STS_SHORT", type);
-      case Epics::DBR_STS_FLOAT:
-        return fail_EpicsStore("DBR_STS_FLOAT", type);
-      case Epics::DBR_STS_ENUM:
-        return fail_EpicsStore("DBR_STS_ENUM", type);
-      case Epics::DBR_STS_CHAR:
-        return fail_EpicsStore("DBR_STS_CHAR", type);
-      case Epics::DBR_STS_LONG:
-        return fail_EpicsStore("DBR_STS_LONG", type);
-      case Epics::DBR_STS_DOUBLE:
-        return fail_EpicsStore("DBR_STS_DOUBLE", type);
-      case Epics::DBR_TIME_STRING:
-        return object(((Epics::EpicsPvTimeString *) p)->value(index));
-      case Epics::DBR_TIME_SHORT:
-        return object(((Epics::EpicsPvTimeShort *) p)->value(index));
-      case Epics::DBR_TIME_FLOAT:
-        return object(((Epics::EpicsPvTimeFloat *) p)->value(index));
-      case Epics::DBR_TIME_ENUM:
-        return object(((Epics::EpicsPvTimeEnum *) p)->value(index));
-      case Epics::DBR_TIME_CHAR:
-        return object(((Epics::EpicsPvTimeChar *) p)->value(index));
-      case Epics::DBR_TIME_LONG:
-        return object(((Epics::EpicsPvTimeLong *) p)->value(index));
-      case Epics::DBR_TIME_DOUBLE:
-        return object(((Epics::EpicsPvTimeDouble *) p)->value(index));
-      case Epics::DBR_GR_STRING:
-        return fail_EpicsStore("DBR_GR_STRING", type);
-      case Epics::DBR_GR_SHORT:
-        return fail_EpicsStore("DBR_GR_SHORT", type);
-      case Epics::DBR_GR_FLOAT:
-        return fail_EpicsStore("DBR_GR_FLOAT", type);
-      case Epics::DBR_GR_ENUM:
-        return fail_EpicsStore("DBR_GR_ENUM", type);
-      case Epics::DBR_GR_CHAR:
-        return fail_EpicsStore("DBR_GR_CHAR", type);
-      case Epics::DBR_GR_LONG:
-        return fail_EpicsStore("DBR_GR_LONG", type);
-      case Epics::DBR_GR_DOUBLE:
-        return fail_EpicsStore("DBR_GR_DOUBLE", type);
-      case Epics::DBR_CTRL_STRING:
-        return object(((Epics::EpicsPvCtrlString *) p)->value(index));
-      case Epics::DBR_CTRL_SHORT:
-        return object(((Epics::EpicsPvCtrlShort *) p)->value(index));
-      case Epics::DBR_CTRL_FLOAT:
-        return object(((Epics::EpicsPvCtrlFloat *) p)->value(index));
-      case Epics::DBR_CTRL_ENUM:
-        return object(((Epics::EpicsPvCtrlEnum *) p)->value(index));
-      case Epics::DBR_CTRL_CHAR:
-        return object(((Epics::EpicsPvCtrlChar *) p)->value(index));
-      case Epics::DBR_CTRL_LONG:
-        return object(((Epics::EpicsPvCtrlLong *) p)->value(index));
-      case Epics::DBR_CTRL_DOUBLE:
-        return object(((Epics::EpicsPvCtrlDouble *) p)->value(index));
-      default:
-        return fail_EpicsStore("???", type);
-    }
-  }
-
-  class EpicsPvHeaderWrapper {
-  private:
-    shared_ptr<EpicsPvHeader> _header;
-  public:
-    EpicsPvHeaderWrapper(shared_ptr<EpicsPvHeader> header) : _header(header) {}
-    int pvId() { return _header->pvId(); }
-    int dbrType() { return _header->dbrType(); }
-    int numElements() { return _header->numElements(); }
-    void print() { _header->print(); }
-    int isCtrl() { return _header->isCtrl(); }
-    int isTime() { return _header->isTime(); }
-    int severity() { return _header->severity(); }
-    int __zero() { return 0; }
-    object value() {
-      return value_EpicsPvHeader(_header);
-    }
-  };
 
   EpicsPvHeaderWrapper value_EpicsStore(EpicsStore& epicsStore, const std::string& name, int index) {
     EpicsStore::EpicsValue value(epicsStore.value(name, index));
@@ -200,35 +94,38 @@ namespace Psana {
     class_<PSEnv::EnvObjectStore::GetResultProxy>("PSEnv::EnvObjectStore::GetResultProxy", no_init)
       ;
 
+    class_<PSEnv::EpicsStore::EpicsValue>("PSEnv::EpicsStore::EpicsValue", no_init)
+      ;
+
     class_<PSEnv::EpicsStore, boost::noncopyable>("PSEnv::EpicsStore", no_init)
       .def("value", &value_EpicsStore, return_value_policy<return_by_value>())
       .def("value", &value_EpicsStore0, return_value_policy<return_by_value>())
-      //      .def("value", &PSEnv::EpicsStore::value)
-      ;
-
-    class_<PSEnv::EpicsStore::EpicsValue>("PSEnv::EpicsStore::EpicsValue", no_init)
       ;
 
     class_<Psana::EpicsPvHeaderWrapper>("Psana::Epics::EpicsPvHeader", no_init)
       .def("pvId", &EpicsPvHeaderWrapper::pvId)
       .def("dbrType", &EpicsPvHeaderWrapper::dbrType)
+      .add_property("iPvId", &EpicsPvHeaderWrapper::pvId)
+      .add_property("iDbrType", &EpicsPvHeaderWrapper::dbrType)
       .def("numElements", &EpicsPvHeaderWrapper::numElements)
       .def("print", &EpicsPvHeaderWrapper::print)
       .def("isCtrl", &EpicsPvHeaderWrapper::isCtrl)
       .def("isTime", &EpicsPvHeaderWrapper::isTime)
-      .def("severity", &EpicsPvHeaderWrapper::severity)
-      .def("status", &EpicsPvHeaderWrapper::__zero)
-      .def("precision", &EpicsPvHeaderWrapper::__zero)
-      .def("units", &EpicsPvHeaderWrapper::__zero)
-      .add_property("lower_ctrl_limit", &EpicsPvHeaderWrapper::__zero)
-      .add_property("upper_ctrl_limit", &EpicsPvHeaderWrapper::__zero)
-      .add_property("lower_disp_limit", &EpicsPvHeaderWrapper::__zero)
-      .add_property("upper_disp_limit", &EpicsPvHeaderWrapper::__zero)
-      .add_property("lower_warning_limit", &EpicsPvHeaderWrapper::__zero)
-      .add_property("upper_warning_limit", &EpicsPvHeaderWrapper::__zero)
-      .add_property("lower_alarm_limit", &EpicsPvHeaderWrapper::__zero)
-      .add_property("upper_alarm_limit", &EpicsPvHeaderWrapper::__zero)
+      .add_property("status", &EpicsPvHeaderWrapper::status)
+      .add_property("severity", &EpicsPvHeaderWrapper::severity)
+      // The following are not actually methods/fields of EpicsPvHeader, but only of EpicsPvHeaderWrapper
       .add_property("value", &EpicsPvHeaderWrapper::value)
+      .add_property("value", &EpicsPvHeaderWrapper::value0)
+      .add_property("precision", &EpicsPvHeaderWrapper::precision)
+      .add_property("units", &EpicsPvHeaderWrapper::units)
+      .add_property("lower_ctrl_limit", &EpicsPvHeaderWrapper::lower_ctrl_limit)
+      .add_property("upper_ctrl_limit", &EpicsPvHeaderWrapper::upper_ctrl_limit)
+      .add_property("lower_disp_limit", &EpicsPvHeaderWrapper::lower_disp_limit)
+      .add_property("upper_disp_limit", &EpicsPvHeaderWrapper::upper_disp_limit)
+      .add_property("lower_warning_limit", &EpicsPvHeaderWrapper::lower_warning_limit)
+      .add_property("upper_warning_limit", &EpicsPvHeaderWrapper::upper_warning_limit)
+      .add_property("lower_alarm_limit", &EpicsPvHeaderWrapper::lower_alarm_limit)
+      .add_property("upper_alarm_limit", &EpicsPvHeaderWrapper::upper_alarm_limit)
       ;
 
     class_<PSEvt::Source>("PSEvt::Source", no_init)
