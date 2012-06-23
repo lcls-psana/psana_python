@@ -10,23 +10,23 @@
 namespace Psana {
 
   object EventWrapper::get(const string& key) {
-    printf("get(key=%s)\n", key.c_str());
+    //printf("get(key=%s)\n", key.c_str());
     shared_ptr<string> s(_event.get(key));
     if (s.get()) {
       string& ss = *s;
-      printf("get(%s) = %s\n", key.c_str(), ss.c_str());
+      //printf("get(%s) = %s\n", key.c_str(), ss.c_str());
       return object(s);
     }
     shared_ptr<bool> b(_event.get(key));
     if (b.get()) {
       bool bb = *b;
-      printf("get(%s) = %s\n", key.c_str(), (bb ? "true" : "false"));
+      //printf("get(%s) = %s\n", key.c_str(), (bb ? "true" : "false"));
       return object(bb);
     }
     shared_ptr<boost::python::list> l(_event.get(key));
     if (l.get()) {
       boost::python::list ll = *l;
-      printf("get(%s): is a list\n", key.c_str());
+      //printf("get(%s): is a list\n", key.c_str());
       return object(ll);
     }
     printf("WARNING: get(%s) found nothing of a known type\n", key.c_str());
@@ -45,19 +45,18 @@ namespace Psana {
     return GenericGetter::get(typeName2, &method);
   }
 
-  list<string> EventWrapper::getAllKeys() {
+  boost::python::list EventWrapper::keys() {
     Event::GetResultProxy proxy = _event.get();
-    list<EventKey> keys;
+    std::list<EventKey> keys;
     proxy.m_dict->keys(keys, Source());
 
-    list<string> keyNames;
-    list<EventKey>::iterator it;
+    boost::python::list keyNames;
+    std::list<EventKey>::iterator it;
     for (it = keys.begin(); it != keys.end(); it++) {
       EventKey& key = *it;
       int status;
       char* keyName = abi::__cxa_demangle(key.typeinfo()->name(), 0, 0, &status);
-      printf("getAllKeys: %s\n", keyName);
-      keyNames.push_back(string(keyName));
+      keyNames.append(string(keyName));
     }
     return keyNames;
   }
