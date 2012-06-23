@@ -12,7 +12,6 @@ namespace Psana {
   using PSEvt::Source;
   using boost::python::api::object;
   using boost::shared_ptr;
-  using std::list;
   using std::string;
 
   class EventWrapper {
@@ -27,7 +26,11 @@ namespace Psana {
     void putBoolean(bool value, string key) {
       printf("put(key=%s, %s)\n", key.c_str(), value ? "true" : "false");
       const shared_ptr<bool> v(new bool(value));
-      _event.put(v, key);
+      try {
+        _event.put(v, key);
+      } catch (...) {
+        printf("problem with put(key=%s, %s)\n", key.c_str(), value ? "true" : "false");
+      }
     }
 
     void putList(boost::python::list list, string key) {
@@ -39,7 +42,7 @@ namespace Psana {
 
     int run();
 
-    list<string> getAllKeys();
+    boost::python::list keys();
   };
 
 }
