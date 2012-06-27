@@ -25,37 +25,62 @@ namespace Psana {
     _event.put(l, key);
   }
 
+  string getDemangledKeyTypeName(const EventKey& eventKey) {
+    int status;
+    const char* mangledTypeName = eventKey.typeinfo()->name();
+    const char* unmangledTypeName = abi::__cxa_demangle(mangledTypeName, 0, 0, &status);
+    if (status == 0 && unmangledTypeName) {
+      printf("demangled %s -> %s\n", mangledTypeName, unmangledTypeName);
+      return unmangledTypeName;
+    }
+    fprintf(stderr, "error: get(%s): could not demangle type %s\n", eventKey.key().c_str(), mangledTypeName);
+#if 1
+    exit(1);
+#endif
+    return mangledTypeName;
+  }
+
+  object EventWrapper::getValue(const string& key, const EventKey& eventKey) {
+    string typeName = getDemangledKeyTypeName(eventKey);
+    if (typeName == "bool") {
+      shared_ptr<bool> result(_event.get(key));
+      return object(*result);
+    }
+    if (typeName == "boost::python::list") {
+      shared_ptr<boost::python::list> result(_event.get(key));
+      return object(*result);
+    }
+    fprintf(stderr, "**************************************** get(%s): unknown type %s\n\n\n\n\n", key.c_str(), typeName.c_str());
+#if 1
+    exit(1);
+#endif
+    return object();
+  }
+
   object EventWrapper::get(const string& key) {
-    //printf("get(key=%s)\n", key.c_str());
-    shared_ptr<string> s(_event.get(key));
-    if (s.get()) {
-      //printf("get(%s) = %s\n", key.c_str(), ss.c_str());
-      return object(s);
+    PSEvt::Event::GetResultProxy proxy(_event.get(key));
+    std::list<EventKey> keys;
+    proxy.m_dict->keys(keys, Source(Source::null));
+    std::list<EventKey>::iterator it;
+    for (it = keys.begin(); it != keys.end(); it++) {
+      const EventKey& eventKey = *it;
+      if (eventKey.key() == key) {
+        return getValue(key, eventKey);
+      }
     }
-    shared_ptr<bool> b(_event.get(key));
-    if (b.get()) {
-      bool bb = *b;
-      //printf("get(%s) = %s\n", key.c_str(), (bb ? "true" : "false"));
-      return object(bb);
-    }
-    shared_ptr<boost::python::list> l(_event.get(key));
-    if (l.get()) {
-      boost::python::list ll = *l;
-      //printf("get(%s): is a list\n", key.c_str());
-      return object(ll);
-    }
-    printf("WARNING: get(%s) found nothing of a known type\n", key.c_str());
+    // nothing found for key
     return object();
   }
 
   object EventWrapper::getByType(const string& typeName, const string& detectorSourceName) {
     if (typeName == "PSEvt::EventId") {
+      printf("!!!! aha! EventId\n");
+      exit(1);
       const shared_ptr<PSEvt::EventId> eventId = _event.get();
       return object(eventId);
     }
-    string typeName2(typeName);
     Source source = (detectorSourceName == "") ? Source() : Source(detectorSourceName);
-    return EventGetter::get(typeName2, _event, source, "", NULL);
+    return EventGetter::get(typeName, _event, source, "", NULL);
   }
 
   boost::python::list EventWrapper::keys() {
