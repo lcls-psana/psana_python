@@ -1,12 +1,9 @@
 #include <psana_python/EnvObjectStoreWrapper.h>
 
 namespace Psana {
-  //using boost::python::api::object;
-
   object EnvObjectStoreWrapper::get(const string& typeName, const string& sourceName) {
-    string typeName2(typeName); // XXX
     PSEvt::Source source = (sourceName == "") ? PSEvt::Source() : PSEvt::Source(sourceName);
-    return EnvGetter::get(typeName2, _store, source, NULL);
+    return EnvObjectStoreGetter::get(typeName, _store, source, NULL);
   }
 
   boost::python::list EnvObjectStoreWrapper::keys() {
