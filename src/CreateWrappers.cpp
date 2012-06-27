@@ -30,7 +30,7 @@
 //-------------------------------
 #include <MsgLogger/MsgLogger.h>
 #include <PSEnv/Env.h>
-#include <PSEnv/EpicsStore.h> //
+#include <PSEnv/EpicsStore.h>
 #include <PSEvt/Event.h>
 #include <ConfigSvc/ConfigSvc.h>
 #include <psana_python/CreateDeviceWrappers.h>
@@ -147,7 +147,6 @@ namespace Psana {
 
     class_<EnvObjectStoreWrapper>("PSEnv::EnvObjectStore", init<EnvObjectStore&>())
       .def("get", &EnvObjectStoreWrapper::get)
-      .def("foundSrc", &EnvObjectStoreWrapper::foundSrc)
       .def("keys", &EnvObjectStoreWrapper::keys)
       ;
 
@@ -163,6 +162,7 @@ namespace Psana {
       .def("expNum", &EnvWrapper::expNum)
       .def("calibDir", &EnvWrapper::calibDir, return_value_policy<copy_const_reference>())
       .def("configStore", &EnvWrapper::configStore)
+      .def("getConfig", &EnvWrapper::getConfig)
       .def("calibStore", &EnvWrapper::calibStore, return_value_policy<reference_existing_object>())
       .def("epicsStore", &EnvWrapper::epicsStore, return_value_policy<reference_existing_object>())
       .def("rhmgr", &EnvWrapper::rhmgr, return_value_policy<reference_existing_object>())

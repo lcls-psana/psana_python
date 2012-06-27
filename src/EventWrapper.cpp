@@ -3,17 +3,32 @@
 #include <string>
 #include <boost/python.hpp>
 #include <PSEvt/Event.h>
-#include <psddl_python/EvtGetMethod.h>
-#include <psddl_python/GenericGetter.h>
+#include <psddl_python/EventGetter.h>
 #include <PSEvt/EventId.h>
 
 namespace Psana {
+
+  void EventWrapper::putBoolean(bool value, string key) {
+    printf("put(key=%s, %s)\n", key.c_str(), value ? "true" : "false");
+    const shared_ptr<bool> v(new bool(value));
+    try {
+      _event.put(v, key);
+    } catch (...) {
+      printf("problem with put(key=%s, %s)\n", key.c_str(), value ? "true" : "false");
+    }
+  }
+
+  void EventWrapper::putList(boost::python::list list, string key) {
+    boost::python::ssize_t n = boost::python::len(list);
+    printf("putList(key=%s): len(list)=%d\n", key.c_str(), n);
+    const shared_ptr<boost::python::list> l = boost::make_shared<boost::python::list>(list);
+    _event.put(l, key);
+  }
 
   object EventWrapper::get(const string& key) {
     //printf("get(key=%s)\n", key.c_str());
     shared_ptr<string> s(_event.get(key));
     if (s.get()) {
-      string& ss = *s;
       //printf("get(%s) = %s\n", key.c_str(), ss.c_str());
       return object(s);
     }
@@ -38,11 +53,9 @@ namespace Psana {
       const shared_ptr<PSEvt::EventId> eventId = _event.get();
       return object(eventId);
     }
-    EvtGetMethod method(_event);
-    Source source = (detectorSourceName == "") ? Source() : Source(detectorSourceName);
-    method.addSource(&source);
     string typeName2(typeName);
-    return GenericGetter::get(typeName2, &method);
+    Source source = (detectorSourceName == "") ? Source() : Source(detectorSourceName);
+    return EventGetter::get(typeName2, _event, source, "", NULL);
   }
 
   boost::python::list EventWrapper::keys() {

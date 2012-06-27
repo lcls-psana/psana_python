@@ -28,6 +28,7 @@ namespace Psana {
     const unsigned expNum() const { return _env.expNum(); }
     const string& calibDir() const { return _env.calibDir(); }
     EnvObjectStoreWrapper configStore() { return EnvObjectStoreWrapper(_env.configStore()); }
+    object getConfig(const string& typeName, const string& sourceName) { return configStore().get(typeName, sourceName); }
     EnvObjectStore& calibStore() { return _env.calibStore(); }
     EpicsStore& epicsStore() { return _env.epicsStore(); }
     RootHistoManager::RootHMgr& rhmgr() { return _env.rhmgr(); }
@@ -35,27 +36,8 @@ namespace Psana {
     Env& getEnv() { return _env; };
     void assert_psana() {}
     bool subprocess() { return 0; } // XXX What is this?
-
-    boost::python::list keys() {
-      boost::python::list l;
-      ConfigSvc::ConfigSvc cfg;
-      list<string> keys = cfg.getKeys(_name);
-      list<string>::iterator it;
-      for (it = keys.begin(); it != keys.end(); it++) {
-        string& key = *it;
-        l.append(key);
-      }
-      return l;
-    }
-
-    string configStr(const string& parameter, const string& _default) {
-      ConfigSvc::ConfigSvc cfg;
-      try {
-        return cfg.getStr(_name, parameter);
-      } catch (const ConfigSvc::ExceptionMissing& ex) {
-        return cfg.getStr(_className, parameter, _default);
-      }
-    }
+    boost::python::list keys();
+    string configStr(const string& parameter, const string& _default);
   };
 }
 
