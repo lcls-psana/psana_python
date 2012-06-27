@@ -17,6 +17,7 @@ namespace Psana {
   class EventWrapper {
   private:
     Event& _event;
+    object getValue(const string& key, const EventKey& eventKey);
   public:
     EventWrapper(Event& event) : _event(event) {}
     object get(const string& key);
