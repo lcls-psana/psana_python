@@ -5,7 +5,7 @@
 #include <sstream>
 #include <boost/python.hpp>
 #include <PSEnv/Env.h>
-#include <psddl_python/EnvGetter.h>
+#include <psddl_python/EnvObjectStoreGetter.h>
 
 namespace Psana {
   using boost::python::api::object;
