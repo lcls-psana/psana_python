@@ -1,4 +1,6 @@
 #include <psana_python/EnvObjectStoreWrapper.h>
+#include <psddl_python/EnvObjectStoreGetter.h>
+#include <sstream>
 
 namespace Psana {
   object EnvObjectStoreWrapper::get(const string& typeName, const string& sourceName) {

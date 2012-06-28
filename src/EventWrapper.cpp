@@ -1,12 +1,13 @@
-#include <psana_python/EventWrapper.h>
 #include <cxxabi.h>
 #include <string>
 #include <boost/python.hpp>
 #include <PSEvt/Event.h>
-#include <psddl_python/EventGetter.h>
 #include <PSEvt/EventId.h>
+#include <psana_python/EventWrapper.h>
+#include <psddl_python/EventGetter.h>
 
 namespace Psana {
+  using boost::shared_ptr;
 
   void EventWrapper::putBoolean(bool value, string key) {
     printf("put(key=%s, %s)\n", key.c_str(), value ? "true" : "false");
