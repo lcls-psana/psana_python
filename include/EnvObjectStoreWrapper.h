@@ -2,15 +2,12 @@
 #define PSANA_ENVOBJECTSTOREWRAPPER_H
 
 #include <string>
-#include <sstream>
 #include <boost/python.hpp>
 #include <PSEnv/Env.h>
-#include <psddl_python/EnvObjectStoreGetter.h>
 
 namespace Psana {
   using boost::python::api::object;
 
-  // Need wrapper because EnvObjectStore is boost::noncopyable
   class EnvObjectStoreWrapper {
   private:
     PSEnv::EnvObjectStore& _store;

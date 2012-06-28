@@ -2,16 +2,13 @@
 #define PSANA_EVENTWRAPPER_H
 
 #include <string>
-#include <list>
 #include <boost/python.hpp>
 #include <PSEvt/Event.h>
 
 namespace Psana {
   using PSEvt::Event;
   using PSEvt::EventKey;
-  using PSEvt::Source;
   using boost::python::api::object;
-  using boost::shared_ptr;
   using std::string;
 
   class EventWrapper {
@@ -27,7 +24,6 @@ namespace Psana {
     int run();
     boost::python::list keys();
   };
-
 }
 
 #endif // PSANA_EVENTWRAPPER_H
