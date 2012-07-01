@@ -32,20 +32,20 @@ namespace Psana {
     PyObject* m_endjob;
 
     // Method to call provided Python method with event and env args
-    void call(PyObject* psana_method, PyObject* pyana_method, bool pyana_no_evt, Event& evt, Env& env);
+    void call(const char* methodName, PyObject* psana_method, PyObject* pyana_method, bool pyana_no_evt, Event& evt, Env& env);
 
   public:
     PythonModule(const std::string& name, PyObject* instance);
     ~PythonModule();
 
     // Standard module methods -- see psana/Module.h
-    void beginJob(Event& evt, Env& env) { call(m_beginJob, m_beginjob, false, evt, env); }
-    void beginRun(Event& evt, Env& env) { call(m_beginRun, m_beginrun, false, evt, env); }
-    void beginCalibCycle(Event& evt, Env& env) { call(m_beginCalibCycle, m_begincalibcycle, false, evt, env); }
-    void event(Event& evt, Env& env) { call(m_event, m_event, false, evt, env); }
-    void endCalibCycle(Event& evt, Env& env) { call(m_endCalibCycle, m_endcalibcycle, true, evt, env); }
-    void endRun(Event& evt, Env& env) { call(m_endRun, m_endrun, true, evt, env); }
-    void endJob(Event& evt, Env& env) { call(m_endJob, m_endjob, false, evt, env); }
+    void beginJob(Event& evt, Env& env) { call("beginJob", m_beginJob, m_beginjob, false, evt, env); }
+    void beginRun(Event& evt, Env& env) { call("beginRun", m_beginRun, m_beginrun, false, evt, env); }
+    void beginCalibCycle(Event& evt, Env& env) { call("beginCalibCycle", m_beginCalibCycle, m_begincalibcycle, false, evt, env); }
+    void event(Event& evt, Env& env) { call("event", m_event, m_event, false, evt, env); }
+    void endCalibCycle(Event& evt, Env& env) { call("endCalibCycle", m_endCalibCycle, m_endcalibcycle, true, evt, env); }
+    void endRun(Event& evt, Env& env) { call("endRun", m_endRun, m_endrun, true, evt, env); }
+    void endJob(Event& evt, Env& env) { call("endJob", m_endJob, m_endjob, false, evt, env); }
   };
 
 } // namespace psana

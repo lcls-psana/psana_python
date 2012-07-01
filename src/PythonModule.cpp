@@ -138,9 +138,28 @@ PythonModule::~PythonModule ()
   Py_CLEAR(m_endjob);
 }
 
+// The const char* arguments make it easier to figure out what's happening
+// in a C++ stack trace when a segmentation violation occurs
+static void ________CALL(const char* methodName, const char* name, const char* className, int nargs, PyObject* method, Event& evt, Env& env)
+{
+  PyObjPtr args(PyTuple_New(nargs), PyRefDelete());
+  object evtWrapper;
+  if (nargs > 1) {
+    evtWrapper = object(EventWrapperClass(EventWrapper(evt)));
+    PyTuple_SET_ITEM(args.get(), 0, evtWrapper.ptr());
+  }
+  object envWrapper(EnvWrapperClass(EnvWrapper(env, name, className)));
+  PyTuple_SET_ITEM(args.get(), nargs - 1, envWrapper.ptr());
+  PyObjPtr res(PyObject_Call(method, args.get(), NULL), PyRefDelete());
+  if (not res) {
+    PyErr_Print();
+    exit(1);
+  }
+}
+
 // call specific method
 void
-PythonModule::call(PyObject* psana_method, PyObject* pyana_method, bool pyana_no_evt, Event& evt, Env& env)
+PythonModule::call(const char* methodName, PyObject* psana_method, PyObject* pyana_method, bool pyana_no_evt, Event& evt, Env& env)
 {
   int nargs = (m_pyanaCompat && pyana_no_evt) ? 1 : 2;
   PyObject* method = m_pyanaCompat ? pyana_method : psana_method;
@@ -153,13 +172,7 @@ PythonModule::call(PyObject* psana_method, PyObject* pyana_method, bool pyana_no
     evtWrapper = object(EventWrapperClass(EventWrapper(evt)));
     PyTuple_SET_ITEM(args.get(), 0, evtWrapper.ptr());
   }
-  object envWrapper(EnvWrapperClass(EnvWrapper(env, name(), className())));
-  PyTuple_SET_ITEM(args.get(), nargs - 1, envWrapper.ptr());
-  PyObjPtr res(PyObject_Call(method, args.get(), NULL), PyRefDelete());
-  if (not res) {
-    PyErr_Print();
-    exit(1);
-  }
+  ________CALL(methodName, name().c_str(), className().c_str(), nargs, method, evt, env);
 }
 
 // Load one user module. The name of the module has a format [Package.]Class[:name]
