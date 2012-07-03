@@ -10,7 +10,7 @@ namespace Psana {
   using boost::shared_ptr;
 
   void EventWrapper::putBoolean(bool value, string key) {
-    printf("put(key=%s, %s)\n", key.c_str(), value ? "true" : "false");
+    printf("put('%s', %s)\n", key.c_str(), value ? "true" : "false");
     const shared_ptr<bool> v(new bool(value));
     try {
       _event.put(v, key);
@@ -21,7 +21,7 @@ namespace Psana {
 
   void EventWrapper::putList(boost::python::list list, string key) {
     boost::python::ssize_t n = boost::python::len(list);
-    printf("putList(key=%s): len(list)=%d\n", key.c_str(), n);
+    printf("put('%s', list(len=%d))\n", key.c_str(), n);
     const shared_ptr<boost::python::list> l = boost::make_shared<boost::python::list>(list);
     _event.put(l, key);
   }
@@ -31,13 +31,10 @@ namespace Psana {
     const char* mangledTypeName = eventKey.typeinfo()->name();
     const char* unmangledTypeName = abi::__cxa_demangle(mangledTypeName, 0, 0, &status);
     if (status == 0 && unmangledTypeName) {
-      printf("demangled %s -> %s\n", mangledTypeName, unmangledTypeName);
+      //printf("demangled %s -> %s\n", mangledTypeName, unmangledTypeName);
       return unmangledTypeName;
     }
-    fprintf(stderr, "error: get(%s): could not demangle type %s\n", eventKey.key().c_str(), mangledTypeName);
-#if 1
-    exit(1);
-#endif
+    fprintf(stderr, "error: get('%s'): could not demangle type '%s'\n", eventKey.key().c_str(), mangledTypeName);
     return mangledTypeName;
   }
 
@@ -45,13 +42,19 @@ namespace Psana {
     string typeName = getDemangledKeyTypeName(eventKey);
     if (typeName == "bool") {
       shared_ptr<bool> result(_event.get(key));
-      return object(*result);
+      bool value = *result;
+      printf("get('%s') -> %s\n", key.c_str(), value ? "true" : "false");
+      return object(value);
     }
     if (typeName == "boost::python::list") {
       shared_ptr<boost::python::list> result(_event.get(key));
-      return object(*result);
+      boost::python::list l = *result;
+      boost::python::ssize_t len = boost::python::len(l);
+      printf("get('%s') -> list(len=%d)\n", key.c_str(), boost::python::len(l));
+      return object(l);
     }
-    fprintf(stderr, "**************************************** get(%s): unknown type %s\n\n\n\n\n", key.c_str(), typeName.c_str());
+
+    fprintf(stderr, "**************************************** get('%s'): unknown type %s\n\n\n\n\n", key.c_str(), typeName.c_str());
 #if 1
     exit(1);
 #endif
