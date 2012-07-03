@@ -10,7 +10,7 @@ namespace Psana {
   using boost::shared_ptr;
 
   void EventWrapper::putBoolean(bool value, string key) {
-    printf("put('%s', %s)\n", key.c_str(), value ? "true" : "false");
+    //printf("put('%s', %s)\n", key.c_str(), value ? "true" : "false");
     const shared_ptr<bool> v(new bool(value));
     try {
       _event.put(v, key);
@@ -21,7 +21,7 @@ namespace Psana {
 
   void EventWrapper::putList(boost::python::list list, string key) {
     boost::python::ssize_t n = boost::python::len(list);
-    printf("put('%s', list(len=%d))\n", key.c_str(), n);
+    //printf("put('%s', list(len=%d))\n", key.c_str(), n);
     const shared_ptr<boost::python::list> l = boost::make_shared<boost::python::list>(list);
     _event.put(l, key);
   }
@@ -43,14 +43,14 @@ namespace Psana {
     if (typeName == "bool") {
       shared_ptr<bool> result(_event.get(key));
       bool value = *result;
-      printf("get('%s') -> %s\n", key.c_str(), value ? "true" : "false");
+      //printf("get('%s') -> %s\n", key.c_str(), value ? "true" : "false");
       return object(value);
     }
     if (typeName == "boost::python::list") {
       shared_ptr<boost::python::list> result(_event.get(key));
       boost::python::list l = *result;
       boost::python::ssize_t len = boost::python::len(l);
-      printf("get('%s') -> list(len=%d)\n", key.c_str(), boost::python::len(l));
+      //printf("get('%s') -> list(len=%d)\n", key.c_str(), boost::python::len(l));
       return object(l);
     }
 
