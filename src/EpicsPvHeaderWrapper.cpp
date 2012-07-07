@@ -175,7 +175,7 @@ namespace Psana {
         return ((Epics::EpicsPvCtrlDouble *) p)->dbr().units();
       default:
         fprintf(stderr, "units() called on unsupported type %s\n", typeName(type).c_str());
-        return 0;
+        return "";
     }
   }
 
