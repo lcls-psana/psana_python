@@ -1,0 +1,19 @@
+#--------------------------------------------------------------------------
+# File and Version Information:
+#  $Id$
+#
+# Description:
+#  README file for package psana_python
+#------------------------------------------------------------------------
+
+Package author: Joseph S. Barrera III
+
+Brief description:
+==================
+
+Python support for psana... to replace pyana.
+
+Detailed description:
+=====================
+
+Contains class wrappers for psana objects, plus boost::python code to expose such classes to Python.
