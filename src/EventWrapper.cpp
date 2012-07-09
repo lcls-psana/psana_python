@@ -3,6 +3,7 @@
 #include <boost/python.hpp>
 #include <PSEvt/Event.h>
 #include <PSEvt/EventId.h>
+#include <PSEvt/Exceptions.h>
 #include <psana_python/EventWrapper.h>
 #include <psddl_python/EventGetter.h>
 
@@ -14,13 +15,15 @@ namespace Psana {
     const shared_ptr<bool> v(new bool(value));
     try {
       _event.put(v, key);
-    } catch (...) {
-      printf("problem with put(key=%s, %s)\n", key.c_str(), value ? "true" : "false");
+    } catch (PSEvt::ExceptionDuplicateKey e) {
+      // XtcExplorer will often set the same key repeatedly.
+      _event.remove<bool>(key);
+      _event.put(v, key);
     }
   }
 
   void EventWrapper::putList(boost::python::list list, string key) {
-    boost::python::ssize_t n = boost::python::len(list);
+    //boost::python::ssize_t n = boost::python::len(list);
     //printf("put('%s', list(len=%d))\n", key.c_str(), n);
     const shared_ptr<boost::python::list> l = boost::make_shared<boost::python::list>(list);
     _event.put(l, key);
@@ -49,7 +52,7 @@ namespace Psana {
     if (typeName == "boost::python::list") {
       shared_ptr<boost::python::list> result(_event.get(key));
       boost::python::list l = *result;
-      boost::python::ssize_t len = boost::python::len(l);
+      //boost::python::ssize_t len = boost::python::len(l);
       //printf("get('%s') -> list(len=%d)\n", key.c_str(), boost::python::len(l));
       return object(l);
     }
