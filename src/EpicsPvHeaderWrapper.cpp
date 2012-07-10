@@ -14,6 +14,7 @@
 // This Class's Header --
 //-----------------------
 #include <psana_python/EpicsPvHeaderWrapper.h>
+#include <cmath>
 
 namespace Psana {
   using boost::python::api::object;
@@ -91,7 +92,7 @@ namespace Psana {
       case Epics::DBR_CTRL_DOUBLE:
         return "DBR_CTRL_DOUBLE";
       default:
-        char buf[64];
+        static char buf[64];
         sprintf(buf, "Epics::DBR_%d\n", type);
         return buf;
     }
@@ -142,6 +143,7 @@ namespace Psana {
   int16_t EpicsPvHeaderWrapper::precision() {
     if (not _header.get()) {
       fprintf(stderr, "precision() called on empty object\n");
+      return 0;
     }
     const Psana::Epics::EpicsPvHeader* p = _header.get();
     int type = p->dbrType();
@@ -159,6 +161,7 @@ namespace Psana {
   std::string EpicsPvHeaderWrapper::units() {
     if (not _header.get()) {
       fprintf(stderr, "units() called on empty object\n");
+      return "undefined";
     }
     const Psana::Epics::EpicsPvHeader* p = _header.get();
     int type = p->dbrType();
@@ -175,39 +178,27 @@ namespace Psana {
         return ((Epics::EpicsPvCtrlDouble *) p)->dbr().units();
       default:
         fprintf(stderr, "units() called on unsupported type %s\n", typeName(type).c_str());
-        return "";
+        return "undefined";
     }
   }
 
-  static std::string to_string(int limit) {
-    char buf[1024];
-    sprintf(buf, "%d", limit);
-    return std::string(buf);
-  }
-  
-  static std::string to_string(double limit) {
-    char buf[1024];
-    sprintf(buf, "%g", limit);
-    return std::string(buf);
-  }
-  
-#define DECL_LIMIT_METHOD(method_name)                                \
-  std::string EpicsPvHeaderWrapper:: method_name () {                 \
-    if (not _header.get()) {                                          \
-      fprintf(stderr, #method_name "() called on empty object\n");    \
-      return "???";                                                   \
-    }                                                                 \
-    const Psana::Epics::EpicsPvHeader* p = _header.get();             \
-    int type = p->dbrType();                                          \
-    switch (type) {                                                   \
-      case Epics::DBR_CTRL_SHORT:  return to_string(((Epics::EpicsPvCtrlShort *)  p)->dbr(). method_name ()); \
-      case Epics::DBR_CTRL_FLOAT:  return to_string(((Epics::EpicsPvCtrlFloat *)  p)->dbr(). method_name ()); \
-      case Epics::DBR_CTRL_CHAR:   return to_string(((Epics::EpicsPvCtrlChar *)   p)->dbr(). method_name ()); \
-      case Epics::DBR_CTRL_LONG:   return to_string(((Epics::EpicsPvCtrlLong *)   p)->dbr(). method_name ()); \
-      case Epics::DBR_CTRL_DOUBLE: return to_string(((Epics::EpicsPvCtrlDouble *) p)->dbr(). method_name ()); \
+#define DECL_LIMIT_METHOD(method_name)                                  \
+  double EpicsPvHeaderWrapper::method_name () {                         \
+    if (not _header.get()) {                                            \
+      fprintf(stderr, #method_name "() called on empty object\n");      \
+      return NAN;                                                       \
+    }                                                                   \
+    const Psana::Epics::EpicsPvHeader* p = _header.get();               \
+    int type = p->dbrType();                                            \
+    switch (type) {                                                     \
+      case Epics::DBR_CTRL_SHORT:  return ((Epics::EpicsPvCtrlShort *) p)->dbr().method_name (); \
+      case Epics::DBR_CTRL_FLOAT:  return ((Epics::EpicsPvCtrlFloat *) p)->dbr().method_name (); \
+      case Epics::DBR_CTRL_CHAR:   return ((Epics::EpicsPvCtrlChar *)  p)->dbr().method_name (); \
+      case Epics::DBR_CTRL_LONG:   return ((Epics::EpicsPvCtrlLong *)  p)->dbr().method_name (); \
+      case Epics::DBR_CTRL_DOUBLE: return ((Epics::EpicsPvCtrlDouble *)p)->dbr().method_name (); \
       default:                                                          \
         fprintf(stderr, #method_name "() called on unsupported type %s\n", typeName(type).c_str()); \
-        return "???";                                                   \
+        return NAN;                                                     \
     }                                                                   \
   }
 
@@ -220,4 +211,3 @@ DECL_LIMIT_METHOD(lower_alarm_limit)
 DECL_LIMIT_METHOD(upper_ctrl_limit)
 DECL_LIMIT_METHOD(lower_ctrl_limit)
 }
-

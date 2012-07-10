@@ -23,14 +23,14 @@ namespace Psana {
     boost::python::api::object value0() { return value(0); }
     int16_t precision();
     std::string units();
-    std::string upper_disp_limit();
-    std::string lower_disp_limit();
-    std::string upper_alarm_limit();
-    std::string upper_warning_limit();
-    std::string lower_warning_limit();
-    std::string lower_alarm_limit();
-    std::string upper_ctrl_limit();
-    std::string lower_ctrl_limit();
+    double upper_disp_limit();
+    double lower_disp_limit();
+    double upper_alarm_limit();
+    double upper_warning_limit();
+    double lower_warning_limit();
+    double lower_alarm_limit();
+    double upper_ctrl_limit();
+    double lower_ctrl_limit();
   };
 }
 
