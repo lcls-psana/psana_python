@@ -180,14 +180,14 @@ namespace Psana {
   }
 
   static std::string to_string(int limit) {
-    char buf[64];
+    char buf[1024];
     sprintf(buf, "%d", limit);
     return std::string(buf);
   }
   
   static std::string to_string(double limit) {
-    char buf[64];
-    sprintf(buf, "%f", limit);
+    char buf[1024];
+    sprintf(buf, "%g", limit);
     return std::string(buf);
   }
   
@@ -197,7 +197,7 @@ namespace Psana {
       fprintf(stderr, #method_name "() called on empty object\n");    \
       return "???";                                                   \
     }                                                                 \
-    const Psana::Epics::EpicsPvHeader* p = _header.get();                           \
+    const Psana::Epics::EpicsPvHeader* p = _header.get();             \
     int type = p->dbrType();                                          \
     switch (type) {                                                   \
       case Epics::DBR_CTRL_SHORT:  return to_string(((Epics::EpicsPvCtrlShort *)  p)->dbr(). method_name ()); \
