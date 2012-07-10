@@ -11,4 +11,7 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+2012-07-10	jbarrera	V00-00-02
+	- Fixes for Epics variables
+
 2012-07-08	jbarrera	Tag V00-00-01.           Initial working version
