@@ -200,21 +200,30 @@ extern "C" PythonModule* moduleFactory(const string& name)
   // Make sure python is initialized
   Py_Initialize();
 
+  // Clear any lingering errors
+  pyExcStr();
+
   // try to import module
   PyObjPtr mod(PyImport_ImportModule((char*)moduleName.c_str()), PyRefDelete());
   if (not mod) {
-    throw ExceptionPyLoadError(ERR_LOC, "failed to import module " + moduleName + ": " + ::pyExcStr());
+    string error = "failed to import module " + moduleName + ": " + ::pyExcStr();
+    fprintf(stderr, "PythonModule: %s\n", error.c_str());
+    throw ExceptionPyLoadError(ERR_LOC, error);
   }
 
   // there must be a class defined with this name
   PyObjPtr cls(PyObject_GetAttrString(mod.get(), (char*)className.c_str()), PyRefDelete());
   if (not cls) {
-    throw ExceptionPyLoadError(ERR_LOC, "Python module " + moduleName + " does not define class " + className);
+    string error = "module " + moduleName + " does not define class " + className;
+    fprintf(stderr, "PythonModule: %s\n", error.c_str());
+    throw ExceptionPyLoadError(ERR_LOC, error);
   }
 
   // make sure class is callable
   if (not PyCallable_Check(cls.get())) {
-    throw ExceptionPyLoadError(ERR_LOC, "Python object " + moduleName + " cannot be instantiated (is not callable)");
+    string error = "class " + moduleName + " cannot be instantiated (is not callable)";
+    fprintf(stderr, "PythonModule: %s\n", error.c_str());
+    throw ExceptionPyLoadError(ERR_LOC, error);
   }
 
   // Create empty positional args list.
@@ -234,7 +243,9 @@ extern "C" PythonModule* moduleFactory(const string& name)
   // Construct the instance.
   PyObject* instance = PyObject_Call(cls.get(), args.get(), kwargs.get());
   if (not instance) {
-    throw ExceptionPyLoadError(ERR_LOC, "error making an instance of class " + className + ": " + ::pyExcStr());
+    string error = "cannot create instance of class " + className + ": " + ::pyExcStr();
+    fprintf(stderr, "PythonModule: %s\n", error.c_str());
+    throw ExceptionPyLoadError(ERR_LOC, error);
   }
 
   // Set m_className and m_fullName attributes.
@@ -244,7 +255,9 @@ extern "C" PythonModule* moduleFactory(const string& name)
   // check that instance has at least an event() method
   if (not PyObject_HasAttrString(instance, "event")) {
     Py_CLEAR(instance);
-    throw ExceptionPyLoadError(ERR_LOC, "Python class " + className + " does not define event() method");
+    string error = "class " + className + " does not define event() method";
+    fprintf(stderr, "PythonModule: %s\n", error.c_str());
+    throw ExceptionPyLoadError(ERR_LOC, error);
   }
 
   return new PythonModule(fullName, instance);
