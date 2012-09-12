@@ -5,7 +5,7 @@
 #include <boost/python.hpp>
 #include <psddl_psana/epics.ddl.h>
 
-namespace Psana {
+namespace psana_python {
   class EpicsPvHeaderWrapper {
   private:
     boost::shared_ptr<Psana::Epics::EpicsPvHeader> _header;

@@ -1,12 +1,17 @@
 #include <psana_python/CreateDeviceWrappers.h>
 
-namespace Psana {
+namespace psddl_python {
 #undef DECL
 #define DECL(ns) namespace ns { extern void createWrappers(); }
 #include "WrapperList.txt"
-  void createDeviceWrappers() {
+}
+
+namespace psana_python {
+void createDeviceWrappers() {
+
 #undef DECL
-#define DECL(ns) ns::createWrappers();
+#define DECL(ns) psddl_python::ns::createWrappers();
 #include "WrapperList.txt"
-  }
+
+}
 } // namespace Psana

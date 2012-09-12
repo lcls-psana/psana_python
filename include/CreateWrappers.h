@@ -3,11 +3,13 @@
 
 #include <boost/python.hpp>
 
-namespace Psana {
-  using boost::python::api::object;
-  extern void createWrappers();
-  extern object EventWrapperClass;
-  extern object EnvWrapperClass;
+namespace psana_python {
+
+extern void createWrappers();
+
+extern boost::python::object EventWrapperClass;
+extern boost::python::object EnvWrapperClass;
+
 }
 
 #endif // PSANA_CREATEWRAPPERS_H

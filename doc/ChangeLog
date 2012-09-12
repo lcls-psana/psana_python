@@ -11,6 +11,13 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-01-00
+2012-09-11 Andy Salnikov
+- moved pyext directory (which makes _psana python module) here from 
+  psana package
+- psddl_python stuff is now in psddl_python namespace, all references 
+  here updated
+
 2012-07-10	jbarrera	V00-00-02
 	- Fixes for Epics variables
 

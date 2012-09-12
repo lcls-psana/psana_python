@@ -3,19 +3,23 @@
 
 #include <string>
 #include <boost/python.hpp>
-#include <PSEnv/Env.h>
+#include <boost/shared_ptr.hpp>
 
-namespace Psana {
-  using boost::python::api::object;
+#include <PSEnv/EnvObjectStore.h>
 
-  class EnvObjectStoreWrapper {
-  private:
-    PSEnv::EnvObjectStore& _store;
-  public:
-    EnvObjectStoreWrapper(PSEnv::EnvObjectStore& store) : _store(store) {}
-    object get(const string& typeName, const string& sourceName);
-    boost::python::list keys();
-  };
+namespace psana_python {
+
+class EnvObjectStoreWrapper {
+public:
+
+  EnvObjectStoreWrapper(const boost::shared_ptr<PSEnv::EnvObjectStore>& store) : _store(store) {}
+
+  boost::python::object get(const std::string& typeName, const std::string& sourceName);
+  boost::python::list keys();
+
+private:
+  boost::shared_ptr<PSEnv::EnvObjectStore> _store;
+};
 }
 
 #endif // PSANA_ENVOBJECTSTOREWRAPPER_H

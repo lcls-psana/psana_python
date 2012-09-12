@@ -73,7 +73,7 @@ namespace {
 // 		-- Public Function Member Definitions --
 //		----------------------------------------
 
-namespace Psana {
+namespace psana_python {
 
 //----------------
 // Constructors --
@@ -112,7 +112,7 @@ PythonModule::PythonModule(const string& name, PyObject* instance) : Module(name
     }
   }
 
-  Psana::createWrappers();
+  psana_python::createWrappers();
 }
 
 //--------------
@@ -145,10 +145,10 @@ static void ________CALL(const char* methodName, const char* name, const char* c
   PyObjPtr args(PyTuple_New(nargs), PyRefDelete());
   object evtWrapper;
   if (nargs > 1) {
-    evtWrapper = object(EventWrapperClass(EventWrapper(evt)));
+    evtWrapper = object(EventWrapperClass(EventWrapper(evt.shared_from_this())));
     PyTuple_SET_ITEM(args.get(), 0, evtWrapper.ptr());
   }
-  object envWrapper(EnvWrapperClass(EnvWrapper(env, name, className)));
+  object envWrapper(EnvWrapperClass(EnvWrapper(env.shared_from_this(), name, className)));
   PyTuple_SET_ITEM(args.get(), nargs - 1, envWrapper.ptr());
   PyObjPtr res(PyObject_Call(method, args.get(), NULL), PyRefDelete());
   if (not res) {
@@ -169,14 +169,14 @@ PythonModule::call(const char* methodName, PyObject* psana_method, PyObject* pya
   PyObjPtr args(PyTuple_New(nargs), PyRefDelete());
   object evtWrapper;
   if (nargs > 1) {
-    evtWrapper = object(EventWrapperClass(EventWrapper(evt)));
+    evtWrapper = object(EventWrapperClass(EventWrapper(evt.shared_from_this())));
     PyTuple_SET_ITEM(args.get(), 0, evtWrapper.ptr());
   }
   ________CALL(methodName, name().c_str(), className().c_str(), nargs, method, evt, env);
 }
 
 // Load one user module. The name of the module has a format [Package.]Class[:name]
-extern "C" PythonModule* moduleFactory(const string& name)
+extern "C" psana::Module* moduleFactory(const string& name)
 {
   // Make class name and module name. Use psana for package name if not given.
   // Full name should be package name . class name.
