@@ -1,8 +1,9 @@
 
+#include <psana_python/EnvObjectStoreWrapper.h>
+
 #include <list>
 #include <sstream>
 
-#include <psana_python/EnvObjectStoreWrapper.h>
 #include <psddl_python/EnvObjectStoreGetter.h>
 
 namespace psana_python {

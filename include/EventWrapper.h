@@ -1,8 +1,8 @@
 #ifndef PSANA_EVENTWRAPPER_H
 #define PSANA_EVENTWRAPPER_H
 
-#include <string>
 #include <boost/python.hpp>
+#include <string>
 #include <boost/shared_ptr.hpp>
 
 #include <PSEvt/Event.h>

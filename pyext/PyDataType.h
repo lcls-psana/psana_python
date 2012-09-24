@@ -13,6 +13,7 @@
 //-----------------
 // C/C++ Headers --
 //-----------------
+#include "python/Python.h"
 #include <new>
 #include <string>
 #include <iostream>
@@ -21,7 +22,6 @@
 //----------------------
 // Base Class Headers --
 //----------------------
-#include "python/Python.h"
 
 //-------------------------------
 // Collaborating Class Headers --

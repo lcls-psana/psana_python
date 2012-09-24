@@ -1,8 +1,8 @@
 #ifndef PSANA_PYTHONMODULE_H
 #define PSANA_PYTHONMODULE_H
 
-#include <psana/Module.h>
 #include <python/Python.h>
+#include <psana/Module.h>
 
 namespace psana_python {
 

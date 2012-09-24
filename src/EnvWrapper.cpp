@@ -1,6 +1,7 @@
-#include <list>
 
 #include <psana_python/EnvWrapper.h>
+
+#include <list>
 
 namespace psana_python {
 

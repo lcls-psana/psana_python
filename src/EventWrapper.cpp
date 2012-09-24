@@ -1,3 +1,4 @@
+#include <psana_python/EventWrapper.h>
 
 #include <cxxabi.h>
 #include <string>
@@ -6,7 +7,6 @@
 #include <PSEvt/Event.h>
 #include <PSEvt/EventId.h>
 #include <PSEvt/Exceptions.h>
-#include <psana_python/EventWrapper.h>
 #include <psddl_python/EventGetter.h>
 
 using boost::shared_ptr;

@@ -1,8 +1,8 @@
 #ifndef PSANA_EPICSPVHEADERWRAPPER_H
 #define PSANA_EPICSPVHEADERWRAPPER_H
 
-#include <string>
 #include <boost/python.hpp>
+#include <string>
 #include <psddl_psana/epics.ddl.h>
 
 namespace psana_python {

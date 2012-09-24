@@ -1,8 +1,8 @@
 #ifndef PSANA_ENVWRAPPER_H
 #define PSANA_ENVWRAPPER_H
 
-#include <string>
 #include <boost/python.hpp>
+#include <string>
 #include <boost/shared_ptr.hpp>
 
 #include <psana_python/EnvObjectStoreWrapper.h>
