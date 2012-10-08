@@ -11,6 +11,11 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-01-04
+2012-10-08 Andy Salnikov
+- upgrading to pdsdata V04-02-01
+- regenerate devicetypes.py and src/WrapperList.txt from psddldata V00-03-09
+
 Tag: V00-01-03
 2012-10-03 Andy Salnikov
 - move unittest for python module here from psana package

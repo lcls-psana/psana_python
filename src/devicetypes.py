@@ -47,6 +47,8 @@ Bld.BldDataIpimbV0 = "Psana::Bld::BldDataIpimbV0"
 Bld.BldDataIpimbV1 = "Psana::Bld::BldDataIpimbV1"
 Bld.BldDataPim = "Psana::Bld::BldDataPim"
 Bld.BldDataPimV1 = "Psana::Bld::BldDataPimV1"
+Bld.BldDataGMD = "Psana::Bld::BldDataGMD"
+Bld.BldDataGMDV0 = "Psana::Bld::BldDataGMDV0"
 
 Camera = DeviceType()
 Camera.FrameCoord = "Psana::Camera::FrameCoord"
@@ -262,3 +264,9 @@ Timepix.ConfigV2 = "Psana::Timepix::ConfigV2"
 Timepix.Data = "Psana::Timepix::Data"
 Timepix.DataV1 = "Psana::Timepix::DataV1"
 Timepix.DataV2 = "Psana::Timepix::DataV2"
+
+UsdUsb = DeviceType()
+UsdUsb.Config = "Psana::UsdUsb::Config"
+UsdUsb.ConfigV1 = "Psana::UsdUsb::ConfigV1"
+UsdUsb.Data = "Psana::UsdUsb::Data"
+UsdUsb.DataV1 = "Psana::UsdUsb::DataV1"
