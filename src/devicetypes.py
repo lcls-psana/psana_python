@@ -34,6 +34,12 @@ Acqiris.TdcDataV1Marker = "Psana::Acqiris::TdcDataV1Marker"
 Acqiris.TdcData = "Psana::Acqiris::TdcData"
 Acqiris.TdcDataV1 = "Psana::Acqiris::TdcDataV1"
 
+Andor = DeviceType()
+Andor.Config = "Psana::Andor::Config"
+Andor.ConfigV1 = "Psana::Andor::ConfigV1"
+Andor.Frame = "Psana::Andor::Frame"
+Andor.FrameV1 = "Psana::Andor::FrameV1"
+
 Bld = DeviceType()
 Bld.BldDataFEEGasDetEnergy = "Psana::Bld::BldDataFEEGasDetEnergy"
 Bld.BldDataEBeam = "Psana::Bld::BldDataEBeam"

@@ -1,5 +1,6 @@
 
 DECL(Acqiris)
+DECL(Andor)
 DECL(Bld)
 DECL(Camera)
 DECL(ControlData)
