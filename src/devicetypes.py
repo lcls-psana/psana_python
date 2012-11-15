@@ -55,6 +55,7 @@ Bld.BldDataPim = "Psana::Bld::BldDataPim"
 Bld.BldDataPimV1 = "Psana::Bld::BldDataPimV1"
 Bld.BldDataGMD = "Psana::Bld::BldDataGMD"
 Bld.BldDataGMDV0 = "Psana::Bld::BldDataGMDV0"
+Bld.BldDataGMDV1 = "Psana::Bld::BldDataGMDV1"
 
 Camera = DeviceType()
 Camera.FrameCoord = "Psana::Camera::FrameCoord"
