@@ -73,7 +73,7 @@ EventIter_iternext(PyObject* self)
   psana_python::pyext::EventIter* py_this = static_cast<psana_python::pyext::EventIter*>(self);
   boost::shared_ptr<PSEvt::Event> evt = py_this->m_obj.next();
   if (evt) {
-    boost::python::object evtobj = EventWrapperClass(psana_python::EventWrapper(evt));
+    boost::python::object evtobj = psana_python::EventWrapperClass(psana_python::EventWrapper(evt));
     PyObject* pyevt = evtobj.ptr();
     Py_INCREF(pyevt);
     return pyevt;
