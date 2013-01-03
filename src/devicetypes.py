@@ -234,6 +234,10 @@ Opal1k = DeviceType()
 Opal1k.Config = "Psana::Opal1k::Config"
 Opal1k.ConfigV1 = "Psana::Opal1k::ConfigV1"
 
+Orca = DeviceType()
+Orca.Config = "Psana::Orca::Config"
+Orca.ConfigV1 = "Psana::Orca::ConfigV1"
+
 PNCCD = DeviceType()
 PNCCD.Config = "Psana::PNCCD::Config"
 PNCCD.ConfigV1 = "Psana::PNCCD::ConfigV1"
@@ -269,6 +273,7 @@ Timepix = DeviceType()
 Timepix.Config = "Psana::Timepix::Config"
 Timepix.ConfigV1 = "Psana::Timepix::ConfigV1"
 Timepix.ConfigV2 = "Psana::Timepix::ConfigV2"
+Timepix.ConfigV3 = "Psana::Timepix::ConfigV3"
 Timepix.Data = "Psana::Timepix::Data"
 Timepix.DataV1 = "Psana::Timepix::DataV1"
 Timepix.DataV2 = "Psana::Timepix::DataV2"
