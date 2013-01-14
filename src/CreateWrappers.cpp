@@ -35,6 +35,7 @@
 #include <ConfigSvc/ConfigSvc.h>
 #include <psana_python/CreateDeviceWrappers.h>
 #include <psana_python/EnvWrapper.h>
+#include <psana_python/EventIdWrapper.h>
 #include <psana_python/EventWrapper.h>
 #include <psana_python/EpicsPvHeaderWrapper.h>
 
@@ -151,6 +152,13 @@ createWrappers()
     .def("put", &EventWrapper::putBoolean)
     .def("put", &EventWrapper::putList)
     .def("run", &EventWrapper::run)
+    ;
+
+  class_<EventIdWrapper>("PSEvt::EventId", no_init)
+    .def("time", &EventIdWrapper::time)
+    .def("run", &EventIdWrapper::run)
+    .def("fiducials", &EventIdWrapper::fiducials)
+    .def("vector", &EventIdWrapper::vector)
     ;
 
   class_<EnvObjectStoreWrapper>("PSEnv::EnvObjectStore", init<EnvObjectStoreWrapper&>())

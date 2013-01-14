@@ -7,6 +7,7 @@
 #include <PSEvt/Event.h>
 #include <PSEvt/EventId.h>
 #include <PSEvt/Exceptions.h>
+#include <psana_python/EventIdWrapper.h>
 #include <psddl_python/EventGetter.h>
 
 using boost::shared_ptr;
@@ -101,10 +102,13 @@ object
 EventWrapper::getByType(const std::string& typeName, const std::string& detectorSourceName)
 {
   if (typeName == "PSEvt::EventId") {
-    printf("!!!! aha! EventId\n");
-    exit(1);
+    // special case for EventId, this is a temporary hack until I redesign stuff
     const shared_ptr<PSEvt::EventId> eventId = _event->get();
-    return object(eventId);
+    if (eventId) {
+      return object(EventIdWrapper(eventId));
+    } else {
+      return object();
+    }
   }
   PSEvt::Source source = (detectorSourceName == "") ? PSEvt::Source() : PSEvt::Source(detectorSourceName);
   return psddl_python::EventGetter::get(typeName, *_event, source, "", NULL);

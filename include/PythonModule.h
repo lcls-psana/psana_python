@@ -1,57 +1,110 @@
 #ifndef PSANA_PYTHONMODULE_H
 #define PSANA_PYTHONMODULE_H
+//--------------------------------------------------------------------------
+// File and Version Information:
+//      $Id$
+//
+// Description:
+//      Class Exceptions.
+//
+//------------------------------------------------------------------------
 
+//-----------------
+// C/C++ Headers --
+//-----------------
 #include <python/Python.h>
-#include <psana/Module.h>
+#include <boost/shared_ptr.hpp>
+
+//----------------------
+// Base Class Headers --
+//----------------------
+#include "psana/Module.h"
+
+
+//-------------------------------
+// Collaborating Class Headers --
+//-------------------------------
+
+//------------------------------------
+// Collaborating Class Declarations --
+//------------------------------------
+
+//              ---------------------
+//              -- Class Interface --
+//              ---------------------
 
 namespace psana_python {
 
-  class PythonModule : public psana::Module {
-  public:
+/// @addtogroup psana_python
 
-    PythonModule(const std::string& name, PyObject* instance);
-    ~PythonModule();
+/**
+ *  @ingroup psana_python
+ *
+ * @brief Base class for exceptions for psana package.
+ *
+ *  This software was developed for the LCLS project.  If you use all or
+ *  part of it, please give an appropriate acknowledgment.
+ *
+ *  @version $Id$
+ *
+ *  @author Andy Salnikov
+ */
+class PythonModule : public psana::Module {
+public:
 
-    // Standard module methods -- see psana/Module.h
-    void beginJob(Event& evt, Env& env) { call("beginJob", m_beginJob, m_beginjob, false, evt, env); }
-    void beginRun(Event& evt, Env& env) { call("beginRun", m_beginRun, m_beginrun, false, evt, env); }
-    void beginCalibCycle(Event& evt, Env& env) { call("beginCalibCycle", m_beginCalibCycle, m_begincalibcycle, false, evt, env); }
-    void event(Event& evt, Env& env) { call("event", m_event, m_event, false, evt, env); }
-    void endCalibCycle(Event& evt, Env& env) { call("endCalibCycle", m_endCalibCycle, m_endcalibcycle, true, evt, env); }
-    void endRun(Event& evt, Env& env) { call("endRun", m_endRun, m_endrun, true, evt, env); }
-    void endJob(Event& evt, Env& env) { call("endJob", m_endJob, m_endjob, false, evt, env); }
+  PythonModule(const std::string& name, PyObject* instance);
 
-  private:
+  virtual ~PythonModule();
 
-    // Method to call provided Python method with event and env args
-    void call(const char* methodName, PyObject* psana_method, PyObject* pyana_method, bool pyana_no_evt, Event& evt, Env& env);
+  // Standard module methods -- see psana/Module.h
+  virtual void beginJob(Event& evt, Env& env) {
+    call(m_methods[MethBeginJob].get(), false, evt, env);
+  }
 
-    // Instance of loaded Python module
-    PyObject* m_instance;
+  virtual void beginRun(Event& evt, Env& env) {
+    call(m_methods[MethBeginRun].get(), false, evt, env);
+  }
 
-    // True if env var PYANA_COMPAT is set.
-    // Enables various pyana-compatible hacks.
-    bool m_pyanaCompat;
+  virtual void beginCalibCycle(Event& evt, Env& env) {
+    call(m_methods[MethBeginScan].get(), false, evt, env);
+  }
 
-    // Loaded Python methods
-    PyObject* m_beginJob;
-    PyObject* m_beginRun;
-    PyObject* m_beginCalibCycle;
-    PyObject* m_event;
-    PyObject* m_endCalibCycle;
-    PyObject* m_endRun;
-    PyObject* m_endJob;
+  virtual void event(Event& evt, Env& env) {
+    call(m_methods[MethEvent].get(), false, evt, env);
+  }
 
-    // Loaded Python methods (only if m_pyanaCompat is true)
-    PyObject* m_beginjob;
-    PyObject* m_beginrun;
-    PyObject* m_begincalibcycle;
-    PyObject* m_endcalibcycle;
-    PyObject* m_endrun;
-    PyObject* m_endjob;
+  virtual void endCalibCycle(Event& evt, Env& env) {
+    call(m_methods[MethEndScan].get(), m_pyanaCompat, evt, env);
+  }
 
-  };
+  virtual void endRun(Event& evt, Env& env) {
+    call(m_methods[MethEndRun].get(), m_pyanaCompat, evt, env);
+  }
 
-} // namespace psana
+  virtual void endJob(Event& evt, Env& env) {
+    call(m_methods[MethEndJob].get(), false, evt, env);
+  }
+
+private:
+
+  /**
+   *   Method to call provided Python method with event and env args.
+   *
+   *   @param[in] psana_method  Python method for psana-style modules
+   *   @param[in] psana_method  Python method for psana-style modules
+   */
+  void call(PyObject* method, bool pyana_optional_evt, Event& evt, Env& env);
+
+  enum { MethBeginJob, MethBeginRun, MethBeginScan, MethEvent,
+    MethEndScan, MethEndRun, MethEndJob, NumMethods };
+
+  boost::shared_ptr<PyObject> m_instance;      // Instance of loaded Python module
+  bool m_pyanaCompat;        // True if env var PYANA_COMPAT is set.
+                             // Enables various pyana-compatible hacks.
+  boost::shared_ptr<PyObject> m_methods[NumMethods];  // method objects
+
+};
+
+} // namespace psana_python
 
 #endif // PSANA_PYTHONMODULE_H
