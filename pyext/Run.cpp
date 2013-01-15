@@ -24,6 +24,8 @@
 //-------------------------------
 #include "EventIter.h"
 #include "ScanIter.h"
+#include "psana_python/EnvWrapper.h"
+#include "psana_python/CreateWrappers.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -35,10 +37,12 @@ namespace {
   PyObject* Run_scans(PyObject* self, PyObject*);
   PyObject* Run_events(PyObject* self, PyObject*);
   PyObject* Run_nonzero(PyObject* self, PyObject*);
+  PyObject* Run_env(PyObject* self, PyObject*);
 
   PyMethodDef methods[] = {
     { "scans",       Run_scans,     METH_NOARGS, "self.scans() -> iterator\n\nReturns iterator for contained scans (:py:class:`ScanIter`)" },
     { "events",      Run_events,    METH_NOARGS, "self.events() -> iterator\n\nReturns iterator for contained events (:py:class:`EventIter`)" },
+    { "env",         Run_env,       METH_NOARGS, "self.env() -> object\n\nReturns environment object" },
     { "__nonzero__", Run_nonzero,   METH_NOARGS, "self.__nonzero__() -> bool\n\nReturns true for non-null object" },
     {0, 0, 0, 0}
    };
@@ -80,6 +84,17 @@ Run_events(PyObject* self, PyObject* )
 {
   psana_python::pyext::Run* py_this = static_cast<psana_python::pyext::Run*>(self);
   return psana_python::pyext::EventIter::PyObject_FromCpp(py_this->m_obj.events());
+}
+
+PyObject*
+Run_env(PyObject* self, PyObject* )
+{
+  psana_python::pyext::Run* py_this = static_cast<psana_python::pyext::Run*>(self);
+  PSEnv::Env& env = py_this->m_obj.env();
+  boost::python::object envWrapper(psana_python::EnvWrapper(env.shared_from_this(), "", ""));
+  PyObject* envObj = envWrapper.ptr();
+  Py_INCREF(envObj);
+  return envObj;
 }
 
 PyObject*

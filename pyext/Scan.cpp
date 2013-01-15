@@ -23,6 +23,8 @@
 // Collaborating Class Headers --
 //-------------------------------
 #include "EventIter.h"
+#include "psana_python/EnvWrapper.h"
+#include "psana_python/CreateWrappers.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -32,10 +34,12 @@ namespace {
 
   // type-specific methods
   PyObject* Scan_events(PyObject* self, PyObject*);
+  PyObject* Scan_env(PyObject* self, PyObject*);
   PyObject* Scan_nonzero(PyObject* self, PyObject*);
 
   PyMethodDef methods[] = {
     { "events",      Scan_events,    METH_NOARGS, "self.events() -> iterator\n\nReturns iterator for contained events (:py:class:`EventIter`)" },
+    { "env",         Scan_env,       METH_NOARGS, "self.env() -> object\n\nReturns environment object" },
     { "__nonzero__", Scan_nonzero,   METH_NOARGS, "self.__nonzero__() -> bool\n\nReturns true for non-null object" },
     {0, 0, 0, 0}
    };
@@ -68,6 +72,17 @@ Scan_events(PyObject* self, PyObject* )
 {
   psana_python::pyext::Scan* py_this = static_cast<psana_python::pyext::Scan*>(self);
   return psana_python::pyext::EventIter::PyObject_FromCpp(py_this->m_obj.events());
+}
+
+PyObject*
+Scan_env(PyObject* self, PyObject* )
+{
+  psana_python::pyext::Scan* py_this = static_cast<psana_python::pyext::Scan*>(self);
+  PSEnv::Env& env = py_this->m_obj.env();
+  boost::python::object envWrapper(psana_python::EnvWrapper(env.shared_from_this(), "", ""));
+  PyObject* envObj = envWrapper.ptr();
+  Py_INCREF(envObj);
+  return envObj;
 }
 
 PyObject*

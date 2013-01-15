@@ -25,6 +25,8 @@
 #include "EventIter.h"
 #include "RunIter.h"
 #include "ScanIter.h"
+#include "psana_python/EnvWrapper.h"
+#include "psana_python/CreateWrappers.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -37,13 +39,14 @@ namespace {
   PyObject* DataSource_runs(PyObject* self, PyObject*);
   PyObject* DataSource_scans(PyObject* self, PyObject*);
   PyObject* DataSource_events(PyObject* self, PyObject*);
-  PyObject* DataSource_nonzero(PyObject* self, PyObject*);
+  PyObject* DataSource_env(PyObject* self, PyObject*);
 
   PyMethodDef methods[] = {
     { "empty",   DataSource_empty,   METH_NOARGS, "self.empty() -> bool\n\nReturns true for non-empty data source" },
     { "runs",    DataSource_runs,    METH_NOARGS, "self.runs() -> iterator\n\nReturns iterator for contained runs (:py:class:`RunIter`)" },
     { "scans",   DataSource_scans,   METH_NOARGS, "self.scans() -> iterator\n\nReturns iterator for contained scans (:py:class:`ScanIter`)" },
     { "events",  DataSource_events,  METH_NOARGS, "self.events() -> iterator\n\nReturns iterator for contained events  (:py:class:`EventIter`)" },
+    { "env",     DataSource_env,     METH_NOARGS, "self.env() -> object\n\nReturns environment object" },
     {0, 0, 0, 0}
    };
 
@@ -98,6 +101,17 @@ DataSource_events(PyObject* self, PyObject* )
 {
   psana_python::pyext::DataSource* py_this = static_cast<psana_python::pyext::DataSource*>(self);
   return psana_python::pyext::EventIter::PyObject_FromCpp(py_this->m_obj.events());
+}
+
+PyObject*
+DataSource_env(PyObject* self, PyObject* )
+{
+  psana_python::pyext::DataSource* py_this = static_cast<psana_python::pyext::DataSource*>(self);
+  PSEnv::Env& env = py_this->m_obj.env();
+  boost::python::object envWrapper(psana_python::EnvWrapper(env.shared_from_this(), "", ""));
+  PyObject* envObj = envWrapper.ptr();
+  Py_INCREF(envObj);
+  return envObj;
 }
 
 }

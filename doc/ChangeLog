@@ -11,6 +11,10 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-02-01
+2013-01-14 Andy Salnikov
+- add env() method to DataSource, Run and Scan classes
+
 Tag: V00-02-00
 2013-01-14 Andy Salnikov
 - add wrapper for EventId, this is a temporary hack until we get to the
