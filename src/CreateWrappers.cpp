@@ -31,7 +31,6 @@
 #include <PSEnv/EpicsStore.h>
 #include <PSEvt/Event.h>
 #include <ConfigSvc/ConfigSvc.h>
-#include <psana_python/CreateDeviceWrappers.h>
 #include <psana_python/EnvWrapper.h>
 #include <psana_python/EventId.h>
 #include <psana_python/EventKey.h>
@@ -41,6 +40,7 @@
 #include <psana_python/PdsDetInfo.h>
 #include <psana_python/PdsProcInfo.h>
 #include <psana_python/PdsSrc.h>
+#include <psddl_python/CreateDeviceWrappers.h>
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -196,7 +196,7 @@ createWrappers(PyObject* module)
     .def("subprocess", &EnvWrapper::subprocess)
     ;
 
-  createDeviceWrappers();
+  psddl_python::createDeviceWrappers();
   createWrappersDone = true;
 }
 
