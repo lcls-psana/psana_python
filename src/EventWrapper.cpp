@@ -7,7 +7,8 @@
 #include <PSEvt/Event.h>
 #include <PSEvt/EventId.h>
 #include <PSEvt/Exceptions.h>
-#include <psana_python/EventIdWrapper.h>
+#include <psana_python/EventId.h>
+#include <psana_python/EventKey.h>
 #include <psddl_python/EventGetter.h>
 
 using boost::shared_ptr;
@@ -105,7 +106,8 @@ EventWrapper::getByType(const std::string& typeName, const std::string& detector
     // special case for EventId, this is a temporary hack until I redesign stuff
     const shared_ptr<PSEvt::EventId> eventId = _event->get();
     if (eventId) {
-      return object(EventIdWrapper(eventId));
+      PyObject* eid = EventId::PyObject_FromCpp(eventId);
+      return object(boost::python::handle<PyObject>(eid));
     } else {
       return object();
     }
@@ -115,27 +117,23 @@ EventWrapper::getByType(const std::string& typeName, const std::string& detector
 }
 
 boost::python::list
-EventWrapper::keys()
+EventWrapper::keys(const PSEvt::Source& src)
 {
-  PSEvt::Event::GetResultProxy proxy = _event->get();
-  std::list<PSEvt::EventKey> keys;
-  proxy.m_dict->keys(keys, PSEvt::Source());
+  const std::list<PSEvt::EventKey>& keys = _event->keys(src);
 
-  boost::python::list keyNames;
-  for (std::list<PSEvt::EventKey>::iterator it = keys.begin(); it != keys.end(); ++it) {
-    PSEvt::EventKey& key = *it;
-    int status;
-    char* keyName = abi::__cxa_demangle(key.typeinfo()->name(), 0, 0, &status);
-    keyNames.append(std::string(keyName));
+  boost::python::list pkeys;
+  for (std::list<PSEvt::EventKey>::const_iterator it = keys.begin(); it != keys.end(); ++it) {
+    PyObject* key = EventKey::PyObject_FromCpp(*it);
+    pkeys.append(boost::python::handle<PyObject>(key));
   }
-  return keyNames;
+  return pkeys;
 }
 
 int
 EventWrapper::run()
 {
   const shared_ptr<PSEvt::EventId> eventId = _event->get();
-  return eventId->run();
+  return eventId ? eventId->run() : -1;
 }
 
 }

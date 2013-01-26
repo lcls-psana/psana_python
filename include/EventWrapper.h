@@ -19,7 +19,7 @@ public:
   void putBoolean(bool value, const std::string& key);
   void putList(const boost::python::list& list, const std::string& key);
   int run();
-  boost::python::list keys();
+  boost::python::list keys(const PSEvt::Source& src);
 
 private:
 

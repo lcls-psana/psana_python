@@ -1,12 +1,12 @@
-#ifndef PSANA_PYTHON_PYEXT_EVENTITER_H
-#define PSANA_PYTHON_PYEXT_EVENTITER_H
+#ifndef PSANA_PYTHON_PDSSRC_H
+#define PSANA_PYTHON_PDSSRC_H
 
 //--------------------------------------------------------------------------
 // File and Version Information:
 // 	$Id$
 //
 // Description:
-//	Class BldInfo.
+//	Class PdsSrc.
 //
 //------------------------------------------------------------------------
 
@@ -22,39 +22,46 @@
 //-------------------------------
 // Collaborating Class Headers --
 //-------------------------------
+#include "pdsdata/xtc/Src.hh"
+#include "PSEvt/EventKey.h"   // needed for operator<<
 
 //------------------------------------
 // Collaborating Class Declarations --
 //------------------------------------
-#include "psana/EventIter.h"
 
-//    ---------------------
-//    -- Class Interface --
-//    ---------------------
+//		---------------------
+// 		-- Class Interface --
+//		---------------------
 
 namespace psana_python {
-namespace pyext {
+
+/// @addtogroup psana_python
 
 /**
- *  This software was developed for the LUSI project.  If you use all or
- *  part of it, please give an appropriate acknowledgment.
+ *  @ingroup psana_python
+ *
+ *  @brief Wrapper class for Pds::Src.
  *
  *  @version $Id$
  *
- *  @author Andrei Salnikov
+ *  @author Andy Salnikov
  */
 
-class EventIter : public PyDataType<EventIter, psana::EventIter> {
+class PdsSrc : public PyDataType<PdsSrc, Pds::Src> {
 public:
 
-  typedef PyDataType<EventIter, psana::EventIter> BaseType;
+  typedef PyDataType<PdsSrc, Pds::Src> BaseType;
 
   /// Initialize Python type and register it in a module
   static void initType( PyObject* module );
 
+  // Dump object info to a stream
+  void print(std::ostream& out) const {
+    out << m_obj;
+  }
+
 };
 
-} // namespace pyext
-} // namespace psana
+} // namespace psana_python
 
-#endif // PSANA_PYTHON_PYEXT_EVENTITER_H
+#endif // PSANA_PYTHON_PDSSRC_H

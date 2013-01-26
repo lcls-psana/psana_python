@@ -10,9 +10,9 @@ EnvWrapper::keys()
 {
   boost::python::list l;
   ConfigSvc::ConfigSvc cfg;
-  std::list<string> keys = cfg.getKeys(_name);
-  for (std::list<string>::iterator it = keys.begin(); it != keys.end(); ++it) {
-    string& key = *it;
+  std::list<std::string> keys = cfg.getKeys(_name);
+  for (std::list<std::string>::iterator it = keys.begin(); it != keys.end(); ++it) {
+    std::string& key = *it;
     l.append(key);
   }
   return l;

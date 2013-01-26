@@ -29,12 +29,17 @@
 #include "RunIter.h"
 #include "Scan.h"
 #include "ScanIter.h"
-#include "psana_python/CreateWrappers.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
 //-----------------------------------------------------------------------
 
+namespace psana_python {
+
+  // defined in src/CreateWrappers.cpp
+  extern void createWrappers(PyObject* module);
+
+}
 
 //		----------------------------------------
 // 		-- Public Function Member Definitions --
@@ -54,5 +59,5 @@ PyMODINIT_FUNC init_psana()
   psana_python::pyext::Scan::initType( module );
   psana_python::pyext::ScanIter::initType( module );
 
-  psana_python::createWrappers();
+  psana_python::createWrappers(module);
 }

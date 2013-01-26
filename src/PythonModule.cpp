@@ -31,7 +31,6 @@
 #include "psana_python/Exceptions.h"
 #include "psana_python/EnvWrapper.h"
 #include "psana_python/EventWrapper.h"
-#include "psana_python/CreateWrappers.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -130,8 +129,6 @@ PythonModule::PythonModule(const string& name, PyObject* instance)
     throw Exception(ERR_LOC, "Error: module " + name + " does not define any methods");
   }
 
-  // TODO: need better init method for this
-  psana_python::createWrappers();
 }
 
 //--------------
@@ -158,10 +155,10 @@ PythonModule::call(PyObject* method, bool pyana_optional_evt, Event& evt, Env& e
   PyObjPtr args(PyTuple_New(nargs), PyRefDelete());
   object evtWrapper;
   if (nargs > 1) {
-    evtWrapper = object(EventWrapperClass(EventWrapper(evt.shared_from_this())));
+    evtWrapper = object(EventWrapper(evt.shared_from_this()));
     PyTuple_SET_ITEM(args.get(), 0, evtWrapper.ptr());
   }
-  object envWrapper(EnvWrapperClass(EnvWrapper(env.shared_from_this(), name(), className())));
+  object envWrapper(EnvWrapper(env.shared_from_this(), name(), className()));
   PyTuple_SET_ITEM(args.get(), nargs - 1, envWrapper.ptr());
   PyObjPtr res(PyObject_Call(method, args.get(), NULL), PyRefDelete());
   if (not res) {
@@ -200,6 +197,15 @@ moduleFactory(const string& name)
   // Clear any lingering errors
   pyExcStr();
 
+  // The whole shebang from this package needs to be initialized to expose the
+  // wrapped stuff to Python interpreter. We are doing this via importing the module _psana.
+  PyObjPtr psanamod(PyImport_ImportModule("_psana"), PyRefDelete());
+  if (not psanamod) {
+    string msg = "failed to import module _psana: " + ::pyExcStr();
+    MsgLog(logger, error, msg);
+    throw ExceptionPyLoadError(ERR_LOC, msg);
+  }
+
   // try to import module
   PyObjPtr mod(PyImport_ImportModule((char*)moduleName.c_str()), PyRefDelete());
   if (not mod) {
@@ -229,10 +235,10 @@ moduleFactory(const string& name)
   // Create keyword args list.
   PyObjPtr kwargs(PyDict_New(), PyRefDelete());
   ConfigSvc::ConfigSvc cfg;
-  list<string> keys = cfg.getKeys(fullName);
-  list<string>::iterator it;
+  std::list<std::string> keys = cfg.getKeys(fullName);
+  std::list<std::string>::iterator it;
   for (it = keys.begin(); it != keys.end(); it++) {
-    const string& key = *it;
+    const std::string& key = *it;
     const char* value = cfg.getStr(fullName, key).c_str();
     PyDict_SetItemString(kwargs.get(), key.c_str(), PyString_FromString(value));
   }
@@ -240,7 +246,7 @@ moduleFactory(const string& name)
   // Construct the instance.
   PyObject* instance = PyObject_Call(cls.get(), args.get(), kwargs.get());
   if (not instance) {
-    string msg = "cannot create instance of class " + className + ": " + ::pyExcStr();
+    std::string msg = "cannot create instance of class " + className + ": " + ::pyExcStr();
     MsgLog(logger, error, msg);
     throw ExceptionPyLoadError(ERR_LOC, msg);
   }
@@ -252,7 +258,7 @@ moduleFactory(const string& name)
   // check that instance has at least an event() method
   if (not PyObject_HasAttrString(instance, "event")) {
     Py_CLEAR(instance);
-    string msg = "class " + className + " does not define event() method";
+    std::string msg = "class " + className + " does not define event() method";
     MsgLog(logger, error, msg);
     throw ExceptionPyLoadError(ERR_LOC, msg);
   }

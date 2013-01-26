@@ -36,7 +36,6 @@
 //    ---------------------
 
 namespace psana_python {
-namespace pyext {
 
 /**
  *  This software was developed for the LUSI project.  If you use all or
@@ -52,7 +51,7 @@ namespace pyext {
 template <typename ConcreteType, typename CppType>
 struct PyDataType : PyObject {
 
-  /// Returns the Python type
+  /// Returns the Python type (borrowed)
   static PyTypeObject* typeObject();
 
   /// Builds Python object from corresponding C++ type.
@@ -217,7 +216,6 @@ PyDataType<ConcreteType, CppType>::initType(const char* name, PyObject* module)
   PyDict_SetItemString( PyModule_GetDict(module), (char*)name, (PyObject*) type );
 }
 
-} // namespace pyext
 } // namespace psana
 
 #endif // PSANA_PYDATATYPE_H

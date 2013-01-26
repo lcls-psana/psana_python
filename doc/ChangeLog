@@ -11,6 +11,17 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-03-00
+2013-01-25 Andy Salnikov
+- some refactoring:
+  - initializat5ion: instead of calling createWrappers() we naw import
+    _psana module which in turn calls createWrappers) but with module
+    argument now so that all classes are now defined in _psana module
+  - removed C++ style class names, type names must have python identifier
+    format (same should be done for classes in psddl_python package)
+  - some wrapper classes were reimplemented with pure Python C API
+    instead of boost, should work better for small classes.
+
 Tag: V00-02-01
 2013-01-14 Andy Salnikov
 - add env() method to DataSource, Run and Scan classes

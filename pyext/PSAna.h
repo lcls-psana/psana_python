@@ -19,7 +19,7 @@
 //----------------------
 // Base Class Headers --
 //----------------------
-#include "PyDataType.h"
+#include "psana_python/PyDataType.h"
 
 //-------------------------------
 // Collaborating Class Headers --

@@ -14,7 +14,7 @@ namespace psana_python {
 class EnvWrapper {
 public:
 
-  EnvWrapper(const boost::shared_ptr<PSEnv::Env>& env, const string& name, const string& className)
+  EnvWrapper(const boost::shared_ptr<PSEnv::Env>& env, const std::string& name, const std::string& className)
     : _env(env), _name(name), _className(className) {}
 
   const std::string& jobName() const { return _env->jobName(); }
@@ -37,8 +37,8 @@ public:
 private:
 
   boost::shared_ptr<PSEnv::Env> _env;
-  const string _name;
-  const string _className;
+  const std::string _name;
+  const std::string _className;
 };
 
 }

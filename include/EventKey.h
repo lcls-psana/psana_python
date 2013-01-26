@@ -1,12 +1,12 @@
-#ifndef PSANA_PYTHON_PYEXT_EVENTITER_H
-#define PSANA_PYTHON_PYEXT_EVENTITER_H
+#ifndef PSANA_PYTHON_EVENTKEY_H
+#define PSANA_PYTHON_EVENTKEY_H
 
 //--------------------------------------------------------------------------
 // File and Version Information:
 // 	$Id$
 //
 // Description:
-//	Class BldInfo.
+//	Class EventKey.
 //
 //------------------------------------------------------------------------
 
@@ -22,39 +22,48 @@
 //-------------------------------
 // Collaborating Class Headers --
 //-------------------------------
+#include "PSEvt/EventKey.h"
 
 //------------------------------------
 // Collaborating Class Declarations --
 //------------------------------------
-#include "psana/EventIter.h"
 
-//    ---------------------
-//    -- Class Interface --
-//    ---------------------
+//		---------------------
+// 		-- Class Interface --
+//		---------------------
 
 namespace psana_python {
-namespace pyext {
+
+/// @addtogroup psana_python
 
 /**
- *  This software was developed for the LUSI project.  If you use all or
+ *  @ingroup psana_python
+ *
+ *  @brief Wrapper class for EventKey.
+ *
+ *  This software was developed for the LCLS project.  If you use all or 
  *  part of it, please give an appropriate acknowledgment.
  *
  *  @version $Id$
  *
- *  @author Andrei Salnikov
+ *  @author Andy Salnikov
  */
 
-class EventIter : public PyDataType<EventIter, psana::EventIter> {
+class EventKey : public PyDataType<EventKey, PSEvt::EventKey> {
 public:
 
-  typedef PyDataType<EventIter, psana::EventIter> BaseType;
+  typedef PyDataType<EventKey, PSEvt::EventKey> BaseType;
 
   /// Initialize Python type and register it in a module
   static void initType( PyObject* module );
 
+  // Dump object info to a stream
+  void print(std::ostream& out) const {
+    out << m_obj;
+  }
+
 };
 
-} // namespace pyext
-} // namespace psana
+} // namespace psana_python
 
-#endif // PSANA_PYTHON_PYEXT_EVENTITER_H
+#endif // PSANA_PYTHON_EVENTKEY_H

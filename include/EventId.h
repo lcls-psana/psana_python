@@ -1,18 +1,20 @@
-#ifndef PSANA_PYTHON_PYEXT_EVENTITER_H
-#define PSANA_PYTHON_PYEXT_EVENTITER_H
+#ifndef PSANA_PYTHON_EVENTID_H
+#define PSANA_PYTHON_EVENTID_H
 
 //--------------------------------------------------------------------------
 // File and Version Information:
 // 	$Id$
 //
 // Description:
-//	Class BldInfo.
+//	Class EventId.
 //
 //------------------------------------------------------------------------
 
 //-----------------
 // C/C++ Headers --
 //-----------------
+#include "python/Python.h"
+#include <boost/shared_ptr.hpp>
 
 //----------------------
 // Base Class Headers --
@@ -22,39 +24,47 @@
 //-------------------------------
 // Collaborating Class Headers --
 //-------------------------------
+#include "PSEvt/EventId.h"
 
 //------------------------------------
 // Collaborating Class Declarations --
 //------------------------------------
-#include "psana/EventIter.h"
 
-//    ---------------------
-//    -- Class Interface --
-//    ---------------------
+//		---------------------
+// 		-- Class Interface --
+//		---------------------
 
 namespace psana_python {
-namespace pyext {
+
+/// @addtogroup psana_python
 
 /**
- *  This software was developed for the LUSI project.  If you use all or
+ *  @ingroup psana_python
+ *
+ *  @brief Wrapper class for EventId.
+ *
+ *  This software was developed for the LCLS project.  If you use all or 
  *  part of it, please give an appropriate acknowledgment.
  *
  *  @version $Id$
  *
- *  @author Andrei Salnikov
+ *  @author Andy Salnikov
  */
 
-class EventIter : public PyDataType<EventIter, psana::EventIter> {
+class EventId : public PyDataType<EventId, boost::shared_ptr<PSEvt::EventId> > {
 public:
 
-  typedef PyDataType<EventIter, psana::EventIter> BaseType;
+  typedef PyDataType<EventId, boost::shared_ptr<PSEvt::EventId> > BaseType;
 
   /// Initialize Python type and register it in a module
   static void initType( PyObject* module );
 
+  // Dump object info to a stream
+  void print(std::ostream& out) const {
+    if (m_obj) out << *m_obj;
+  }
 };
 
-} // namespace pyext
-} // namespace psana
+} // namespace psana_python
 
-#endif // PSANA_PYTHON_PYEXT_EVENTITER_H
+#endif // PSANA_PYTHON_EVENTID_H
