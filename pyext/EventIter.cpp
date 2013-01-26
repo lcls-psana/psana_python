@@ -23,7 +23,6 @@
 //-------------------------------
 // Collaborating Class Headers --
 //-------------------------------
-#include <psana_python/CreateWrappers.h>
 #include "psana_python/EventWrapper.h"
 
 //-----------------------------------------------------------------------

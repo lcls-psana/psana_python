@@ -26,7 +26,6 @@
 #include "RunIter.h"
 #include "ScanIter.h"
 #include "psana_python/EnvWrapper.h"
-#include "psana_python/CreateWrappers.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
