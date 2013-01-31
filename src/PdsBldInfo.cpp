@@ -18,17 +18,21 @@
 //-----------------
 // C/C++ Headers --
 //-----------------
+#include <algorithm>
 
 //-------------------------------
 // Collaborating Class Headers --
 //-------------------------------
 #include "psana_python/PdsSrc.h"
+#include "pytools/EnumType.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
 //-----------------------------------------------------------------------
 
 namespace {
+
+  pytools::EnumType typeEnum("Type");
 
   // standard Python stuff
   int PdsBldInfo_init( PyObject* self, PyObject* args, PyObject* kwds );
@@ -65,6 +69,20 @@ psana_python::PdsBldInfo::initType(PyObject* module)
   type->tp_init = ::PdsBldInfo_init;
   type->tp_base = psana_python::PdsSrc::typeObject();
   Py_INCREF(type->tp_base);
+
+  // Generate constants for C++ enum values.
+  // Note that names of the constants are not the same as
+  // names of corresponding C++ enums.
+  for (int i = 0; i <= Pds::BldInfo::NumberOf; ++ i) {
+    std::string name = i == Pds::BldInfo::NumberOf ? "NumberOf" : Pds::BldInfo::name(Pds::BldInfo(0, Pds::BldInfo::Type(i)));
+    // replace special characters with underscores
+    std::replace(name.begin(), name.end(), '-', '_');
+
+    ::typeEnum.addEnum(name, i);
+  }
+
+  type->tp_dict = PyDict_New();
+  PyDict_SetItemString(type->tp_dict, ::typeEnum.typeName(), ::typeEnum.type());
 
   BaseType::initType("BldInfo", module);
 }

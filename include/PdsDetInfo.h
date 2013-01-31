@@ -17,7 +17,7 @@
 //----------------------
 // Base Class Headers --
 //----------------------
-#include "psana_python/PyDataType.h"
+#include "pytools/PyDataType.h"
 
 //-------------------------------
 // Collaborating Class Headers --
@@ -50,10 +50,10 @@ namespace psana_python {
  *  @author Andy Salnikov
  */
 
-class PdsDetInfo : public PyDataType<PdsDetInfo, Pds::DetInfo> {
+class PdsDetInfo : public pytools::PyDataType<PdsDetInfo, Pds::DetInfo> {
 public:
 
-  typedef PyDataType<PdsDetInfo, Pds::DetInfo> BaseType;
+  typedef pytools::PyDataType<PdsDetInfo, Pds::DetInfo> BaseType;
 
   /// Initialize Python type and register it in a module
   static void initType( PyObject* module );

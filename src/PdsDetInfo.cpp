@@ -23,12 +23,16 @@
 // Collaborating Class Headers --
 //-------------------------------
 #include "psana_python/PdsSrc.h"
+#include "pytools/EnumType.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
 //-----------------------------------------------------------------------
 
 namespace {
+
+  pytools::EnumType detEnum("Detector");
+  pytools::EnumType devEnum("Device");
 
   // standard Python stuff
   int PdsDetInfo_init( PyObject* self, PyObject* args, PyObject* kwds );
@@ -74,6 +78,20 @@ psana_python::PdsDetInfo::initType(PyObject* module)
   type->tp_init = ::PdsDetInfo_init;
   type->tp_base = psana_python::PdsSrc::typeObject();
   Py_INCREF(type->tp_base);
+
+  // Generate constants for C++ enum values.
+  for (int i = 0; i <= Pds::DetInfo::NumDetector; ++ i) {
+    std::string name = i == Pds::DetInfo::NumDetector ? "NumDetector" : Pds::DetInfo::name(Pds::DetInfo::Detector(i));
+    ::detEnum.addEnum(name, i);
+  }
+  for (int i = 0; i <= Pds::DetInfo::NumDevice; ++ i) {
+    std::string name = i == Pds::DetInfo::NumDevice ? "NumDevice" : Pds::DetInfo::name(Pds::DetInfo::Device(i));
+    ::devEnum.addEnum(name, i);
+  }
+
+  type->tp_dict = PyDict_New();
+  PyDict_SetItemString(type->tp_dict, ::detEnum.typeName(), ::detEnum.type());
+  PyDict_SetItemString(type->tp_dict, ::devEnum.typeName(), ::devEnum.type());
 
   BaseType::initType("DetInfo", module);
 }

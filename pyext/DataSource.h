@@ -17,7 +17,7 @@
 //----------------------
 // Base Class Headers --
 //----------------------
-#include "psana_python/PyDataType.h"
+#include "pytools/PyDataType.h"
 
 //-------------------------------
 // Collaborating Class Headers --
@@ -44,10 +44,10 @@ namespace pyext {
  *  @author Andrei Salnikov
  */
 
-class DataSource : public PyDataType<DataSource, psana::DataSource> {
+class DataSource : public pytools::PyDataType<DataSource, psana::DataSource> {
 public:
 
-  typedef PyDataType<DataSource, psana::DataSource> BaseType;
+  typedef pytools::PyDataType<DataSource, psana::DataSource> BaseType;
 
   /// Initialize Python type and register it in a module
   static void initType( PyObject* module );

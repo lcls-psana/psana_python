@@ -17,7 +17,7 @@
 //----------------------
 // Base Class Headers --
 //----------------------
-#include "psana_python/PyDataType.h"
+#include "pytools/PyDataType.h"
 
 //-------------------------------
 // Collaborating Class Headers --
@@ -44,10 +44,10 @@ namespace pyext {
  *  @author Andrei Salnikov
  */
 
-class Scan : public PyDataType<Scan, psana::Scan> {
+class Scan : public pytools::PyDataType<Scan, psana::Scan> {
 public:
 
-  typedef PyDataType<Scan, psana::Scan> BaseType;
+  typedef pytools::PyDataType<Scan, psana::Scan> BaseType;
 
   /// Initialize Python type and register it in a module
   static void initType( PyObject* module );

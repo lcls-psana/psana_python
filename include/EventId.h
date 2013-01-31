@@ -19,7 +19,7 @@
 //----------------------
 // Base Class Headers --
 //----------------------
-#include "psana_python/PyDataType.h"
+#include "pytools/PyDataType.h"
 
 //-------------------------------
 // Collaborating Class Headers --
@@ -51,10 +51,10 @@ namespace psana_python {
  *  @author Andy Salnikov
  */
 
-class EventId : public PyDataType<EventId, boost::shared_ptr<PSEvt::EventId> > {
+class EventId : public pytools::PyDataType<EventId, boost::shared_ptr<PSEvt::EventId> > {
 public:
 
-  typedef PyDataType<EventId, boost::shared_ptr<PSEvt::EventId> > BaseType;
+  typedef pytools::PyDataType<EventId, boost::shared_ptr<PSEvt::EventId> > BaseType;
 
   /// Initialize Python type and register it in a module
   static void initType( PyObject* module );

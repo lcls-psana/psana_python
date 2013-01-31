@@ -19,7 +19,7 @@
 //----------------------
 // Base Class Headers --
 //----------------------
-#include "psana_python/PyDataType.h"
+#include "pytools/PyDataType.h"
 
 //-------------------------------
 // Collaborating Class Headers --
@@ -46,10 +46,10 @@ namespace pyext {
  *  @author Andrei Salnikov
  */
 
-class PSAna : public PyDataType<PSAna, boost::shared_ptr<psana::PSAna> > {
+class PSAna : public pytools::PyDataType<PSAna, boost::shared_ptr<psana::PSAna> > {
 public:
 
-  typedef PyDataType<PSAna, boost::shared_ptr<psana::PSAna> > BaseType;
+  typedef pytools::PyDataType<PSAna, boost::shared_ptr<psana::PSAna> > BaseType;
 
   /// Initialize Python type and register it in a module
   static void initType( PyObject* module );

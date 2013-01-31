@@ -11,6 +11,11 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-04-00
+2013-01-31 Andy Salnikov
+- class PyDataType was moved to new package pytools
+- DetInfo and Bldinfo types got enums
+
 Tag: V00-03-02
 2013-01-26 Andy Salnikov
 - move all generated stuff to psddl_python

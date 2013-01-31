@@ -17,7 +17,7 @@
 //----------------------
 // Base Class Headers --
 //----------------------
-#include "psana_python/PyDataType.h"
+#include "pytools/PyDataType.h"
 
 //-------------------------------
 // Collaborating Class Headers --
@@ -49,10 +49,10 @@ namespace psana_python {
  *  @author Andy Salnikov
  */
 
-class EventKey : public PyDataType<EventKey, PSEvt::EventKey> {
+class EventKey : public pytools::PyDataType<EventKey, PSEvt::EventKey> {
 public:
 
-  typedef PyDataType<EventKey, PSEvt::EventKey> BaseType;
+  typedef pytools::PyDataType<EventKey, PSEvt::EventKey> BaseType;
 
   /// Initialize Python type and register it in a module
   static void initType( PyObject* module );

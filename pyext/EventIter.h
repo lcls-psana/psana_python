@@ -17,7 +17,7 @@
 //----------------------
 // Base Class Headers --
 //----------------------
-#include "psana_python/PyDataType.h"
+#include "pytools/PyDataType.h"
 
 //-------------------------------
 // Collaborating Class Headers --
@@ -44,10 +44,10 @@ namespace pyext {
  *  @author Andrei Salnikov
  */
 
-class EventIter : public PyDataType<EventIter, psana::EventIter> {
+class EventIter : public pytools::PyDataType<EventIter, psana::EventIter> {
 public:
 
-  typedef PyDataType<EventIter, psana::EventIter> BaseType;
+  typedef pytools::PyDataType<EventIter, psana::EventIter> BaseType;
 
   /// Initialize Python type and register it in a module
   static void initType( PyObject* module );
