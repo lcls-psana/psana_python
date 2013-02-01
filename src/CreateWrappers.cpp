@@ -196,7 +196,7 @@ createWrappers(PyObject* module)
     .def("subprocess", &EnvWrapper::subprocess)
     ;
 
-  psddl_python::createDeviceWrappers();
+  psddl_python::createDeviceWrappers(module);
   createWrappersDone = true;
 }
 

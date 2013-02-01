@@ -11,6 +11,11 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-05-00
+2013-01-31 Andy Salnikov
+- update event and env.store wrappers for changes in getter interfaces
+- pass module objects to createDeviceWrappers()
+
 Tag: V00-04-00
 2013-01-31 Andy Salnikov
 - class PyDataType was moved to new package pytools

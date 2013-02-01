@@ -1,18 +1,20 @@
-#include <psana_python/EventWrapper.h>
+#include "psana_python/EventWrapper.h"
 
 #include <cxxabi.h>
 #include <string>
 #include <boost/python.hpp>
 
-#include <PSEvt/Event.h>
-#include <PSEvt/EventId.h>
-#include <PSEvt/Exceptions.h>
-#include <psana_python/EventId.h>
-#include <psana_python/EventKey.h>
-#include <psddl_python/EventGetter.h>
+#include "PSEvt/Event.h"
+#include "PSEvt/EventId.h"
+#include "PSEvt/Exceptions.h"
+#include "psana_python/EventId.h"
+#include "psana_python/EventKey.h"
+#include "psddl_python/GetterMap.h"
 
 using boost::shared_ptr;
 using boost::python::object;
+using psddl_python::GetterMap;
+using psddl_python::Getter;
 
 namespace {
 
@@ -113,7 +115,27 @@ EventWrapper::getByType(const std::string& typeName, const std::string& detector
     }
   }
   PSEvt::Source source = (detectorSourceName == "") ? PSEvt::Source() : PSEvt::Source(detectorSourceName);
-  return psddl_python::EventGetter::get(typeName, *_event, source, "", NULL);
+
+  // find a getter for this name
+  GetterMap& gmap = GetterMap::instance();
+  boost::shared_ptr<Getter> getter = gmap.getGetter(typeName);
+  if (getter) {
+    boost::shared_ptr<void> vdata = _event->proxyDict()->get(&getter->typeinfo(), source, std::string(), 0);
+    return getter->convert(vdata);
+  }
+
+  // try to find matching type from a range of types
+  const GetterMap::NameList& names = gmap.getTemplate(typeName);
+  for (GetterMap::NameList::const_iterator it = names.begin(); it != names.end(); ++ it) {
+    boost::shared_ptr<Getter> getter = gmap.getGetter(*it);
+    if (getter) {
+      boost::shared_ptr<void> vdata = _event->proxyDict()->get(&getter->typeinfo(), source, std::string(), 0);
+      if (vdata) {
+        return getter->convert(vdata);
+      }
+    }
+  }
+  return object();
 }
 
 boost::python::list
