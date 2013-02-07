@@ -121,7 +121,9 @@ ProxyDictMethods::get_type_info(PyObject* type)
   // Does it have __typeid__ method?
   if (PyObject_HasAttrString(type, "__typeid__")) {
     pytools::pyshared_ptr typeid_pyobj = pytools::make_pyshared(PyObject_CallMethod(type, "__typeid__", 0));
-    return static_cast<std::type_info*>(PyCObject_AsVoidPtr(typeid_pyobj.get()));
+    if (PyCObject_Check(typeid_pyobj.get())) {
+      return static_cast<std::type_info*>(PyCObject_AsVoidPtr(typeid_pyobj.get()));
+    }
   }
 
   return 0;
@@ -187,9 +189,7 @@ ProxyDictMethods::get_compat_typeid(const boost::shared_ptr<PSEvt::ProxyDictI>& 
     if (cvt) {
       boost::shared_ptr<void> vdata = proxyDict->get(*it, source, std::string(), 0);
       if (vdata) {
-        boost::python::object obj = cvt->convert(vdata);
-        Py_INCREF(obj.ptr());
-        return obj.ptr();
+        return cvt->convert(vdata);
       }
     }
   }
@@ -214,7 +214,7 @@ ProxyDictMethods::get(const boost::shared_ptr<PSEvt::ProxyDictI>& proxyDict, PyO
    */
 
   // get the list of types from first argument
-  std::vector<pytools::pyshared_ptr> types = get_types(arg0);
+  const std::vector<pytools::pyshared_ptr>& types = get_types(arg0);
   if (types.empty()) return 0;
 
   // loop over types and find first matching object
@@ -231,6 +231,7 @@ ProxyDictMethods::get(const boost::shared_ptr<PSEvt::ProxyDictI>& proxyDict, PyO
         Py_INCREF(obj);
         return obj;
       }
+      Py_RETURN_NONE;
     }
 
     // call C++ method
@@ -240,10 +241,7 @@ ProxyDictMethods::get(const boost::shared_ptr<PSEvt::ProxyDictI>& proxyDict, PyO
       const boost::shared_ptr<void>& vdata = proxyDict->get(cpp_type, source, key, 0);
       // found something, need converter now
       if (vdata) {
-        boost::python::object obj = cvt->convert(vdata);
-        PyObject* pyobj = obj.ptr();
-        Py_INCREF(pyobj);
-        return pyobj;
+        return cvt->convert(vdata);
       }
     }
 

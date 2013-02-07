@@ -116,7 +116,7 @@ EventId_vector(PyObject* self, PyObject* )
 PyObject* 
 EventId_typeid(PyObject* self, PyObject*)
 {
-  static PyObject* ptypeid = PyLong_FromVoidPtr(const_cast<void*>(static_cast<const void*>(&typeid(PSEvt::EventId))));
+  static PyObject* ptypeid = PyCObject_FromVoidPtr((void*)&typeid(PSEvt::EventId), 0);
   Py_INCREF(ptypeid);
   return ptypeid;
 }

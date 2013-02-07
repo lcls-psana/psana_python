@@ -11,6 +11,13 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-06-01
+2013-02-07 Andy Salnikov
+- fix __typeid__ in EventId wrapper, should return PyCObject instead of int
+- fix for add one forgotten return in ProxyDictMethods::get()
+- convertes return PyObject now instead of boost object
+- add converter for EventId, can get it from event now
+
 Tag: V00-06-00
 2013-01-31 Andy Salnikov
 - lots of changes:

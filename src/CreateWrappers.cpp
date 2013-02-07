@@ -18,72 +18,63 @@
 // C/C++ Headers --
 //-----------------
 #include <boost/python.hpp>
-#include <boost/utility.hpp>
+#include <boost/make_shared.hpp>
 #include <string>
-#include <python/Python.h>
+#include <functional>
 
 //-------------------------------
 // Collaborating Class Headers --
 //-------------------------------
-#include <MsgLogger/MsgLogger.h>
-#include <PSEnv/Env.h>
-#include <PSEnv/EpicsStore.h>
-#include <PSEvt/Event.h>
-#include <ConfigSvc/ConfigSvc.h>
-#include <psana_python/Env.h>
-#include <psana_python/EnvObjectStore.h>
-#include <psana_python/EventId.h>
-#include <psana_python/EventKey.h>
-#include <psana_python/Event.h>
-#include <psana_python/EpicsPvHeaderWrapper.h>
-#include <psana_python/PdsBldInfo.h>
-#include <psana_python/PdsDetInfo.h>
-#include <psana_python/PdsProcInfo.h>
-#include <psana_python/PdsSrc.h>
-#include <psana_python/Source.h>
-#include <psddl_python/CreateDeviceWrappers.h>
+#include "MsgLogger/MsgLogger.h"
+#include "PSEnv/Env.h"
+#include "PSEnv/EpicsStore.h"
+#include "PSEvt/Event.h"
+#include "ConfigSvc/ConfigSvc.h"
+#include "psana_python/Env.h"
+#include "psana_python/EnvObjectStore.h"
+#include "psana_python/EventId.h"
+#include "psana_python/EventKey.h"
+#include "psana_python/Event.h"
+#include "psana_python/EpicsPvHeaderWrapper.h"
+#include "psana_python/PdsBldInfo.h"
+#include "psana_python/PdsDetInfo.h"
+#include "psana_python/PdsProcInfo.h"
+#include "psana_python/PdsSrc.h"
+#include "psana_python/Source.h"
+#include "psddl_python/ConverterMap.h"
+#include "psddl_python/ConverterFun.h"
+#include "psddl_python/CreateDeviceWrappers.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
 //-----------------------------------------------------------------------
 
-using boost::shared_ptr;
-using boost::python::api::object;
-using boost::python::arg;
-using boost::python::args;
+using boost::python::object;
 using boost::python::borrowed;
 using boost::python::class_;
-using boost::python::copy_const_reference;
 using boost::python::return_by_value;
 using boost::python::handle;
-using boost::python::init;
 using boost::python::no_init;
-using boost::python::numeric::array;
-using boost::python::optional;
-using boost::python::return_internal_reference;
 using boost::python::return_value_policy;
 using boost::python::scope;
-using boost::python::self;
-using boost::python::str;
-
 using std::string;
-
-using PSEnv::EpicsStore;
+using psddl_python::ConverterMap;
+using psddl_python::make_converter_fun;
 
 namespace psana_python {
 
 static bool createWrappersDone = false;
 
 EpicsPvHeaderWrapper
-value_EpicsStore(EpicsStore& epicsStore, const std::string& name, int index)
+value_EpicsStore(PSEnv::EpicsStore& epicsStore, const std::string& name, int index)
 {
-  EpicsStore::EpicsValue value(epicsStore.value(name, index));
+  PSEnv::EpicsStore::EpicsValue value(epicsStore.value(name, index));
   PSEnv::EpicsStoreImpl* m_impl = value.m_impl;
   return EpicsPvHeaderWrapper(m_impl->getAny(name));
 }
 
 EpicsPvHeaderWrapper
-value_EpicsStore0(EpicsStore& epicsStore, const std::string& name)
+value_EpicsStore0(PSEnv::EpicsStore& epicsStore, const std::string& name)
 {
   return value_EpicsStore(epicsStore, name, 0);
 }
@@ -106,6 +97,11 @@ createWrappers(PyObject* module)
   PdsProcInfo::initType(module);
   PdsSrc::initType(module);
   Source::initType(module);
+
+  // register conversion for some classes
+  ConverterMap& cmap = ConverterMap::instance();
+
+  cmap.addConverter(make_converter_fun<PSEvt::EventId>(std::ptr_fun(&EventId::PyObject_FromCpp), -1, -1));
 
   scope mod = object(handle<>(borrowed(module)));
 
