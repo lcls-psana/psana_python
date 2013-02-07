@@ -63,7 +63,7 @@ psana_python::EventKey::initType(PyObject* module)
   type->tp_doc = ::typedoc;
   type->tp_methods = ::methods;
 
-  BaseType::initType("EventKey", module);
+  BaseType::initType("EventKey", module, "psana");
 }
 
 namespace {

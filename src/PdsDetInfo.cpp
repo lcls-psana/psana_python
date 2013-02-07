@@ -35,7 +35,7 @@ namespace {
   pytools::EnumType devEnum("Device");
 
   // standard Python stuff
-  int PdsDetInfo_init( PyObject* self, PyObject* args, PyObject* kwds );
+  PyObject* PdsDetInfo_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds);
 
   // type-specific methods
   PyObject* PdsDetInfo_processId(PyObject* self, PyObject*);
@@ -75,7 +75,7 @@ psana_python::PdsDetInfo::initType(PyObject* module)
   PyTypeObject* type = BaseType::typeObject() ;
   type->tp_doc = ::typedoc;
   type->tp_methods = ::methods;
-  type->tp_init = ::PdsDetInfo_init;
+  type->tp_new = ::PdsDetInfo_new;
   type->tp_base = psana_python::PdsSrc::typeObject();
   Py_INCREF(type->tp_base);
 
@@ -93,44 +93,41 @@ psana_python::PdsDetInfo::initType(PyObject* module)
   PyDict_SetItemString(type->tp_dict, ::detEnum.typeName(), ::detEnum.type());
   PyDict_SetItemString(type->tp_dict, ::devEnum.typeName(), ::devEnum.type());
 
-  BaseType::initType("DetInfo", module);
+  BaseType::initType("DetInfo", module, "psana");
 }
 
 namespace {
 
-int
-PdsDetInfo_init( PyObject* self, PyObject* args, PyObject* kwds )
+PyObject*
+PdsDetInfo_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds)
 {
   // parse arguments
   unsigned processId=0, det, detId, dev, devId;
   if (PyTuple_GET_SIZE(args) == 4) {
     if ( not PyArg_ParseTuple( args, "IIII:DetInfo", &det, &detId, &dev, &devId ) ) {
-      return -1;
+      return 0;
     }
   } else {
     if ( not PyArg_ParseTuple( args, "IIIII:DetInfo", &processId, &det, &detId, &dev, &devId ) ) {
-      return -1;
+      return 0;
     }
   }
   if ( det >= Pds::DetInfo::NumDetector ) {
     PyErr_SetString(PyExc_ValueError, "Error: detector type out of range");
-    return -1;
+    return 0;
   }
   if ( dev >= Pds::DetInfo::NumDevice ) {
     PyErr_SetString(PyExc_ValueError, "Error: device type out of range");
-    return -1;
+    return 0;
   }
 
+  PyObject* self = subtype->tp_alloc(subtype, 1);
   psana_python::PdsDetInfo* py_this = (psana_python::PdsDetInfo*) self;
-  if ( not py_this ) {
-    PyErr_SetString(PyExc_RuntimeError, "Error: self is NULL");
-    return -1;
-  }
 
   new(&py_this->m_obj) Pds::DetInfo(processId, Pds::DetInfo::Detector(det), detId,
       Pds::DetInfo::Device(dev), devId);
 
-  return 0;
+  return self;
 }
 
 PyObject*

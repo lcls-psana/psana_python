@@ -52,7 +52,7 @@ psana_python::pyext::ScanIter::initType(PyObject* module)
   type->tp_iter = ScanIter_iter;
   type->tp_iternext = ScanIter_iternext;
 
-  BaseType::initType("ScanIter", module);
+  BaseType::initType("ScanIter", module, "psana");
 }
 
 namespace {

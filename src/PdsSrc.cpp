@@ -58,7 +58,7 @@ psana_python::PdsSrc::initType(PyObject* module)
   type->tp_doc = ::typedoc;
   type->tp_methods = ::methods;
 
-  BaseType::initType("Src", module);
+  BaseType::initType("Src", module, "psana");
 }
 
 namespace {

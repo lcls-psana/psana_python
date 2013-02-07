@@ -52,7 +52,7 @@ psana_python::pyext::RunIter::initType(PyObject* module)
   type->tp_iter = RunIter_iter;
   type->tp_iternext = RunIter_iternext;
 
-  BaseType::initType("RunIter", module);
+  BaseType::initType("RunIter", module, "psana");
 }
 
 namespace {

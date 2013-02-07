@@ -31,7 +31,7 @@
 namespace {
 
   // standard Python stuff
-  int PdsProcInfo_init( PyObject* self, PyObject* args, PyObject* kwds );
+PyObject* PdsProcInfo_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds);
 
   // type-specific methods
   PyObject* PdsProcInfo_processId(PyObject* self, PyObject*);
@@ -59,33 +59,30 @@ psana_python::PdsProcInfo::initType(PyObject* module)
   PyTypeObject* type = BaseType::typeObject() ;
   type->tp_doc = ::typedoc;
   type->tp_methods = ::methods;
-  type->tp_init = ::PdsProcInfo_init;
+  type->tp_new = ::PdsProcInfo_new;
   type->tp_base = psana_python::PdsSrc::typeObject();
   Py_INCREF(type->tp_base);
 
-  BaseType::initType("ProcInfo", module);
+  BaseType::initType("ProcInfo", module, "psana");
 }
 
 namespace {
 
-int
-PdsProcInfo_init( PyObject* self, PyObject* args, PyObject* kwds )
+PyObject*
+PdsProcInfo_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds)
 {
   // parse arguments
   unsigned level, processId, ipAddr;
   if ( not PyArg_ParseTuple( args, "III:ProcInfo", &level, &processId, &ipAddr ) ) {
-    return -1;
+    return 0;
   }
   if ( level >= Pds::Level::NumberOfLevels ) {
     PyErr_SetString(PyExc_ValueError, "Error: level number out of range");
-    return -1;
+    return 0;
   }
 
+  PyObject* self = subtype->tp_alloc(subtype, 1);
   psana_python::PdsProcInfo* py_this = (psana_python::PdsProcInfo*) self;
-  if ( not py_this ) {
-    PyErr_SetString(PyExc_RuntimeError, "Error: self is NULL");
-    return -1;
-  }
 
   new(&py_this->m_obj) Pds::ProcInfo(Pds::Level::Type(level), processId, ipAddr);
 

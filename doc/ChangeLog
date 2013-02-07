@@ -11,6 +11,14 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-06-00
+2013-01-31 Andy Salnikov
+- lots of changes:
+- main wrapper classes are rewritten in Python C API
+- Event.get() now has all correct overlads and pyana compatibility
+  (with TypeId parameter now instead of string).
+- not complete yet, many things missing or need improvement
+
 Tag: V00-05-00
 2013-01-31 Andy Salnikov
 - update event and env.store wrappers for changes in getter interfaces

@@ -20,10 +20,10 @@
 //----------------------
 #include "psana/Module.h"
 
-
 //-------------------------------
 // Collaborating Class Headers --
 //-------------------------------
+#include "pytools/make_pyshared.h"
 
 //------------------------------------
 // Collaborating Class Declarations --
@@ -57,31 +57,31 @@ public:
   virtual ~PythonModule();
 
   // Standard module methods -- see psana/Module.h
-  virtual void beginJob(Event& evt, Env& env) {
+  virtual void beginJob(PSEvt::Event& evt, PSEnv::Env& env) {
     call(m_methods[MethBeginJob].get(), false, evt, env);
   }
 
-  virtual void beginRun(Event& evt, Env& env) {
+  virtual void beginRun(PSEvt::Event& evt, PSEnv::Env& env) {
     call(m_methods[MethBeginRun].get(), false, evt, env);
   }
 
-  virtual void beginCalibCycle(Event& evt, Env& env) {
+  virtual void beginCalibCycle(PSEvt::Event& evt, PSEnv::Env& env) {
     call(m_methods[MethBeginScan].get(), false, evt, env);
   }
 
-  virtual void event(Event& evt, Env& env) {
+  virtual void event(PSEvt::Event& evt, PSEnv::Env& env) {
     call(m_methods[MethEvent].get(), false, evt, env);
   }
 
-  virtual void endCalibCycle(Event& evt, Env& env) {
+  virtual void endCalibCycle(PSEvt::Event& evt, PSEnv::Env& env) {
     call(m_methods[MethEndScan].get(), m_pyanaCompat, evt, env);
   }
 
-  virtual void endRun(Event& evt, Env& env) {
+  virtual void endRun(PSEvt::Event& evt, PSEnv::Env& env) {
     call(m_methods[MethEndRun].get(), m_pyanaCompat, evt, env);
   }
 
-  virtual void endJob(Event& evt, Env& env) {
+  virtual void endJob(PSEvt::Event& evt, PSEnv::Env& env) {
     call(m_methods[MethEndJob].get(), false, evt, env);
   }
 
@@ -93,15 +93,15 @@ private:
    *   @param[in] psana_method  Python method for psana-style modules
    *   @param[in] psana_method  Python method for psana-style modules
    */
-  void call(PyObject* method, bool pyana_optional_evt, Event& evt, Env& env);
+  void call(PyObject* method, bool pyana_optional_evt, PSEvt::Event& evt, Env& env);
 
   enum { MethBeginJob, MethBeginRun, MethBeginScan, MethEvent,
     MethEndScan, MethEndRun, MethEndJob, NumMethods };
 
-  boost::shared_ptr<PyObject> m_instance;      // Instance of loaded Python module
+  pytools::pyshared_ptr m_instance;      // Instance of loaded Python module
   bool m_pyanaCompat;        // True if env var PYANA_COMPAT is set.
                              // Enables various pyana-compatible hacks.
-  boost::shared_ptr<PyObject> m_methods[NumMethods];  // method objects
+  pytools::pyshared_ptr m_methods[NumMethods];  // method objects
 
 };
 

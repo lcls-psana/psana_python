@@ -29,8 +29,8 @@
 #include "MsgLogger/MsgLogger.h"
 #include "PSEvt/EventId.h"
 #include "psana_python/Exceptions.h"
-#include "psana_python/EnvWrapper.h"
-#include "psana_python/EventWrapper.h"
+#include "psana_python/Env.h"
+#include "psana_python/Event.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -42,12 +42,6 @@ using boost::python::object;
 namespace {
 
   const char logger[] = "PythonModule";
-
-  // special deleter for shared_ptr to use with PyObjects
-  struct PyRefDelete {
-    void operator()(PyObject* obj) { Py_CLEAR(obj); }
-  };
-  typedef boost::shared_ptr<PyObject> PyObjPtr;
 
   // return string describing Python exception
   string pyExcStr()
@@ -80,7 +74,7 @@ namespace {
 
   // functor to check for non-zero pointers
   struct NonZero {
-    bool operator()(const boost::shared_ptr<PyObject>& p) const { return bool(p); }
+    bool operator()(const pytools::pyshared_ptr& p) const { return bool(p); }
   };
 
 }
@@ -96,7 +90,7 @@ namespace psana_python {
 //----------------
 PythonModule::PythonModule(const string& name, PyObject* instance)
   : Module(name)
-  , m_instance(instance, PyRefDelete())
+  , m_instance(pytools::make_pyshared(instance))
   , m_pyanaCompat(true)
 {
   // Currently, pyana compatibity is enabled unless the PYANA_COMPAT env var is 0.
@@ -106,7 +100,7 @@ PythonModule::PythonModule(const string& name, PyObject* instance)
 
   // check pyana-style methods first
   for (int i = 0; i != NumMethods; ++ i) {
-    m_methods[i] = PyObjPtr(PyObject_GetAttrString(m_instance.get(), pyana_methods[i]), PyRefDelete());
+    m_methods[i] = pytools::make_pyshared(PyObject_GetAttrString(m_instance.get(), pyana_methods[i]));
   }
   bool any = std::find_if(m_methods, m_methods+NumMethods, ::NonZero()) != (m_methods+NumMethods);
 
@@ -119,7 +113,7 @@ PythonModule::PythonModule(const string& name, PyObject* instance)
     // search for psana-style methods
     m_pyanaCompat = false;
     for (int i = 0; i != NumMethods; ++ i) {
-        m_methods[i] = PyObjPtr(PyObject_GetAttrString(m_instance.get(), psana_methods[i]), PyRefDelete());
+        m_methods[i] = pytools::make_pyshared(PyObject_GetAttrString(m_instance.get(), psana_methods[i]));
     }
   }
 
@@ -139,7 +133,7 @@ PythonModule::~PythonModule ()
 }
 
 void
-PythonModule::call(PyObject* method, bool pyana_optional_evt, Event& evt, Env& env)
+PythonModule::call(PyObject* method, bool pyana_optional_evt, PSEvt::Event& evt, PSEnv::Env& env)
 {
   if (not method) return;
 
@@ -152,15 +146,16 @@ PythonModule::call(PyObject* method, bool pyana_optional_evt, Event& evt, Env& e
     nargs = code->co_argcount - 1;
   }
 
-  PyObjPtr args(PyTuple_New(nargs), PyRefDelete());
-  object evtWrapper;
+  pytools::pyshared_ptr args = pytools::make_pyshared(PyTuple_New(nargs));
   if (nargs > 1) {
-    evtWrapper = object(EventWrapper(evt.shared_from_this()));
-    PyTuple_SET_ITEM(args.get(), 0, evtWrapper.ptr());
+    PyObject* pyevt = psana_python::Event::PyObject_FromCpp(evt.shared_from_this());
+    PyTuple_SET_ITEM(args.get(), 0, pyevt);
   }
-  object envWrapper(EnvWrapper(env.shared_from_this(), name(), className()));
-  PyTuple_SET_ITEM(args.get(), nargs - 1, envWrapper.ptr());
-  PyObjPtr res(PyObject_Call(method, args.get(), NULL), PyRefDelete());
+  PyObject* pyenv = psana_python::Env::PyObject_FromCpp(env.shared_from_this());
+  PyTuple_SET_ITEM(args.get(), nargs - 1, pyenv);
+  
+  // call the method
+  pytools::pyshared_ptr res = pytools::make_pyshared(PyObject_Call(method, args.get(), NULL));
   if (not res) {
     PyErr_Print();
     exit(1);
@@ -199,7 +194,7 @@ moduleFactory(const string& name)
 
   // The whole shebang from this package needs to be initialized to expose the
   // wrapped stuff to Python interpreter. We are doing this via importing the module _psana.
-  PyObjPtr psanamod(PyImport_ImportModule("_psana"), PyRefDelete());
+  pytools::pyshared_ptr psanamod = pytools::make_pyshared(PyImport_ImportModule("_psana"));
   if (not psanamod) {
     string msg = "failed to import module _psana: " + ::pyExcStr();
     MsgLog(logger, error, msg);
@@ -207,7 +202,7 @@ moduleFactory(const string& name)
   }
 
   // try to import module
-  PyObjPtr mod(PyImport_ImportModule((char*)moduleName.c_str()), PyRefDelete());
+  pytools::pyshared_ptr mod = pytools::make_pyshared(PyImport_ImportModule((char*)moduleName.c_str()));
   if (not mod) {
     string msg = "failed to import module " + moduleName + ": " + ::pyExcStr();
     MsgLog(logger, error, msg);
@@ -215,7 +210,7 @@ moduleFactory(const string& name)
   }
 
   // there must be a class defined with this name
-  PyObjPtr cls(PyObject_GetAttrString(mod.get(), (char*)className.c_str()), PyRefDelete());
+  pytools::pyshared_ptr cls = pytools::make_pyshared(PyObject_GetAttrString(mod.get(), (char*)className.c_str()));
   if (not cls) {
     string msg = "module " + moduleName + " does not define class " + className;
     MsgLog(logger, error, msg);
@@ -230,10 +225,10 @@ moduleFactory(const string& name)
   }
 
   // Create empty positional args list.
-  PyObjPtr args(PyTuple_New(0), PyRefDelete());
+  pytools::pyshared_ptr args = pytools::make_pyshared(PyTuple_New(0));
 
   // Create keyword args list.
-  PyObjPtr kwargs(PyDict_New(), PyRefDelete());
+  pytools::pyshared_ptr kwargs = pytools::make_pyshared(PyDict_New());
   ConfigSvc::ConfigSvc cfg;
   std::list<std::string> keys = cfg.getKeys(fullName);
   std::list<std::string>::iterator it;

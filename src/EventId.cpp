@@ -35,6 +35,7 @@ namespace {
   PyObject* EventId_run(PyObject* self, PyObject*);
   PyObject* EventId_fiducials(PyObject* self, PyObject*);
   PyObject* EventId_vector(PyObject* self, PyObject*);
+  PyObject* EventId_typeid(PyObject* self, PyObject*);
 
   PyMethodDef methods[] = {
     { "time",       EventId_time,     METH_NOARGS,
@@ -51,6 +52,8 @@ namespace {
         "Note that counter is saved as 15-bits integer and will overflow "
         "frequently. In some cases (e.g. when reading from old HDF5 "
         "files) counter is not know, 0 will be returned  in this case." },
+    { "__typeid__", EventId_typeid,   METH_NOARGS|METH_CLASS, 
+        "self.__typeid__() -> long\n\nReturns internal address of C++ typeid instance." }, 
     {0, 0, 0, 0}
    };
 
@@ -71,7 +74,7 @@ psana_python::EventId::initType(PyObject* module)
   type->tp_doc = ::typedoc;
   type->tp_methods = ::methods;
 
-  BaseType::initType("EventId", module);
+  BaseType::initType("EventId", module, "psana");
 }
 
 namespace {
@@ -108,6 +111,14 @@ EventId_vector(PyObject* self, PyObject* )
 {
   boost::shared_ptr<PSEvt::EventId> cself = psana_python::EventId::cppObject(self);
   return PyInt_FromLong(cself->vector());
+}
+
+PyObject* 
+EventId_typeid(PyObject* self, PyObject*)
+{
+  static PyObject* ptypeid = PyLong_FromVoidPtr(const_cast<void*>(static_cast<const void*>(&typeid(PSEvt::EventId))));
+  Py_INCREF(ptypeid);
+  return ptypeid;
 }
 
 }

@@ -74,7 +74,7 @@ psana_python::pyext::PSAna::initType(PyObject* module)
   type->tp_methods = ::methods;
   type->tp_new = ::PSAna_new;
 
-  BaseType::initType("PSAna", module);
+  BaseType::initType("PSAna", module, "psana");
 }
 
 namespace {
@@ -82,13 +82,6 @@ namespace {
 PyObject* 
 PSAna_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds)
 {
-  // allocate 
-  PyObject * self = subtype->tp_alloc(subtype, 1);
-  psana_python::pyext::PSAna* py_this = static_cast<psana_python::pyext::PSAna*>(self);
-
-  // construct shared pointer
-  new(&py_this->m_obj) boost::shared_ptr<psana::PSAna>();
-
   // parse arguments
   const char* config = 0;
   PyObject* options = 0;
@@ -114,10 +107,18 @@ PSAna_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds)
     optMap[PyString_AsString(key)] = PyString_AsString(value);
   }
 
+  // allocate 
+  PyObject * self = subtype->tp_alloc(subtype, 1);
+  psana_python::pyext::PSAna* py_this = static_cast<psana_python::pyext::PSAna*>(self);
+
+  // construct shared pointer
+  new(&py_this->m_obj) boost::shared_ptr<psana::PSAna>();
+
   // instantiate framework
   try {
     py_this->m_obj = boost::make_shared<psana::PSAna>(std::string(config), optMap);
   } catch (const std::exception& ex) {
+    subtype->tp_dealloc(self);
     PyErr_SetString(PyExc_RuntimeError, ex.what());
     return 0;
   }

@@ -35,7 +35,7 @@ namespace {
   pytools::EnumType typeEnum("Type");
 
   // standard Python stuff
-  int PdsBldInfo_init( PyObject* self, PyObject* args, PyObject* kwds );
+  PyObject* PdsBldInfo_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds);
 
   // type-specific methods
   PyObject* PdsBldInfo_processId(PyObject* self, PyObject*);
@@ -66,7 +66,7 @@ psana_python::PdsBldInfo::initType(PyObject* module)
   PyTypeObject* type = BaseType::typeObject() ;
   type->tp_doc = ::typedoc;
   type->tp_methods = ::methods;
-  type->tp_init = ::PdsBldInfo_init;
+  type->tp_new = ::PdsBldInfo_new;
   type->tp_base = psana_python::PdsSrc::typeObject();
   Py_INCREF(type->tp_base);
 
@@ -84,39 +84,39 @@ psana_python::PdsBldInfo::initType(PyObject* module)
   type->tp_dict = PyDict_New();
   PyDict_SetItemString(type->tp_dict, ::typeEnum.typeName(), ::typeEnum.type());
 
-  BaseType::initType("BldInfo", module);
+  BaseType::initType("BldInfo", module, "psana");
 }
 
 namespace {
 
-int
-PdsBldInfo_init( PyObject* self, PyObject* args, PyObject* kwds )
+PyObject*
+PdsBldInfo_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds)
 {
   // parse arguments
   unsigned processId=0, type;
   if (PyTuple_GET_SIZE(args) == 1) {
     if ( not PyArg_ParseTuple( args, "I:BldInfo", &type ) ) {
-      return -1;
+      return 0;
+    }
+  } else if (PyTuple_GET_SIZE(args) == 2) {
+    if ( not PyArg_ParseTuple( args, "II:BldInfo", &processId, &type ) ) {
+      return 0;
     }
   } else {
-    if ( not PyArg_ParseTuple( args, "II:BldInfo", &processId, &type ) ) {
-      return -1;
-    }
+    PyErr_SetString(PyExc_TypeError, "BldInfo(): one or two arguments are required");
+    return 0;
   }
   if ( type >= Pds::BldInfo::NumberOf ) {
     PyErr_SetString(PyExc_ValueError, "Error: detector type out of range");
-    return -1;
+    return 0;
   }
 
+  PyObject* self = subtype->tp_alloc(subtype, 1);
   psana_python::PdsBldInfo* py_this = (psana_python::PdsBldInfo*) self;
-  if ( not py_this ) {
-    PyErr_SetString(PyExc_RuntimeError, "Error: self is NULL");
-    return -1;
-  }
 
   new(&py_this->m_obj) Pds::BldInfo(processId, Pds::BldInfo::Type(type));
 
-  return 0;
+  return self;
 }
 
 PyObject*

@@ -25,7 +25,7 @@
 #include "EventIter.h"
 #include "RunIter.h"
 #include "ScanIter.h"
-#include "psana_python/EnvWrapper.h"
+#include "psana_python/Env.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -69,7 +69,7 @@ psana_python::pyext::DataSource::initType(PyObject* module)
   type->tp_doc = ::typedoc;
   type->tp_methods = ::methods;
 
-  BaseType::initType("DataSource", module);
+  BaseType::initType("DataSource", module, "psana");
 }
 
 namespace {
@@ -107,10 +107,7 @@ DataSource_env(PyObject* self, PyObject* )
 {
   psana_python::pyext::DataSource* py_this = static_cast<psana_python::pyext::DataSource*>(self);
   PSEnv::Env& env = py_this->m_obj.env();
-  boost::python::object envWrapper(psana_python::EnvWrapper(env.shared_from_this(), "", ""));
-  PyObject* envObj = envWrapper.ptr();
-  Py_INCREF(envObj);
-  return envObj;
+  return psana_python::Env::PyObject_FromCpp(env.shared_from_this());
 }
 
 }
