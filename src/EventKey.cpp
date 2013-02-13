@@ -26,30 +26,33 @@
 #include "psana_python/PdsBldInfo.h"
 #include "psana_python/PdsDetInfo.h"
 #include "psana_python/PdsProcInfo.h"
+#include "psddl_python/ConverterMap.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
 //-----------------------------------------------------------------------
 
+using psddl_python::ConverterMap;
+using psddl_python::Converter;
+
 namespace {
+
+  std::string type_name(PyTypeObject*);
 
   // type-specific methods
   PyObject* EventKey_type(PyObject* self, PyObject*);
-  PyObject* EventKey_typeName(PyObject* self, PyObject*);
   PyObject* EventKey_src(PyObject* self, PyObject*);
   PyObject* EventKey_key(PyObject* self, PyObject*);
 
   PyMethodDef methods[] = {
     { "type",       EventKey_type,     METH_NOARGS, "self.type() -> type\n\nReturns Python type (class) or None if type cannot be deduced." },
-    { "typeName",   EventKey_typeName, METH_NOARGS,
-        "self.typeName() -> string\n\nDEPRECATED: Returns name of the corresponding C++ class. This method is likely to be removed in the future." },
     { "src",        EventKey_src,      METH_NOARGS, "self.src() -> object\n\nReturns data source address ((:py:class:`Src`)." },
     { "key",        EventKey_key,      METH_NOARGS, "self.key() -> string\n\nReturns string key." },
     {0, 0, 0, 0}
    };
 
   char typedoc[] = "Class describing a key of the data object in event.";
-
+  
 }
 
 //		----------------------------------------
@@ -66,22 +69,66 @@ psana_python::EventKey::initType(PyObject* module)
   BaseType::initType("EventKey", module, "psana");
 }
 
+// Dump object info to a stream
+void 
+psana_python::EventKey::print(std::ostream& out) const 
+{
+  // get Python type name
+  std::string type = "None";
+  if (const std::type_info* typeinfo = m_obj.typeinfo()) {
+    const boost::shared_ptr<Converter>& cvt = ConverterMap::instance().getConverter(typeinfo);
+    if (cvt) {
+      PyTypeObject* tobj = cvt->pyTypeObject();
+      type = ::type_name(tobj);
+    }
+  }
+
+  out << "EventKey(type=" << type;
+
+  if (m_obj.src() == PSEvt::EventKey::anySource()) {
+    out << ", src=AnySource";
+  } else if (m_obj.validSrc()) {
+    out << ", src='" << m_obj.src() << '\'';
+  }
+
+  if (not m_obj.key().empty()) {
+    out << ", key='" << m_obj.key() << '\'';
+  }
+  
+  out << ')';
+}
+
 namespace {
+
+std::string 
+type_name(PyTypeObject* type)
+{
+  std::string name = type->tp_name;
+  if (name.find('.') != std::string::npos) return name;
+
+  if (type->tp_flags & Py_TPFLAGS_HEAPTYPE) {
+    if(PyObject *mod = PyDict_GetItemString(type->tp_dict, "__module__")) {
+      name = PyString_AsString(mod);
+      name += ".";
+      name += type->tp_name;
+    }    
+  }
+  return name;
+}
 
 PyObject*
 EventKey_type(PyObject* self, PyObject* )
 {
-  // TODO: need something more specific here
-  Py_RETURN_NONE;
-}
-
-PyObject*
-EventKey_typeName(PyObject* self, PyObject* )
-{
   PSEvt::EventKey& cself = psana_python::EventKey::cppObject(self);
-  int status;
-  const char* typeName = abi::__cxa_demangle(cself.typeinfo()->name(), 0, 0, &status);
-  return PyString_FromString(typeName ? typeName : "");
+  if (const std::type_info* typeinfo = cself.typeinfo()) {
+    const boost::shared_ptr<Converter>& cvt = ConverterMap::instance().getConverter(typeinfo);
+    if (cvt) {
+      PyObject* res = (PyObject*)cvt->pyTypeObject();
+      Py_INCREF(res);
+      return res;
+    }
+  }
+  Py_RETURN_NONE;
 }
 
 PyObject*

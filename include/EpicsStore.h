@@ -1,12 +1,12 @@
-#ifndef PSANA_PYTHON_EVENTKEY_H
-#define PSANA_PYTHON_EVENTKEY_H
+#ifndef PSANA_PYTHON_EPICSSTORE_H
+#define PSANA_PYTHON_EPICSSTORE_H
 
 //--------------------------------------------------------------------------
 // File and Version Information:
 // 	$Id$
 //
 // Description:
-//	Class EventKey.
+//	Class EpicsStore.
 //
 //------------------------------------------------------------------------
 
@@ -22,7 +22,7 @@
 //-------------------------------
 // Collaborating Class Headers --
 //-------------------------------
-#include "PSEvt/EventKey.h"
+#include "PSEnv/EpicsStore.h"
 
 //------------------------------------
 // Collaborating Class Declarations --
@@ -39,7 +39,7 @@ namespace psana_python {
 /**
  *  @ingroup psana_python
  *
- *  @brief Wrapper class for EventKey.
+ *  @brief Python wrapper for EpicsStore class.
  *
  *  This software was developed for the LCLS project.  If you use all or 
  *  part of it, please give an appropriate acknowledgment.
@@ -49,19 +49,21 @@ namespace psana_python {
  *  @author Andy Salnikov
  */
 
-class EventKey : public pytools::PyDataType<EventKey, PSEvt::EventKey> {
+class EpicsStore : public pytools::PyDataType<EpicsStore, boost::shared_ptr<PSEnv::EpicsStore> > {
 public:
 
-  typedef pytools::PyDataType<EventKey, PSEvt::EventKey> BaseType;
+  typedef pytools::PyDataType<EpicsStore, boost::shared_ptr<PSEnv::EpicsStore> > BaseType;
 
   /// Initialize Python type and register it in a module
   static void initType( PyObject* module );
 
   // Dump object info to a stream
-  void print(std::ostream& out) const ;
+  void print(std::ostream& out) const {
+    out << "EpicsStore()";
+  }
 
 };
 
 } // namespace psana_python
 
-#endif // PSANA_PYTHON_EVENTKEY_H
+#endif // PSANA_PYTHON_EPICSSTORE_H

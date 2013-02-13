@@ -229,7 +229,7 @@ moduleFactory(const string& name)
 
   // Create keyword args list.
   pytools::pyshared_ptr kwargs = pytools::make_pyshared(PyDict_New());
-  ConfigSvc::ConfigSvc cfg;
+  ConfigSvc::ConfigSvc cfg(psana::Context::get());
   std::list<std::string> keys = cfg.getKeys(fullName);
   std::list<std::string>::iterator it;
   for (it = keys.begin(); it != keys.end(); it++) {

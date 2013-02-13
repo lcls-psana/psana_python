@@ -24,6 +24,7 @@
 // Collaborating Class Headers --
 //-------------------------------
 #include "psana_python/EnvObjectStore.h"
+#include "psana_python/EpicsStore.h"
 #include "pytools/make_pyshared.h"
 
 //-----------------------------------------------------------------------
@@ -149,9 +150,7 @@ PyObject*
 Env_epicsStore(PyObject* self, PyObject*)
 {
   boost::shared_ptr<PSEnv::Env>& cself = Env::cppObject(self);
-  boost::python::object boo(cself->epicsStore());
-  Py_INCREF(boo.ptr());
-  return boo.ptr();
+  return EpicsStore::PyObject_FromCpp(cself->epicsStore().shared_from_this());
 }
 
 PyObject*

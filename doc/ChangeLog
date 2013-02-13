@@ -11,6 +11,11 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-06-02
+2013-02-12 Andy Salnikov
+- implemented EventKey.type() method, removed EventKey.typeName()
+- finished EPICS stuff
+
 Tag: V00-06-01
 2013-02-07 Andy Salnikov
 - fix __typeid__ in EventId wrapper, should return PyCObject instead of int
