@@ -11,6 +11,11 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-06-03
+2013-03-02 Andy Salnikov
+- in CreateWrappers.cpp include Python.h at the top to suppress compilation 
+  warnings
+
 Tag: V00-06-02
 2013-02-12 Andy Salnikov
 - implemented EventKey.type() method, removed EventKey.typeName()
