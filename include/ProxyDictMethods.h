@@ -62,7 +62,7 @@ namespace ProxyDictMethods {
    *  In case of problem set error condition and returnz zero pointer
    *
    *  @param[in] proxyDict  Dictionary instance
-   *  @param[in] arg        Python argument tuple passed to keys() method
+   *  @param[in] args       Python argument tuple passed to keys() method
    *
    *  @return Either instance of list type (new reference) or zero pointer for errors.
    */
