@@ -11,6 +11,12 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-06-05
+2013-03-04 Andy Salnikov
+- update python docstrings
+- DataSource class renamed to _DataSource to expose it for documentation
+  (psana.DataSource function overrides the name)
+
 Tag: V00-06-04
 2013-03-04 Andy Salnikov
 - fix doxygen comments in ProxyDictMethods

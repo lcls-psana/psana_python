@@ -42,8 +42,8 @@ namespace {
    };
 
   char typedoc[] = "Base class which defines generic XTC data source \"address\". "
-      "One cannot make instances of this calss directly, instead use one of the "
-      "classes DetInfo, BldInfo, or ProcInfo";
+      "One cannot make instances of this class directly, instead use one of the "
+      "classes :py:class:`DetInfo`, :py:class:`BldInfo`, or :py:class:`ProcInfo`";
 
 }
 

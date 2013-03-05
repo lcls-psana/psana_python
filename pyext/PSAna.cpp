@@ -43,7 +43,7 @@ namespace {
   PyMethodDef methods[] = {
     { "dataSource",  PSAna_dataSource,  METH_VARARGS, 
         "self.dataSource(input, ...) -> DataSource\n\n"
-        "Returns data source object (:py:class:`DataSource`), accepts a list of strings or "
+        "Returns data source object (:py:class:`_DataSource`), accepts a list of strings or "
         "any number of string arguments. Strings can be either names of files or datasets." },
     {0, 0, 0, 0}
    };
@@ -57,7 +57,7 @@ namespace {
       "Value can be any string, possibly empty, non-string values will be converted "
       "to strings using str() call. Options from a dictionary override corresponding "
       "options in configuration file.\n\n"
-      "Only one instance of the framework can be created. User code will typically "
+      "Objects of this type cannot be directly instantiated in user code, users will typically "
       "use high-level wrappers for the framework (see :py:mod:`psana`).";
 
 }
@@ -128,7 +128,7 @@ PSAna_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds)
 
 PyObject*
 PSAna_dataSource(PyObject* self, PyObject* args)
-{
+try {
   psana_python::pyext::PSAna* py_this = static_cast<psana_python::pyext::PSAna*>(self);
 
   // parse arguments
@@ -163,6 +163,10 @@ PSAna_dataSource(PyObject* self, PyObject* args)
   }
     
   return psana_python::pyext::DataSource::PyObject_FromCpp(py_this->m_obj->dataSource(inpVec));
+
+} catch (const std::exception& ex) {
+  PyErr_SetString(PyExc_RuntimeError, ex.what());
+  return 0;
 }
 
 }

@@ -69,7 +69,7 @@ psana_python::pyext::DataSource::initType(PyObject* module)
   type->tp_doc = ::typedoc;
   type->tp_methods = ::methods;
 
-  BaseType::initType("DataSource", module, "psana");
+  BaseType::initType("_DataSource", module, "psana");
 }
 
 namespace {

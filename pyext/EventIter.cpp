@@ -37,8 +37,8 @@ namespace {
 
   char typedoc[] = "Class which supports iteration over events contained in a "
       "particular :py:class:`DataSource`, :py:class:`Run`, or :py:class:`Scan` "
-      "instance. Iterator returns event objects which contain all experimental "
-      "data for particular event.";
+      "instance. Iterator returns event (:py:class:`Event`) objects which contain "
+      "all experimental data for particular event.";
 
 }
 

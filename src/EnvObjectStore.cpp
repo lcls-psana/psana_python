@@ -55,14 +55,14 @@ namespace {
         "self.get(...) -> object\n\n"
         "Finds and retrieves objects from a store. This is an overloaded method which "
         "can accept variable number of parameters:\n"
-        " * get(type, src) - find object of specified type and source address\n"
+        " * ``get(type, src)`` - find object of specified type and source address\n\n"
         "pyana compatibility methods (deprecated):\n"
-        " * get(int, addr:string)  - equivalent to get(type, Source(addr)) where type is deduced"
+        " * ``get(int, addr:string)`` - equivalent to ``get(type, Source(addr))`` where type is deduced"
         " from integer assumed to be Pds::TypeId::Type value\n"
-        " * get(int) - equivalent to get(int, "")\n"
+        " * ``get(int)`` - equivalent to ``get(int, \"\")``\n\n"
         "In the first method type argument can be a type object or a list of type objects. "
         "If the list is given then object is returned whose type matches any one from the list. "
-        "The src argument can be an instance of Source or Src types."},
+        "The src argument can be an instance of :py:class:`Source` or :py:class:`Src` types."},
     { "keys",  EnvObjectStore_keys,  METH_VARARGS, 
         "self.keys([src]) -> list\n\nGet the list of event keys (type :py:class:`EventKey`) for objects in the store. "
         "Optional argument can be either :py:class:`Source` instance or string. Without argument keys for all "

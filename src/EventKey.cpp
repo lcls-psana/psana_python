@@ -45,8 +45,8 @@ namespace {
   PyObject* EventKey_key(PyObject* self, PyObject*);
 
   PyMethodDef methods[] = {
-    { "type",       EventKey_type,     METH_NOARGS, "self.type() -> type\n\nReturns Python type (class) or None if type cannot be deduced." },
-    { "src",        EventKey_src,      METH_NOARGS, "self.src() -> object\n\nReturns data source address ((:py:class:`Src`)." },
+    { "type",       EventKey_type,     METH_NOARGS, "self.type() -> type\n\nReturns Python type (class) or ``None`` if type cannot be deduced." },
+    { "src",        EventKey_src,      METH_NOARGS, "self.src() -> object\n\nReturns data source address (:py:class:`Src`)." },
     { "key",        EventKey_key,      METH_NOARGS, "self.key() -> string\n\nReturns string key." },
     {0, 0, 0, 0}
    };

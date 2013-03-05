@@ -66,20 +66,20 @@ namespace {
         "self.pvName(alias:string) -> string\n\nGet PV name for specified alias name. "
         "If specified alias is not found an empty string is returned." },
     { "value",    EpicsStore_value,        METH_VARARGS,
-        "self.status(name:string[, index:int]) -> number or string\n\nGet current value of PV. "
+        "self.value(name:string[, index:int]) -> number or string\n\nGet current value of PV. "
         "Returned type depends on PV type, for numeric or enum types integer or float is returned, "
         "for string types string is returned. Optional index specifies array index for array PVs, "
-        "if index is out of range None is returned. Missing index means the same as index 0. "
-        "If name is not found then None is returned as well." },
+        "if index is out of range ``None`` is returned. Missing index means the same as index 0. "
+        "If name is not found then ``None`` is returned." },
     { "status",    EpicsStore_status,      METH_VARARGS,
         "self.status(name:string) -> tuple\n\nGet status information for a given PV or alias name. "
         "Returns triplet (status, severity, time) corresponding to the last stored measurement. "
         "Time is returned as a floating number specifying seconds since UNIX Epoch. "
-        "If name is not found None is returned." },
+        "If name is not found ``None`` is returned." },
     { "getPV",    EpicsStore_getPV,        METH_VARARGS,
-        "self.status(name:string) -> object\n\nFind EPICS PV given its PV or alias name. "
-        "Returns an instance of one of the PV types (one of subclasses of Epics.EpicsPvHeader). "
-        "If PV name cannot be fount None is returned." },
+        "self.getPV(name:string) -> object\n\nFind EPICS PV given its PV or alias name. "
+        "Returns an instance of one of the PV types (one of subclasses of :py:class:`Epics.EpicsPvHeader`). "
+        "If PV name cannot be found ``None`` is returned." },
     {0, 0, 0, 0}
   };
 

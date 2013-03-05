@@ -51,24 +51,31 @@ namespace {
 
   PyMethodDef methods[] = {
     { "jobName",       Env_jobName,       METH_NOARGS, "self.jobName() -> str\n\nReturns job name."},
-    { "instrument",    Env_instrument,    METH_NOARGS, "self.instrument() -> str\n\nReturns instrument name"},
-    { "experiment",    Env_experiment,    METH_NOARGS, "self.experiment() -> str\n\nReturns experiment name"},
-    { "expNum",        Env_expNum,        METH_NOARGS, "self.expNum() -> int\n\nReturns experiment number or 0"},
+    { "instrument",    Env_instrument,    METH_NOARGS, "self.instrument() -> str\n\nReturns instrument name."},
+    { "experiment",    Env_experiment,    METH_NOARGS, "self.experiment() -> str\n\nReturns experiment name."},
+    { "expNum",        Env_expNum,        METH_NOARGS, "self.expNum() -> int\n\nReturns experiment number or 0."},
     { "calibDir",      Env_calibDir,      METH_NOARGS, 
-        "self.calibDir() -> str\n\nReturns that name of the calibration directory for current instrument/experiment"},
-    { "configStore",   Env_configStore,   METH_NOARGS, "self.configStore() -> object\n\nAccess to Configuration Store object."},
-    { "calibStore",    Env_calibStore,    METH_NOARGS, "self.calibStore() -> object\n\nAccess to Calibration Store object."},
-    { "epicsStore",    Env_epicsStore,    METH_NOARGS, "self.epicsStore() -> object\n\nAccess to EPICS Store object."},
+        "self.calibDir() -> str\n\nReturns path the calibration directory for current instrument/experiment, "
+        "typically \"/reg/d/psdm/INSTR/exper/calib\" but can be changed from in job configuration."},
+    { "configStore",   Env_configStore,   METH_NOARGS,
+        "self.configStore() -> object\n\nAccess to Configuration Store (:py:class:`EnvObjectStore`) object."},
+    { "calibStore",    Env_calibStore,    METH_NOARGS,
+        "self.calibStore() -> object\n\nAccess to Calibration Store (:py:class:`EnvObjectStore`) object."},
+    { "epicsStore",    Env_epicsStore,    METH_NOARGS, "self.epicsStore() -> object\n\nAccess to EPICS Store (:py:class:`EpicsStore`) object."},
     { "hmgr",          Env_hmgr,          METH_NOARGS, "self.hmgr() -> object\n\nAccess to histogram manager."},
-    { "assert_psana",  Env_assert_psana,  METH_NOARGS, "self.assert_psana() -> int\n\nReturns 1 if running inside psana."},
-    { "subprocess",    Env_subprocess,    METH_NOARGS, "self.subprocess() -> int\n\nReturns subprocess number or 0 if running inside main process."},
+    { "assert_psana",  Env_assert_psana,  METH_NOARGS,
+        "self.assert_psana() -> int\n\nReturns 1 if running inside psana. This method can be used to detect module execution "
+        "inside psana. Environment in pyana does not have this method."},
+    { "subprocess",    Env_subprocess,    METH_NOARGS,
+        "self.subprocess() -> int\n\nReturns subprocess number or 0 if running inside main process. If multi-processssing "
+        "is disabled always returns 0. Currently psana does not support multi-processing."},
     { "getConfig",     Env_getConfig,     METH_VARARGS, 
-        "self.getConfig(...) -> object\n\nPyana compatibility method, shortcut for self.configStore().get(), deprecated."},
+        "self.getConfig(...) -> object\n\nPyana compatibility method, shortcut for ``self.configStore().get()``, deprecated."},
     {0, 0, 0, 0}
    };
 
   char typedoc[] = "\
-Python wrapper for psana Env class. Instances of this class are \
+Python wrapper for psana Env C++ class. Instances of this class are \
 created by the framework itself and returned to the client from framework methods.\
 ";
 

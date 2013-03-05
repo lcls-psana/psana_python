@@ -39,23 +39,23 @@ PyObject* Source_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds);
 
   PyMethodDef methods[] = {
     { "src",     Source_src,   METH_NOARGS, 
-        "self.src() -> Src\n\nReturns instance of Src class, clients do not usually need to call this,"
+        "self.src() -> Src\n\nReturns instance of :py:class:`Src` class, clients do not usually need to call this,"
         "it exists mostly for testing purposes." },
     {0, 0, 0, 0}
    };
 
   char typedoc[] = "\
 Class which defines matching criteria for source addresses \
-returned from Event.get() method. This class provides several constructors:\n\
- * Source() without arguments matches data from any source address\n\
- * Source(None) will match data that do not have associated address (such as EventId data)\n\
- * Source(Src) with argument of type psana.Src will match data that have the same address\n\
- * Source(int) where argument should be one of the BldInfo.Type enum constants, will match\
+returned from ``Event.get()`` method. This class provides several constructors:\n\
+ * ``Source()`` without arguments matches data from any source address\n\
+ * ``Source(None)`` will match data that do not have associated address (such as EventId data)\n\
+ * ``Source(Src)`` with argument of type :py:class:`psana.Src` will match data that have the same address\n\
+ * ``Source(int)`` where argument should be one of the :py:class:`BldInfo.Type` enum constants, will match\
  data coming from that particular BLD source\n\
- * Source(int, int, int, int) where argument should be (DetInfo.Detector, int, DetInfo.Device, int)\
+ * ``Source(int, int, int, int)`` where argument should be (:py:class:`DetInfo.Detector`, int, :py:class:`DetInfo.Device`, int)\
  will match data coming from that particular DAQ (DetInfo) source\n\
- * Source(string) where string provides matching criteria, e.g. 'DetInfo(CxiDg1.*:Cspad2x2.0)'\n\n\
-Main utility of this class consists entirely of being passed down to Event.get() method.\
+ * ``Source(string)`` where string provides matching criteria, e.g. 'DetInfo(CxiDg1.*:Cspad2x2.0)'\n\n\
+Main utility of this class consists entirely of being passed down to ``Event.get()`` method.\
 ";
 
 }
