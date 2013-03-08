@@ -119,8 +119,9 @@ const std::type_info*
 ProxyDictMethods::get_type_info(PyObject* type)
 {
   // Does it have __typeid__ method?
-  if (PyObject_HasAttrString(type, "__typeid__")) {
-    pytools::pyshared_ptr typeid_pyobj = pytools::make_pyshared(PyObject_CallMethod(type, "__typeid__", 0));
+  char method[] = "__typeid__";
+  if (PyObject_HasAttrString(type, method)) {
+    pytools::pyshared_ptr typeid_pyobj = pytools::make_pyshared(PyObject_CallMethod(type, method, 0));
     if (PyCObject_Check(typeid_pyobj.get())) {
       return static_cast<std::type_info*>(PyCObject_AsVoidPtr(typeid_pyobj.get()));
     }

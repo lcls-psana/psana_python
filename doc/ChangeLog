@@ -11,6 +11,10 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-06-06
+2013-03-08 Andy Salnikov
+- suppress compilation warning for string to char* conversion
+
 Tag: V00-06-05
 2013-03-04 Andy Salnikov
 - update python docstrings
