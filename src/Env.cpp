@@ -36,6 +36,7 @@ using namespace psana_python;
 namespace {
 
   // type-specific methods
+  PyObject* Env_fwkName(PyObject* self, PyObject*);
   PyObject* Env_jobName(PyObject* self, PyObject*);
   PyObject* Env_instrument(PyObject* self, PyObject*);
   PyObject* Env_experiment(PyObject* self, PyObject*);
@@ -45,11 +46,15 @@ namespace {
   PyObject* Env_calibStore(PyObject* self, PyObject*);
   PyObject* Env_epicsStore(PyObject* self, PyObject*);
   PyObject* Env_hmgr(PyObject* self, PyObject*);
-  PyObject* Env_assert_psana(PyObject* self, PyObject*);
   PyObject* Env_subprocess(PyObject* self, PyObject*);
   PyObject* Env_getConfig(PyObject* self, PyObject* args);
 
   PyMethodDef methods[] = {
+    { "fwkName",       Env_fwkName,       METH_NOARGS, 
+        "self.fwkName() -> str\n\nReturns name of the framework. This method is supposed to be defined across different frameworks. "
+        "It returns the name of the current framework, e.g. when client code runs inside pyana framework it will return string "
+        "\"pyana\", inside  psana framework it will return \"psana\". This method should be used as a primary mechanism for " 
+        "distinguishing between different frameworks in cases when client needs to execute framework-specific code."},
     { "jobName",       Env_jobName,       METH_NOARGS, "self.jobName() -> str\n\nReturns job name."},
     { "instrument",    Env_instrument,    METH_NOARGS, "self.instrument() -> str\n\nReturns instrument name."},
     { "experiment",    Env_experiment,    METH_NOARGS, "self.experiment() -> str\n\nReturns experiment name."},
@@ -63,9 +68,6 @@ namespace {
         "self.calibStore() -> object\n\nAccess to Calibration Store (:py:class:`EnvObjectStore`) object."},
     { "epicsStore",    Env_epicsStore,    METH_NOARGS, "self.epicsStore() -> object\n\nAccess to EPICS Store (:py:class:`EpicsStore`) object."},
     { "hmgr",          Env_hmgr,          METH_NOARGS, "self.hmgr() -> object\n\nAccess to histogram manager."},
-    { "assert_psana",  Env_assert_psana,  METH_NOARGS,
-        "self.assert_psana() -> int\n\nReturns 1 if running inside psana. This method can be used to detect module execution "
-        "inside psana. Environment in pyana does not have this method."},
     { "subprocess",    Env_subprocess,    METH_NOARGS,
         "self.subprocess() -> int\n\nReturns subprocess number or 0 if running inside main process. If multi-processssing "
         "is disabled always returns 0. Currently psana does not support multi-processing."},
@@ -103,6 +105,13 @@ psana_python::Env::print(std::ostream& out) const
 }
 
 namespace {
+
+PyObject*
+Env_fwkName(PyObject* self, PyObject*)
+{
+  boost::shared_ptr<PSEnv::Env>& cself = Env::cppObject(self);
+  return PyString_FromString(cself->fwkName().c_str());
+}
 
 PyObject*
 Env_jobName(PyObject* self, PyObject*)
@@ -167,12 +176,6 @@ Env_hmgr(PyObject* self, PyObject*)
   boost::python::object boo(cself->hmgr());
   Py_INCREF(boo.ptr());
   return boo.ptr();
-}
-
-PyObject*
-Env_assert_psana(PyObject* self, PyObject*)
-{
-  return PyInt_FromLong(1);
 }
 
 PyObject*

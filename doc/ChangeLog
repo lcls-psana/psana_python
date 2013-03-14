@@ -11,6 +11,12 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-06-07
+2013-03-14 Andy Salnikov
+- remove Env.assert_psana() method
+- Env class has new method fwkName() which returns "psana" string
+  (and pyana counterpart returns "pyana" string).
+
 Tag: V00-06-06
 2013-03-08 Andy Salnikov
 - suppress compilation warning for string to char* conversion
