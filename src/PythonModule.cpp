@@ -84,9 +84,9 @@ namespace {
   std::ostream& operator<<(std::ostream& str, PyObject* obj) {
     if (obj) {
       pytools::pyshared_ptr repr = pytools::make_pyshared(PyObject_Repr(obj));
-      str << PyString_AsString(repr.get());
+      return str << PyString_AsString(repr.get());
     } else {
-      str << "PyObject<NULL>";
+      return str << "PyObject<NULL>";
     }
   }
 

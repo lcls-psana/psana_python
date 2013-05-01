@@ -11,6 +11,10 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-07-01
+2013-05-01 Andy Salnikov
+- bugfix, add missing return
+
 Tag: V00-07-00
 2013-05-01 Andy Salnikov
 - add few special methods to user modules to get access to configuration 
