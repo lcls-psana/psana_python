@@ -85,6 +85,14 @@ public:
     call(m_methods[MethEndJob].get(), false, evt, env);
   }
 
+  // need to expose few protected methods to allow python code access to them
+  using Configurable::name;
+  using Configurable::className;
+  using Configurable::config;
+  using Configurable::configStr;
+  using Configurable::configSrc;
+  using Configurable::configList;
+
 private:
 
   /**

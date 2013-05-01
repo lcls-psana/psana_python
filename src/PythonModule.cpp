@@ -22,6 +22,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <boost/python.hpp>
+#include <boost/foreach.hpp>
 
 //-------------------------------
 // Collaborating Class Headers --
@@ -31,6 +32,7 @@
 #include "psana_python/Exceptions.h"
 #include "psana_python/Env.h"
 #include "psana_python/Event.h"
+#include "psana_python/Source.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -41,7 +43,7 @@ using boost::python::object;
 
 namespace {
 
-  const char logger[] = "PythonModule";
+  const char logger[] = "psana_python.PythonModule";
 
   // return string describing Python exception
   string pyExcStr()
@@ -53,6 +55,8 @@ namespace {
     PyErr_Fetch(&ptype, &pvalue, &ptraceback);
     PyObject* errstr = PyObject_Str(pvalue);
     string msg = PyString_AsString(errstr);
+
+    PyErr_Display(ptype, pvalue, ptraceback);
 
     Py_CLEAR(errstr);
     Py_CLEAR(ptype);
@@ -77,6 +81,62 @@ namespace {
     bool operator()(const pytools::pyshared_ptr& p) const { return bool(p); }
   };
 
+  std::ostream& operator<<(std::ostream& str, PyObject* obj) {
+    if (obj) {
+      pytools::pyshared_ptr repr = pytools::make_pyshared(PyObject_Repr(obj));
+      str << PyString_AsString(repr.get());
+    } else {
+      str << "PyObject<NULL>";
+    }
+  }
+
+  // extra methods definition
+  psana_python::PythonModule* cpp_module(PyObject* self);
+  PyObject* extra_name(PyObject* self, PyObject* args);
+  PyObject* extra_className(PyObject* self, PyObject* args);
+  PyObject* extra_configBool(PyObject* self, PyObject* args);
+  PyObject* extra_configInt(PyObject* self, PyObject* args);
+  PyObject* extra_configFloat(PyObject* self, PyObject* args);
+  PyObject* extra_configStr(PyObject* self, PyObject* args);
+  PyObject* extra_configSrc(PyObject* self, PyObject* args);
+  PyObject* extra_configListBool(PyObject* self, PyObject* args);
+  PyObject* extra_configListInt(PyObject* self, PyObject* args);
+  PyObject* extra_configListFloat(PyObject* self, PyObject* args);
+  PyObject* extra_configListStr(PyObject* self, PyObject* args);
+  PyObject* extra_configListSrc(PyObject* self, PyObject* args);
+
+  static PyMethodDef extraMethods[] = {
+    {"name",        extra_name,          METH_NOARGS,  "self.name() -> str\n\nReturns the name of this module"},
+    {"className",   extra_className,     METH_NOARGS,  "self.className() -> str\n\nReturns class name of this module"},
+    {"configBool",  extra_configBool,    METH_VARARGS,
+        "self.configBool(param:str[, default:bool]) -> bool\n\nReturns value of boolean parameter"},
+    {"configInt",   extra_configInt,     METH_VARARGS,
+        "self.configInt(param:str[, default:int]) -> int\n\nReturns value of integer parameter"},
+    {"configFloat", extra_configFloat,   METH_VARARGS,
+        "self.configFloat(param:str[, default:float]) -> float\n\nReturns value of floating point parameter"},
+    {"configStr",   extra_configStr,     METH_VARARGS,
+        "self.configStr(param:str[, default:str]) -> str\n\nReturns string value of parameter"},
+    {"configSrc",   extra_configSrc,     METH_VARARGS,
+        "self.configSrc(param:str[, default:str]) -> Source\n\nReturns value of parameter as a Source object"},
+    {"configListBool",  extra_configListBool,     METH_O,
+        "self.configListBool(param:str) -> list of bool\n\nReturns value of parameter as a list of booleans, "
+        "if parameter is not defined then empty list is returned."},
+    {"configListInt",   extra_configListInt,     METH_O,
+        "self.configListInt(param:str) -> list of int\n\nReturns value of parameter as a list of integer numbers, "
+        "if parameter is not defined then empty list is returned."},
+    {"configListFloat",   extra_configListFloat, METH_O,
+        "self.configListFloat(param:str) -> list of float\n\nReturns value of parameter as a list of floating numbers, "
+        "if parameter is not defined then empty list is returned."},
+    {"configListStr",   extra_configListStr,     METH_O,
+        "self.configListStr(param:str) -> list of str\n\nReturns value of parameter as a list of strings, "
+        "if parameter is not defined then empty list is returned."},
+    {"configListSrc",   extra_configListSrc,     METH_O,
+        "self.configListSrc(param:str) -> list of Source\n\nReturns value of parameter as a list of Source objects, "
+        "if parameter is not defined then empty list is returned."},
+    {NULL},
+  };
+
+
 }
 
 //		----------------------------------------
@@ -90,19 +150,27 @@ namespace psana_python {
 //----------------
 PythonModule::PythonModule(const string& name, PyObject* instance)
   : Module(name)
-  , m_instance(pytools::make_pyshared(instance))
+  , m_instance(pytools::make_pyshared(instance, false))
   , m_pyanaCompat(true)
 {
-  // Currently, pyana compatibity is enabled unless the PYANA_COMPAT env var is 0.
-  const char* pyana_compat_env = std::getenv("PYANA_COMPAT");
-  const bool pyana_compat_disabled = pyana_compat_env and std::strcmp(pyana_compat_env, "0") == 0;
-  m_pyanaCompat = not pyana_compat_disabled;
+  // Currently, pyana compatibity is enabled unless 'psana.pyana_compat' config option is set to 0.
+  m_pyanaCompat = configSvc().get("psana", "pyana_compat", true);
 
   // check pyana-style methods first
   for (int i = 0; i != NumMethods; ++ i) {
     m_methods[i] = pytools::make_pyshared(PyObject_GetAttrString(m_instance.get(), pyana_methods[i]));
   }
-  bool any = std::find_if(m_methods, m_methods+NumMethods, ::NonZero()) != (m_methods+NumMethods);
+
+  // reset errors from PyObject_GetAttrString
+  PyErr_Clear();
+
+  if (PyErr_Occurred()) {
+    PyErr_Print();
+  }
+
+  // check for presence of any methods except of "event"
+  bool any = m_methods[MethBeginJob] or m_methods[MethBeginRun] or m_methods[MethBeginScan] or
+      m_methods[MethEndScan] or m_methods[MethEndRun] or m_methods[MethEndJob];
 
   // check that we are not getting pyana stuff if compatibility is disabled
   if (any and not m_pyanaCompat) {
@@ -113,8 +181,10 @@ PythonModule::PythonModule(const string& name, PyObject* instance)
     // search for psana-style methods
     m_pyanaCompat = false;
     for (int i = 0; i != NumMethods; ++ i) {
-        m_methods[i] = pytools::make_pyshared(PyObject_GetAttrString(m_instance.get(), psana_methods[i]));
+      m_methods[i] = pytools::make_pyshared(PyObject_GetAttrString(m_instance.get(), psana_methods[i]));
     }
+    // reset errors from PyObject_GetAttrString
+    PyErr_Clear();
   }
 
   // check that at least one method is there
@@ -158,7 +228,7 @@ PythonModule::call(PyObject* method, bool pyana_optional_evt, PSEvt::Event& evt,
   pytools::pyshared_ptr res = pytools::make_pyshared(PyObject_Call(method, args.get(), NULL));
   if (not res) {
     PyErr_Print();
-    exit(1);
+    throw ExceptionGenericPyError(ERR_LOC, "Python exception raised, check error output for details");
   }
 }
 
@@ -190,11 +260,11 @@ moduleFactory(const string& name)
   Py_Initialize();
 
   // Clear any lingering errors
-  pyExcStr();
+  PyErr_Clear();
 
   // The whole shebang from this package needs to be initialized to expose the
   // wrapped stuff to Python interpreter. We are doing this via importing the module _psana.
-  pytools::pyshared_ptr psanamod = pytools::make_pyshared(PyImport_ImportModule("_psana"));
+  static pytools::pyshared_ptr psanamod = pytools::make_pyshared(PyImport_ImportModule("_psana"));
   if (not psanamod) {
     string msg = "failed to import module _psana: " + ::pyExcStr();
     MsgLog(logger, error, msg);
@@ -202,6 +272,7 @@ moduleFactory(const string& name)
   }
 
   // try to import module
+  MsgLog(logger, debug, "import module name=" << moduleName);
   pytools::pyshared_ptr mod = pytools::make_pyshared(PyImport_ImportModule((char*)moduleName.c_str()));
   if (not mod) {
     string msg = "failed to import module " + moduleName + ": " + ::pyExcStr();
@@ -210,6 +281,7 @@ moduleFactory(const string& name)
   }
 
   // there must be a class defined with this name
+  MsgLog(logger, debug, "find class in a module, name=" << className);
   pytools::pyshared_ptr cls = pytools::make_pyshared(PyObject_GetAttrString(mod.get(), (char*)className.c_str()));
   if (not cls) {
     string msg = "module " + moduleName + " does not define class " + className;
@@ -217,48 +289,445 @@ moduleFactory(const string& name)
     throw ExceptionPyLoadError(ERR_LOC, msg);
   }
 
-  // make sure class is callable
-  if (not PyCallable_Check(cls.get())) {
-    string msg = "class " + moduleName + " cannot be instantiated (is not callable)";
+  // make sure class is a type as we want to extend it with few methods
+  if (not PyType_Check(cls.get())) {
+    string msg = "name " + className + " is not a type object (not a class)";
     MsgLog(logger, error, msg);
     throw ExceptionPyLoadError(ERR_LOC, msg);
   }
 
-  // Create empty positional args list.
-  pytools::pyshared_ptr args = pytools::make_pyshared(PyTuple_New(0));
-
-  // Create keyword args list.
-  pytools::pyshared_ptr kwargs = pytools::make_pyshared(PyDict_New());
-  ConfigSvc::ConfigSvc cfg(psana::Context::get());
-  std::list<std::string> keys = cfg.getKeys(fullName);
-  std::list<std::string>::iterator it;
-  for (it = keys.begin(); it != keys.end(); it++) {
-    const std::string& key = *it;
-    const char* value = cfg.getStr(fullName, key).c_str();
-    PyDict_SetItemString(kwargs.get(), key.c_str(), PyString_FromString(value));
+  // define/override few extra methods, need to be called before we make an instance
+  MsgLog(logger, debug, "define extra methods for a class");
+  for (PyMethodDef *def = ::extraMethods; def->ml_name != 0; ++ def) {
+    pytools::pyshared_ptr method = pytools::make_pyshared(PyDescr_NewMethod((PyTypeObject*)cls.get(), def));
+    if (PyObject_SetAttrString(cls.get(), def->ml_name, method.get()) < 0) {
+      throw ExceptionGenericPyError(ERR_LOC, "PyObject_SetAttrString failed");
+    }
   }
 
-  // Construct the instance.
-  PyObject* instance = PyObject_Call(cls.get(), args.get(), kwargs.get());
+  // this is a dirty hack to make module name available inside module constructor,
+  // this is not thread safe
+  MsgLog(logger, debug, "set special attribute for module name");
+  pytools::pyshared_ptr modname = pytools::make_pyshared(PyString_FromString(fullName.c_str()));
+  if (PyObject_SetAttrString(cls.get(), "__psana_module_name__", modname.get()) < 0) {
+    throw ExceptionGenericPyError(ERR_LOC, "PyObject_SetAttrString failed");
+  }
+
+  // Make empty positional args list.
+  pytools::pyshared_ptr args = pytools::make_pyshared(PyTuple_New(0));
+
+  pytools::pyshared_ptr instance;
+
+  // First try pyana-compatibility mode if enabled
+  ConfigSvc::ConfigSvc configSvc(Context::get());
+  if (configSvc.get("psana", "pyana_compat", true)) {
+
+    // Create keyword args list.
+    pytools::pyshared_ptr kwargs = pytools::make_pyshared(PyDict_New());
+    ConfigSvc::ConfigSvc cfg(psana::Context::get());
+    std::list<std::string> keys = cfg.getKeys(fullName);
+    std::list<std::string>::iterator it;
+    for (it = keys.begin(); it != keys.end(); it++) {
+      const std::string& key = *it;
+      const char* value = cfg.getStr(fullName, key).c_str();
+      PyDict_SetItemString(kwargs.get(), key.c_str(), PyString_FromString(value));
+    }
+
+    MsgLog(logger, debug, "try to make pyana-compatible module instance, class name=" << className << " kw=" << kwargs.get());
+
+    // Construct the instance, pass kw list constructor
+    instance = pytools::make_pyshared(PyObject_Call(cls.get(), args.get(), kwargs.get()));
+    if (not instance) {
+      MsgLog(logger, debug, "failed to make class instance in pyana-compatibility mode: name=" + className);
+    }
+
+  }
+
+  // Construct the instance, do not pass anything to constructor
+  if (not instance) {
+    MsgLog(logger, debug, "try to make standard module instance, class name=" << className);
+    pytools::pyshared_ptr kwargs = pytools::make_pyshared(PyDict_New());
+    instance = pytools::make_pyshared(PyObject_Call(cls.get(), args.get(), kwargs.get()));
+  }
+
   if (not instance) {
     std::string msg = "cannot create instance of class " + className + ": " + ::pyExcStr();
     MsgLog(logger, error, msg);
     throw ExceptionPyLoadError(ERR_LOC, msg);
   }
 
-  // Set m_className and m_fullName attributes.
-  PyObject_SetAttr(instance, PyString_FromString("m_className"), PyString_FromString(className.c_str()));
-  PyObject_SetAttr(instance, PyString_FromString("m_fullName"), PyString_FromString(fullName.c_str()));
-
   // check that instance has at least an event() method
-  if (not PyObject_HasAttrString(instance, "event")) {
-    Py_CLEAR(instance);
+  MsgLog(logger, debug, "check for event method");
+  if (not PyObject_HasAttrString(instance.get(), "event")) {
     std::string msg = "class " + className + " does not define event() method";
     MsgLog(logger, error, msg);
     throw ExceptionPyLoadError(ERR_LOC, msg);
   }
 
-  return new PythonModule(fullName, instance);
+  // fetch or make C++ module instance
+  PythonModule* module = cpp_module(instance.get());
+  if (not module) {
+    throw ExceptionGenericPyError(ERR_LOC, "Failed to make C++ module instance: " + ::pyExcStr());
+  }
+
+  // do not need special attribute any more
+  if (PyObject_DelAttrString(cls.get(), "__psana_module_name__") < 0) {
+    PyErr_Clear();
+  }
+
+  return module;
 }
 
 } // namespace psana
+
+
+
+
+namespace {
+
+psana_python::PythonModule*
+cpp_module(PyObject* self)
+{
+  // get wrapped C++ instance
+  if (not PyObject_HasAttrString(self, "__psana_cpp_module__")) {
+    
+    pytools::pyshared_ptr modname = pytools::make_pyshared(PyObject_GetAttrString(self, "__psana_module_name__"));
+    if (not modname) return 0;
+    
+    // make C++ module instance
+    psana_python::PythonModule* module = 0;
+    try {
+      const char* cmodname = PyString_AsString(modname.get());
+      MsgLog(logger, debug, "make C++ instance for module " << cmodname);
+      module = new psana_python::PythonModule(cmodname, self);
+    } catch (const std::exception& ex) {
+      PyErr_SetString(PyExc_RuntimeError, ex.what());
+      return 0;
+    }
+
+    // store it inside Python object
+    pytools::pyshared_ptr pymodule = pytools::make_pyshared(PyCObject_FromVoidPtr(static_cast<void*>(module), NULL));
+    if (PyObject_SetAttrString(self, "__psana_cpp_module__", pymodule.get()) < 0) {
+      delete module;
+      return 0;
+    }
+    
+    return module;
+    
+  } else {
+    
+    pytools::pyshared_ptr pymod = pytools::make_pyshared(PyObject_GetAttrString(self, "__psana_cpp_module__"));
+    if (not pymod) return 0;
+    if (not PyCObject_Check(pymod.get())) {
+      PyErr_SetString(PyExc_TypeError, "incorrect type of __psana_cpp_module__ attribute");
+      return 0;
+    }
+  
+    // unwrap it
+    return static_cast<psana_python::PythonModule*>(PyCObject_AsVoidPtr(pymod.get()));
+    
+  }
+}
+
+PyObject*
+extra_name(PyObject* self, PyObject* args)
+{
+  MsgLog(logger, debug, "extra_name: self = " << self);
+  MsgLog(logger, debug, "extra_name: args = " << args);
+
+  psana_python::PythonModule* module = cpp_module(self);
+  if (not module) return 0;
+
+  return PyString_FromString(module->name().c_str());
+}
+
+PyObject*
+extra_className(PyObject* self, PyObject* args)
+{
+  psana_python::PythonModule* module = cpp_module(self);
+  if (not module) return 0;
+
+  return PyString_FromString(module->className().c_str());
+}
+
+PyObject*
+extra_configStr(PyObject* self, PyObject* args)
+{
+  psana_python::PythonModule* module = cpp_module(self);
+  if (not module) return 0;
+
+  // parse args
+  const char* parm = 0;
+  PyObject* def = 0;
+  if (not PyArg_ParseTuple(args, "s|O:module.configStr", &parm, &def)) return 0;
+
+  // call C++ module method, take care of all exceptions
+  try {
+    return PyString_FromString(module->configStr(parm).c_str());
+  } catch (const ConfigSvc::ExceptionMissing& ex) {
+    // parameter not found, return default value if present without any conversion
+    if (def) {
+      Py_INCREF(def);
+      return def;
+    }
+    PyErr_SetString(PyExc_ValueError, ex.what());
+  } catch (const std::exception& ex) {
+    PyErr_SetString(PyExc_ValueError, ex.what());
+  }
+  return 0;
+}
+
+PyObject*
+extra_configBool(PyObject* self, PyObject* args)
+{
+  psana_python::PythonModule* module = cpp_module(self);
+  if (not module) return 0;
+
+  // parse args
+  const char* parm = 0;
+  PyObject* def = 0;
+  if (not PyArg_ParseTuple(args, "s|O:module.configBool", &parm, &def)) return 0;
+
+  // call C++ module method, take care of all exceptions
+  try {
+    return PyBool_FromLong(static_cast<bool>(module->config(parm)));
+  } catch (const ConfigSvc::ExceptionMissing& ex) {
+    // parameter not found, return default value if present without any conversion
+    if (def) {
+      Py_INCREF(def);
+      return def;
+    }
+    PyErr_SetString(PyExc_ValueError, ex.what());
+  } catch (const std::exception& ex) {
+    PyErr_SetString(PyExc_ValueError, ex.what());
+  }
+  return 0;
+}
+
+PyObject*
+extra_configInt(PyObject* self, PyObject* args)
+{
+  psana_python::PythonModule* module = cpp_module(self);
+  if (not module) return 0;
+
+  // parse args
+  const char* parm = 0;
+  PyObject* def = 0;
+  if (not PyArg_ParseTuple(args, "s|O:module.configInt", &parm, &def)) return 0;
+
+  // call C++ module method, take care of all exceptions
+  try {
+    return PyInt_FromLong(static_cast<long>(module->config(parm)));
+  } catch (const ConfigSvc::ExceptionMissing& ex) {
+    // parameter not found, return default value if present without any conversion
+    if (def) {
+      Py_INCREF(def);
+      return def;
+    }
+    PyErr_SetString(PyExc_ValueError, ex.what());
+  } catch (const std::exception& ex) {
+    PyErr_SetString(PyExc_ValueError, ex.what());
+  }
+  return 0;
+}
+
+PyObject*
+extra_configFloat(PyObject* self, PyObject* args)
+{
+  psana_python::PythonModule* module = cpp_module(self);
+  if (not module) return 0;
+
+  // parse args
+  const char* parm = 0;
+  PyObject* def = 0;
+  if (not PyArg_ParseTuple(args, "s|O:module.configFloat", &parm, &def)) return 0;
+
+  // call C++ module method, take care of all exceptions
+  try {
+    return PyFloat_FromDouble(static_cast<double>(module->config(parm)));
+  } catch (const ConfigSvc::ExceptionMissing& ex) {
+    // parameter not found, return default value if present without any conversion
+    if (def) {
+      Py_INCREF(def);
+      return def;
+    }
+    PyErr_SetString(PyExc_ValueError, ex.what());
+  } catch (const std::exception& ex) {
+    PyErr_SetString(PyExc_ValueError, ex.what());
+  }
+  return 0;
+}
+
+PyObject*
+extra_configSrc(PyObject* self, PyObject* args)
+{
+  psana_python::PythonModule* module = cpp_module(self);
+  if (not module) return 0;
+
+  // parse args
+  const char* parm = 0;
+  const char* def = 0;
+  if (not PyArg_ParseTuple(args, "s|s:module.configSrc", &parm, &def)) return 0;
+
+  // call C++ module method, take care of all exceptions
+  try {
+    PSEvt::Source val;
+    if (def) {
+      val = module->configSrc(parm, def);
+    } else {
+      val = module->configSrc(parm);
+    }
+    return psana_python::Source::PyObject_FromCpp(val);
+  } catch (const std::exception& ex) {
+    PyErr_SetString(PyExc_ValueError, ex.what());
+    return 0;
+  }
+}
+
+PyObject*
+extra_configListBool(PyObject* self, PyObject* arg)
+{
+  psana_python::PythonModule* module = cpp_module(self);
+  if (not module) return 0;
+
+  // parse args
+  const char* parm = PyString_AsString(arg);
+  if (not parm) return 0;
+
+  // call C++ module method, take care of all exceptions
+  try {
+    // get the list from config
+    const std::list<bool>& cfglist = module->configList(parm, std::list<bool>());
+
+    // convert to python list
+    PyObject* res = PyList_New(cfglist.size());
+    unsigned i = 0;
+    BOOST_FOREACH(long v, cfglist) {
+      PyList_SET_ITEM(res, i, PyBool_FromLong(v));
+      ++ i;
+    }
+    return res;
+  } catch (const std::exception& ex) {
+    PyErr_SetString(PyExc_ValueError, ex.what());
+    return 0;
+  }
+}
+
+PyObject*
+extra_configListInt(PyObject* self, PyObject* arg)
+{
+  psana_python::PythonModule* module = cpp_module(self);
+  if (not module) return 0;
+
+  // parse args
+  const char* parm = PyString_AsString(arg);
+  if (not parm) return 0;
+
+  // call C++ module method, take care of all exceptions
+  try {
+    // get the list from config
+    const std::list<long>& cfglist = module->configList(parm, std::list<long>());
+
+    // convert to python list
+    PyObject* res = PyList_New(cfglist.size());
+    unsigned i = 0;
+    BOOST_FOREACH(long v, cfglist) {
+      PyList_SET_ITEM(res, i, PyInt_FromLong(v));
+      ++ i;
+    }
+    return res;
+  } catch (const std::exception& ex) {
+    PyErr_SetString(PyExc_ValueError, ex.what());
+    return 0;
+  }
+}
+
+PyObject*
+extra_configListFloat(PyObject* self, PyObject* arg)
+{
+  psana_python::PythonModule* module = cpp_module(self);
+  if (not module) return 0;
+
+  // parse args
+  const char* parm = PyString_AsString(arg);
+  if (not parm) return 0;
+
+  // call C++ module method, take care of all exceptions
+  try {
+    // get the list from config
+    const std::list<double>& cfglist = module->configList(parm, std::list<double>());
+
+    // convert to python list
+    PyObject* res = PyList_New(cfglist.size());
+    unsigned i = 0;
+    BOOST_FOREACH(double v, cfglist) {
+      PyList_SET_ITEM(res, i, PyFloat_FromDouble(v));
+      ++ i;
+    }
+    return res;
+  } catch (const std::exception& ex) {
+    PyErr_SetString(PyExc_ValueError, ex.what());
+    return 0;
+  }
+}
+
+PyObject*
+extra_configListStr(PyObject* self, PyObject* arg)
+{
+  psana_python::PythonModule* module = cpp_module(self);
+  if (not module) return 0;
+
+  // parse args
+  const char* parm = PyString_AsString(arg);
+  if (not parm) return 0;
+
+  // call C++ module method, take care of all exceptions
+  try {
+    // get the list from config
+    const std::list<std::string>& cfglist = module->configList(parm, std::list<std::string>());
+
+    // convert to python list
+    PyObject* res = PyList_New(cfglist.size());
+    unsigned i = 0;
+    BOOST_FOREACH(const std::string& v, cfglist) {
+      PyList_SET_ITEM(res, i, PyString_FromString(v.c_str()));
+      ++ i;
+    }
+    return res;
+  } catch (const std::exception& ex) {
+    PyErr_SetString(PyExc_ValueError, ex.what());
+    return 0;
+  }
+}
+
+PyObject*
+extra_configListSrc(PyObject* self, PyObject* arg)
+{
+  psana_python::PythonModule* module = cpp_module(self);
+  if (not module) return 0;
+
+  // parse args
+  const char* parm = PyString_AsString(arg);
+  if (not parm) return 0;
+
+  // call C++ module method, take care of all exceptions
+  try {
+    // get the list from config
+    const std::list<std::string>& cfglist = module->configList(parm, std::list<std::string>());
+
+    // convert to python list
+    PyObject* res = PyList_New(cfglist.size());
+    unsigned i = 0;
+    BOOST_FOREACH(const std::string& v, cfglist) {
+      PSEvt::Source src(v);
+      PyList_SET_ITEM(res, i, psana_python::Source::PyObject_FromCpp(src));
+      ++ i;
+    }
+    return res;
+  } catch (const std::exception& ex) {
+    PyErr_SetString(PyExc_ValueError, ex.what());
+    return 0;
+  }
+}
+
+}
