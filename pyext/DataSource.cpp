@@ -41,11 +41,11 @@ namespace {
   PyObject* DataSource_env(PyObject* self, PyObject*);
 
   PyMethodDef methods[] = {
-    { "empty",   DataSource_empty,   METH_NOARGS, "self.empty() -> bool\n\nReturns true for non-empty data source" },
+    { "empty",   DataSource_empty,   METH_NOARGS, "self.empty() -> bool\n\nReturns true if data source has no associated data (\"null\" source)" },
     { "runs",    DataSource_runs,    METH_NOARGS, "self.runs() -> iterator\n\nReturns iterator for contained runs (:py:class:`RunIter`)" },
     { "scans",   DataSource_scans,   METH_NOARGS, "self.scans() -> iterator\n\nReturns iterator for contained scans (:py:class:`ScanIter`)" },
     { "events",  DataSource_events,  METH_NOARGS, "self.events() -> iterator\n\nReturns iterator for contained events  (:py:class:`EventIter`)" },
-    { "env",     DataSource_env,     METH_NOARGS, "self.env() -> object\n\nReturns environment object" },
+    { "env",     DataSource_env,     METH_NOARGS, "self.env() -> object\n\nReturns environment object, cannot be called for \"null\" source" },
     {0, 0, 0, 0}
    };
 

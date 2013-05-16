@@ -11,6 +11,10 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-07-02
+2013-05-16 Andy Salnikov
+- fix docstrings in DataSource class
+
 Tag: V00-07-01
 2013-05-01 Andy Salnikov
 - bugfix, add missing return
