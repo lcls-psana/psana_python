@@ -19,6 +19,8 @@
 // C/C++ Headers --
 //-----------------
 #include <list>
+#include <boost/foreach.hpp>
+#include <boost/make_shared.hpp>
 
 //-------------------------------
 // Collaborating Class Headers --
@@ -26,6 +28,8 @@
 #include "pdsdata/xtc/TypeId.hh"
 #include "psana_python/EventKey.h"
 #include "psddl_python/ConverterMap.h"
+#include "PSEvt/DataProxy.h"
+#include "PSEvt/Exceptions.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -41,7 +45,7 @@ using psddl_python::Converter;
 namespace psana_python {
 
 PyObject*
-ProxyDictMethods::keys(const boost::shared_ptr<PSEvt::ProxyDictI>& proxyDict, PyObject* args)
+ProxyDictMethods::keys(PSEvt::ProxyDictI& proxyDict, PyObject* args)
 {
   // parse arguments
   PSEvt::Source src;
@@ -68,7 +72,7 @@ ProxyDictMethods::keys(const boost::shared_ptr<PSEvt::ProxyDictI>& proxyDict, Py
 
   // call C++ event method
   std::list<PSEvt::EventKey> keys;
-  proxyDict->keys(keys, src);
+  proxyDict.keys(keys, src);
 
   // convert keys to python objects
   PyObject* pykeys = PyList_New(keys.size());
@@ -80,7 +84,7 @@ ProxyDictMethods::keys(const boost::shared_ptr<PSEvt::ProxyDictI>& proxyDict, Py
 }
 
 std::vector<pytools::pyshared_ptr>
-ProxyDictMethods::get_types(PyObject* arg0)
+ProxyDictMethods::get_types(PyObject* arg0, const char* method)
 {
   std::vector<pytools::pyshared_ptr> types;
 
@@ -99,14 +103,14 @@ ProxyDictMethods::get_types(PyObject* arg0)
   }
 
   if (types.empty()) {
-    PyErr_SetString(PyExc_TypeError, "Event.get(...) expecting a sequence of types, received empty sequence");
+    PyErr_Format(PyExc_TypeError, "Event.%s(...) expecting a sequence of types, received empty sequence", method);
     return types;
   }
 
   // make sure that they are all types
   for (std::vector<pytools::pyshared_ptr>::const_iterator it = types.begin(); it != types.end(); ++ it) {
     if (not PyType_Check(it->get())) {
-      PyErr_SetString(PyExc_TypeError, "Event.get(...) argument must be type");
+      PyErr_Format(PyExc_TypeError, "Event.%s(...) argument must be type", method);
       types.clear();
       break;
     }
@@ -115,24 +119,8 @@ ProxyDictMethods::get_types(PyObject* arg0)
   return types;
 }
 
-const std::type_info*
-ProxyDictMethods::get_type_info(PyObject* type)
-{
-  // Does it have __typeid__ method?
-  char method[] = "__typeid__";
-  if (PyObject_HasAttrString(type, method)) {
-    pytools::pyshared_ptr typeid_pyobj = pytools::make_pyshared(PyObject_CallMethod(type, method, 0));
-    if (PyCObject_Check(typeid_pyobj.get())) {
-      return static_cast<std::type_info*>(PyCObject_AsVoidPtr(typeid_pyobj.get()));
-    }
-  }
-
-  return 0;
-}
-
-
 PyObject*
-ProxyDictMethods::get_compat_string(const boost::shared_ptr<PSEvt::ProxyDictI>& proxyDict, PyObject* arg0)
+ProxyDictMethods::get_compat_string(PSEvt::ProxyDictI& proxyDict, PyObject* arg0)
 {
   /*
    *  pyana compatibility method (deprecated):
@@ -142,7 +130,7 @@ ProxyDictMethods::get_compat_string(const boost::shared_ptr<PSEvt::ProxyDictI>& 
   std::string key(PyString_AsString(arg0));
 
   // get any PyObject with no address and a key
-  boost::shared_ptr<void> vdata = proxyDict->get(&typeid(PyObject), PSEvt::Source(PSEvt::Source::null), key, 0);
+  boost::shared_ptr<void> vdata = proxyDict.get(&typeid(const PyObject), PSEvt::Source(PSEvt::Source::null), key, 0);
   if (vdata) {
     PyObject* pyobj = (PyObject*)vdata.get();
     Py_INCREF(pyobj);
@@ -153,7 +141,7 @@ ProxyDictMethods::get_compat_string(const boost::shared_ptr<PSEvt::ProxyDictI>& 
 }
 
 PyObject*
-ProxyDictMethods::get_compat_typeid(const boost::shared_ptr<PSEvt::ProxyDictI>& proxyDict, PyObject* arg0, PyObject* arg1)
+ProxyDictMethods::get_compat_typeid(PSEvt::ProxyDictI& proxyDict, PyObject* arg0, PyObject* arg1)
 {
   /*
    *  pyana compatibility methods (deprecated):
@@ -183,24 +171,15 @@ ProxyDictMethods::get_compat_typeid(const boost::shared_ptr<PSEvt::ProxyDictI>& 
   }
 
   ConverterMap& cmap = ConverterMap::instance();
-  const std::vector<const std::type_info*>& typeids = cmap.pdsTypeInfos(pdsTypeId);
-  for (std::vector<const std::type_info*>::const_iterator it = typeids.begin(); it != typeids.end(); ++ it) {
-    // need converter for this type
-    boost::shared_ptr<Converter> cvt = cmap.getConverter(*it);
-    if (cvt) {
-      boost::shared_ptr<void> vdata = proxyDict->get(*it, source, std::string(), 0);
-      if (vdata) {
-        return cvt->convert(vdata);
-      }
-    }
+  BOOST_FOREACH(boost::shared_ptr<Converter> cvt, cmap.getFromPdsConverters(pdsTypeId)) {
+    if (PyObject* obj = cvt->convert(proxyDict, source, std::string())) return obj;
   }
 
   Py_RETURN_NONE;
 }
 
 PyObject*
-ProxyDictMethods::get(const boost::shared_ptr<PSEvt::ProxyDictI>& proxyDict, PyObject* arg0, 
-    const PSEvt::Source& source, const std::string& key)
+ProxyDictMethods::get(PSEvt::ProxyDictI& proxyDict, PyObject* arg0, const PSEvt::Source& source, const std::string& key)
 {
   /*
    *  get(...) is very overloaded method, here is the list of possible argument combinations:
@@ -215,40 +194,122 @@ ProxyDictMethods::get(const boost::shared_ptr<PSEvt::ProxyDictI>& proxyDict, PyO
    */
 
   // get the list of types from first argument
-  const std::vector<pytools::pyshared_ptr>& types = get_types(arg0);
+  const std::vector<pytools::pyshared_ptr>& types = get_types(arg0, "get");
   if (types.empty()) return 0;
 
   // loop over types and find first matching object
-  for (std::vector<pytools::pyshared_ptr>::const_iterator it = types.begin(); it != types.end(); ++ it) {
-
-    const std::type_info* cpp_type = get_type_info(it->get());
-    if (not cpp_type) {
-      // interested in Python type which has no C++ counterpart, we should
-      // allow that in the future and do something smart (like converting
-      // ndarray to numpy), for now just return any Python object.
-      const boost::shared_ptr<void>& vdata = proxyDict->get(&typeid(PyObject), source, key, 0);
-      if (vdata) {
-        PyObject* obj = static_cast<PyObject*>(vdata.get());
-        Py_INCREF(obj);
-        return obj;
+  ConverterMap& cmap = ConverterMap::instance();
+  BOOST_FOREACH(pytools::pyshared_ptr type_ptr, types) {
+    // get converters defined for this Python type
+    PyTypeObject* pytype = (PyTypeObject*)type_ptr.get();
+    std::vector<boost::shared_ptr<Converter> > converters = cmap.getToPyConverters(pytype);
+    if (not converters.empty()) {
+      // there are converters registered for this type, try all of them
+      BOOST_FOREACH(boost::shared_ptr<Converter> cvt, converters) {
+        if (PyObject* obj = cvt->convert(proxyDict, source, key)) return obj;
       }
-      Py_RETURN_NONE;
+    } else if (pytype == &PyBaseObject_Type) {
+      // interested in basic Python object type
+      boost::shared_ptr<void> vdata = proxyDict.get(&typeid(const PyObject), source, key, 0);
+      if (vdata) {
+        PyObject* pyobj = (PyObject*)vdata.get();
+        Py_INCREF(pyobj);
+        return pyobj;
+      }
+    }
+  }
+
+
+  Py_RETURN_NONE;
+}
+
+/**
+ *  Add Python object to event, convert to C++ if possible. If it fails an exception is
+ *  raised and zero pointer is returned.
+ */
+PyObject*
+ProxyDictMethods::put(PSEvt::ProxyDictI& proxyDict, PyObject* arg0, const PSEvt::Source& source, const std::string& key)
+{
+  // get type of python object
+  PyTypeObject* pytype = arg0->ob_type;
+
+  // get converters defined for this Python type
+  ConverterMap& cmap = ConverterMap::instance();
+  std::vector<boost::shared_ptr<Converter> > converters = cmap.getFromPyConverters(pytype);
+  if (not converters.empty()) {
+
+    // there are converters registered for this type, try all of them
+    BOOST_FOREACH(boost::shared_ptr<Converter> cvt, converters) {
+      try {
+        if (cvt->convert(arg0, proxyDict, source, key)) {
+          Py_RETURN_NONE;
+        }
+      } catch (const PSEvt::ExceptionDuplicateKey& e) {
+        // means already there, we do not allow replacement of C++ objects, raise Python exception
+        return 0;
+      }
     }
 
-    // call C++ method
-    ConverterMap& cmap = ConverterMap::instance();
-    const boost::shared_ptr<Converter>& cvt = cmap.getConverter(cpp_type);
-    if (cvt) {
-      const boost::shared_ptr<void>& vdata = proxyDict->get(cpp_type, source, key, 0);
-      // found something, need converter now
-      if (vdata) {
-        return cvt->convert(vdata);
-      }
+  } else {
+
+    // no converters, store it as Python object, for compatibility we allow
+    // replacement of the objects
+    pytools::pyshared_ptr optr = pytools::make_pyshared(arg0, false);
+    boost::shared_ptr<PSEvt::ProxyI> proxyPtr(boost::make_shared<PSEvt::DataProxy<PyObject> >(optr));
+    PSEvt::EventKey evKey(&typeid(const PyObject), source.src(), key);
+    try {
+      proxyDict.put(proxyPtr, evKey);
+    } catch (const PSEvt::ExceptionDuplicateKey& e) {
+      // on Python side we allow replacing existing objects
+      proxyDict.remove(evKey);
+      proxyDict.put(proxyPtr, evKey);
     }
 
   }
 
   Py_RETURN_NONE;
+}
+
+/**
+ *  Remove object from event. If it fails an exception is raised and zero pointer is returned,
+ *  but may also throw C++ exception.
+ */
+PyObject*
+ProxyDictMethods::remove(PSEvt::ProxyDictI& proxyDict, PyObject* arg0, const PSEvt::Source& source, const std::string& key)
+{
+  // first argument is a type or list of types like in get()
+  const std::vector<pytools::pyshared_ptr>& types = get_types(arg0, "remove");
+  if (types.empty()) return 0;
+
+  bool result = false;
+
+  // loop over types and find first matching object
+  ConverterMap& cmap = ConverterMap::instance();
+  BOOST_FOREACH(pytools::pyshared_ptr type_ptr, types) {
+
+    // get converters defined for this Python type
+    PyTypeObject* pytype = (PyTypeObject*)type_ptr.get();
+    std::vector<boost::shared_ptr<Converter> > converters = cmap.getToPyConverters(pytype);
+    if (not converters.empty()) {
+
+      // there are converters registered for this type, try all of them
+      BOOST_FOREACH(boost::shared_ptr<Converter> cvt, converters) {
+        BOOST_FOREACH(const std::type_info* cpptype, cvt->from_cpp_types()) {
+          PSEvt::EventKey evKey(cpptype, source.src(), key);
+          if (proxyDict.remove(evKey)) Py_RETURN_TRUE;
+        }
+      }
+
+    } else if (pytype == &PyBaseObject_Type) {
+
+      PSEvt::EventKey evKey(&typeid(const PyObject), source.src(), key);
+      result = proxyDict.remove(evKey);
+
+    }
+
+  }
+
+  return PyBool_FromLong(result);
 }
 
 } // namespace psana_python

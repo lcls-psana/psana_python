@@ -76,10 +76,14 @@ psana_python::EventKey::print(std::ostream& out) const
   // get Python type name
   std::string type = "None";
   if (const std::type_info* typeinfo = m_obj.typeinfo()) {
-    const boost::shared_ptr<Converter>& cvt = ConverterMap::instance().getConverter(typeinfo);
-    if (cvt) {
-      PyTypeObject* tobj = cvt->pyTypeObject();
-      type = ::type_name(tobj);
+    if (typeinfo == &typeid(const PyObject)) {
+      type = "object";
+    } else {
+      const ConverterMap::CvtList& cvt = ConverterMap::instance().getFromCppConverters(typeinfo);
+      if (not cvt.empty()) {
+        PyTypeObject* tobj = cvt[0]->to_py_types()[0];
+        type = ::type_name(tobj);
+      }
     }
   }
 
@@ -121,9 +125,9 @@ EventKey_type(PyObject* self, PyObject* )
 {
   PSEvt::EventKey& cself = psana_python::EventKey::cppObject(self);
   if (const std::type_info* typeinfo = cself.typeinfo()) {
-    const boost::shared_ptr<Converter>& cvt = ConverterMap::instance().getConverter(typeinfo);
-    if (cvt) {
-      PyObject* res = (PyObject*)cvt->pyTypeObject();
+    const ConverterMap::CvtList& cvt = ConverterMap::instance().getFromCppConverters(typeinfo);
+    for (ConverterMap::CvtList::const_iterator it = cvt.begin(); it != cvt.end(); ++ it) {
+      PyObject* res = (PyObject*)(cvt[0]->to_py_types()[0]);
       Py_INCREF(res);
       return res;
     }
@@ -135,13 +139,13 @@ PyObject*
 EventKey_src(PyObject* self, PyObject* )
 {
   PSEvt::EventKey& cself = psana_python::EventKey::cppObject(self);
-  // TODO: need something more specific here
-  if (cself.src().level() == Pds::Level::Source)
+  if (cself.src().level() == Pds::Level::Source) {
     return psana_python::PdsDetInfo::PyObject_FromCpp(static_cast<const Pds::DetInfo&>(cself.src()));
-  else if (cself.src().level() == Pds::Level::Reporter)
+  } else if (cself.src().level() == Pds::Level::Reporter) {
     return psana_python::PdsBldInfo::PyObject_FromCpp(static_cast<const Pds::BldInfo&>(cself.src()));
-  else
+  } else {
     return psana_python::PdsProcInfo::PyObject_FromCpp(static_cast<const Pds::ProcInfo&>(cself.src()));
+  }
 }
 
 PyObject*

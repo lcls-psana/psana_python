@@ -128,7 +128,7 @@ PyObject*
 EnvObjectStore_keys(PyObject* self, PyObject* args)
 {
   boost::shared_ptr<PSEnv::EnvObjectStore>& cself = EnvObjectStore::cppObject(self);
-  return ProxyDictMethods::keys(cself->proxyDict(), args);
+  return ProxyDictMethods::keys(*cself->proxyDict(), args);
 }
 
 PyObject* 
@@ -161,7 +161,7 @@ EnvObjectStore_get(PyObject* self, PyObject* args)
   if (PyInt_Check(arg0)) {
     
     // get(int, ...)
-    return psana_python::ProxyDictMethods::get_compat_typeid(cself->proxyDict(), arg0, arg1);
+    return psana_python::ProxyDictMethods::get_compat_typeid(*cself->proxyDict(), arg0, arg1);
     
   } else {
 
@@ -181,7 +181,7 @@ EnvObjectStore_get(PyObject* self, PyObject* args)
       }
     }
 
-    return psana_python::ProxyDictMethods::get(cself->proxyDict(), arg0, source, std::string());
+    return psana_python::ProxyDictMethods::get(*cself->proxyDict(), arg0, source, std::string());
     
   }
 }

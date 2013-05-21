@@ -66,22 +66,18 @@ namespace ProxyDictMethods {
    *
    *  @return Either instance of list type (new reference) or zero pointer for errors.
    */
-  PyObject* keys(const boost::shared_ptr<PSEvt::ProxyDictI>& proxyDict, PyObject* args);
+  PyObject* keys(PSEvt::ProxyDictI& proxyDict, PyObject* args);
 
   /*
    *  Returns the list types that are passed as a first argument to get() method.
    *  Not strictly a ProxyDict method, but shared between different classes which
-   *  deal with ProxyDict.
+   *  deal with ProxyDict. If argument is not good (not a type or not a list of types)
+   *  then empty list is returned and Python exception is set.
    *
    *  @param[in] arg0  First argument to get() method
    *  @return Vector of Python objects
    */
-  std::vector<pytools::pyshared_ptr> get_types(PyObject* arg0);
-
-  /**
-   *  Extract C++ type_info object from Python type, return 0 if cannot be done.
-   */
-  const std::type_info* get_type_info(PyObject* type);
+  std::vector<pytools::pyshared_ptr> get_types(PyObject* arg0, const char* method);
 
   /**
    *  Implementation of the get method.
@@ -97,8 +93,7 @@ namespace ProxyDictMethods {
    *
    *  @return New reference, 0 if error occurred.
    */
-  PyObject* get(const boost::shared_ptr<PSEvt::ProxyDictI>& proxyDict, PyObject* arg0, 
-      const PSEvt::Source& source, const std::string& key);
+  PyObject* get(PSEvt::ProxyDictI& proxyDict, PyObject* arg0, const PSEvt::Source& source, const std::string& key);
 
   /**
    *  Implementation of pyana compatibility get() methods (deprecated):
@@ -108,7 +103,7 @@ namespace ProxyDictMethods {
    *
    *  @return New reference, 0 if error occurred.
    */
-  PyObject* get_compat_typeid(const boost::shared_ptr<PSEvt::ProxyDictI>& proxyDict, PyObject* arg0, PyObject* arg1);
+  PyObject* get_compat_typeid(PSEvt::ProxyDictI& proxyDict, PyObject* arg0, PyObject* arg1);
 
 
   /**
@@ -117,8 +112,19 @@ namespace ProxyDictMethods {
    *
    *  @return New reference, 0 if error occurred.
    */
-  PyObject* get_compat_string(const boost::shared_ptr<PSEvt::ProxyDictI>& proxyDict, PyObject* arg0);
+  PyObject* get_compat_string(PSEvt::ProxyDictI& proxyDict, PyObject* arg0);
 
+  /**
+   *  Add Python object to event, convert to C++ if possible. If it fails an exception is
+   *  raised and zero pointer is returned, but may also throw C++ exception.
+   */
+  PyObject* put(PSEvt::ProxyDictI& proxyDict, PyObject* arg0, const PSEvt::Source& source, const std::string& key);
+
+  /**
+   *  Remove object from event. If it fails an exception is raised and zero pointer is returned,
+   *  but may also throw C++ exception.
+   */
+  PyObject* remove(PSEvt::ProxyDictI& proxyDict, PyObject* arg0, const PSEvt::Source& source, const std::string& key);
 
 } // namespace ProxyDictMethods
 

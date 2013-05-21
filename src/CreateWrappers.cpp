@@ -22,6 +22,7 @@
 //-----------------
 #include <string>
 #include <functional>
+#include <boost/make_shared.hpp>
 
 //-------------------------------
 // Collaborating Class Headers --
@@ -41,6 +42,8 @@
 #include "psddl_python/ConverterMap.h"
 #include "psddl_python/ConverterFun.h"
 #include "psddl_python/CreateDeviceWrappers.h"
+#include "psana_python/Ndarray2CppCvt.h"
+#include "psana_python/NdarrayCvt.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -71,10 +74,15 @@ namespace {
     // register conversion for some classes
     ConverterMap& cmap = ConverterMap::instance();
     cmap.addConverter(make_converter_fun<PSEvt::EventId>(std::ptr_fun(&psana_python::EventId::PyObject_FromCpp),
-        psana_python::EventId::typeObject(), -1, -1));
+        psana_python::EventId::typeObject()));
 
     // instantiate all sub-modules
     psddl_python::createDeviceWrappers(module);
+
+    // must be after psddl_python as it needs numpy initialization which
+    // happens in psddl_python
+    psana_python::initNdarrayCvt(cmap, module);
+    cmap.addConverter(boost::make_shared<psana_python::Ndarray2CppCvt>());
 
     return true;
   }

@@ -52,6 +52,7 @@ namespace {
   PyObject* Event_keys(PyObject* self, PyObject* args);
   PyObject* Event_get(PyObject* self, PyObject* args);
   PyObject* Event_put(PyObject* self, PyObject* args);
+  PyObject* Event_remove(PyObject* self, PyObject* args);
   PyObject* Event_run(PyObject* self, PyObject* args);
 
   PyMethodDef methods[] = {
@@ -85,6 +86,14 @@ namespace {
         "self.keys([src]) -> list\n\nGet the list of event keys (type :py:class:`EventKey`) for objects in the event. "
         "Optional argument can be either :py:class:`Source` instance or string. Without argument keys for all "
         "sources are returned."},
+    { "remove",  Event_remove,  METH_VARARGS,
+        "self.remove(...) -> bool\n\nRemove object of given type from the event. This is an overloaded method which "
+        "can accept variable number of parameters:\n"
+        " * ``remove(type, src, key:string)``\n"
+        " * ``remove(type, src)`` - equivalent to ``remove(type, src, \"\")``\n"
+        " * ``remove(type, key:string)`` - equivalent to ``remove(type, Source(None), key)``\n"
+        " * ``remove(type)`` - equivalent to ``remove(type, Source(None), \"\")``\n\n"
+        "Returns false if object did not exist before this call, true if object existed and was removed."},
     { "run",  Event_run,  METH_NOARGS,
         "self.run() -> int\n\nGet the run number form event. If run number is not known -1 is returned. "
         "This is a pyana compatibility method which is deprectated."},
@@ -149,7 +158,7 @@ PyObject*
 Event_keys(PyObject* self, PyObject* args)
 {
   boost::shared_ptr<PSEvt::Event>& cself = Event::cppObject(self);
-  return ProxyDictMethods::keys(cself->proxyDict(), args);
+  return ProxyDictMethods::keys(*cself->proxyDict(), args);
 }
 
 // parse second and third argument of get() or put() method
@@ -227,21 +236,21 @@ Event_get(PyObject* self, PyObject* args)
     if (nargs != 1) {
       return PyErr_Format(PyExc_ValueError, "Event.get(string): one argument required (%d provided)", nargs);
     }
-    return psana_python::ProxyDictMethods::get_compat_string(cself->proxyDict(), arg0);
+    return psana_python::ProxyDictMethods::get_compat_string(*cself->proxyDict(), arg0);
     
   } else if (PyInt_Check(arg0)) {
     
     // get(int, ...)
     if (nargs > 2) {
-      return PyErr_Format(PyExc_ValueError, "Event.get(string): one or two arguments required (%d provided)", nargs);
+      return PyErr_Format(PyExc_ValueError, "Event.get(int, ...): one or two arguments required (%d provided)", nargs);
     }
-    return psana_python::ProxyDictMethods::get_compat_typeid(cself->proxyDict(), arg0, arg1);
+    return psana_python::ProxyDictMethods::get_compat_typeid(*cself->proxyDict(), arg0, arg1);
     
   } else {
 
     // anything else
     if (nargs > 3) {
-      return PyErr_Format(PyExc_ValueError, "Event.get(string): one to three arguments required (%d provided)", nargs);
+      return PyErr_Format(PyExc_ValueError, "Event.get(...): one to three arguments required (%d provided)", nargs);
     }
     PyObject* arg2 = nargs > 2 ? PyTuple_GET_ITEM(args, 2) : 0;
 
@@ -273,7 +282,7 @@ Event_get(PyObject* self, PyObject* args)
       }
     }
 
-    return psana_python::ProxyDictMethods::get(cself->proxyDict(), arg0, source, key);
+    return psana_python::ProxyDictMethods::get(*cself->proxyDict(), arg0, source, key);
     
   }
 }
@@ -287,14 +296,44 @@ try {
    *  put(object, src, key:string)
    *  put(object, src) - equivalent to put(object, src, "")
    *  put(object, key:string) - equivalent to put(object, Source(None), key)
-   *  put(object) - equivalent to put(type, Source(None), "")
+   *  put(object) - equivalent to put(object, Source(None), "")
    * The src argument can be an instance of Src type or Source type, Source
    * instance must be "exact".
    */
 
+  boost::shared_ptr<PSEvt::Event>& cself = psana_python::Event::cppObject(self);
+
   int nargs = PyTuple_GET_SIZE(args);
   if (nargs < 1 or nargs > 3) {
-    PyErr_SetString(PyExc_TypeError, "Event.get(): one to three arguments are required");
+    PyErr_SetString(PyExc_TypeError, "Event.put(): one to three arguments are required");
+    return 0;
+  }
+
+  // object to store
+  PyObject* arg0 = PyTuple_GET_ITEM(args, 0);
+
+  // get two remaining arguments
+  std::pair<PSEvt::Source, std::string> src_key = arg_get_put(args, true);
+  if (PyErr_Occurred()) return 0;
+
+  return psana_python::ProxyDictMethods::put(*cself->proxyDict(), arg0, src_key.first, src_key.second);
+
+} catch (const std::exception& ex) {
+
+  PyErr_SetString(PyExc_ValueError, ex.what());
+  return 0;
+
+}
+
+PyObject*
+Event_remove(PyObject* self, PyObject* args)
+try {
+
+  boost::shared_ptr<PSEvt::Event>& cself = psana_python::Event::cppObject(self);
+
+  int nargs = PyTuple_GET_SIZE(args);
+  if (nargs < 1 or nargs > 3) {
+    PyErr_SetString(PyExc_TypeError, "Event.remove(): one to three arguments are required");
     return 0;
   }
 
@@ -305,20 +344,7 @@ try {
   std::pair<PSEvt::Source, std::string> src_key = arg_get_put(args, true);
   if (PyErr_Occurred()) return 0;
   
-  // TODO: very complex logic is supposed to be here, for now just store
-  // Python object properly wrapped into a shared pointer
-
-  pytools::pyshared_ptr optr = pytools::make_pyshared(arg0, false);
-  boost::shared_ptr<PSEvt::Event>& cself = psana_python::Event::cppObject(self);
-  try {
-    cself->put(optr, src_key.first.src(), src_key.second);
-  } catch (const PSEvt::ExceptionDuplicateKey& e) {
-    // on Python side we allow replacing existing objects
-    cself->remove<PyObject>(src_key.first.src(), src_key.second);
-    cself->put(optr, src_key.first.src(), src_key.second);
-  }
-
-  Py_RETURN_NONE;
+  return psana_python::ProxyDictMethods::remove(*cself->proxyDict(), arg0, src_key.first, src_key.second);
 
 } catch (const std::exception& ex) {
 
