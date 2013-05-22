@@ -296,7 +296,7 @@ ProxyDictMethods::remove(PSEvt::ProxyDictI& proxyDict, PyObject* arg0, const PSE
       BOOST_FOREACH(boost::shared_ptr<Converter> cvt, converters) {
         BOOST_FOREACH(const std::type_info* cpptype, cvt->from_cpp_types()) {
           PSEvt::EventKey evKey(cpptype, source.src(), key);
-          if (proxyDict.remove(evKey)) Py_RETURN_TRUE;
+          if (proxyDict.remove(evKey)) return PyBool_FromLong(1L);
         }
       }
 

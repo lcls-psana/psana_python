@@ -205,7 +205,7 @@ NdarrayCvt<T, Rank>::convert(PSEvt::ProxyDictI& proxyDict, const PSEvt::Source& 
   npy_intp dims[Rank], strides[Rank];
 
   void* data = 0;
-  int flags;
+  int flags = 0;
   PyObject* base = 0;
 
   // try non-const array first, then const array
@@ -267,7 +267,7 @@ NdarrayCvt<T, Rank>::convert(PSEvt::ProxyDictI& proxyDict, const PSEvt::Source& 
   return array;
 }
 
-/**
+/*
  *  Method that registers converters for all supported types, this will also
  *  create all necessary data types.
  */

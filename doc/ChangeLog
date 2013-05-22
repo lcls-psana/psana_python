@@ -11,6 +11,12 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-08-01
+2013-05-22 Andy Salnikov
+- bug fix - uninitialized variable in NdarrayCvt
+- replaced 'Py_RETURN_TRUE' with 'return PyBool_FromLong(1L)' to get rid 
+  of compiler warnings
+
 Tag: V00-08-00
 2013-05-21 Andy Salnikov
 - coversion of data between C++ and Python was redesigned a bit to support
