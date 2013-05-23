@@ -11,6 +11,10 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-08-02
+2013-05-22 Andy Salnikov
+- small fixes to make doxygen happy
+
 Tag: V00-08-01
 2013-05-22 Andy Salnikov
 - bug fix - uninitialized variable in NdarrayCvt

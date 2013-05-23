@@ -101,7 +101,7 @@ private:
    *   @param[in] psana_method  Python method for psana-style modules
    *   @param[in] psana_method  Python method for psana-style modules
    */
-  void call(PyObject* method, bool pyana_optional_evt, PSEvt::Event& evt, Env& env);
+  void call(PyObject* method, bool pyana_optional_evt, PSEvt::Event& evt, PSEnv::Env& env);
 
   enum { MethBeginJob, MethBeginRun, MethBeginScan, MethEvent,
     MethEndScan, MethEndRun, MethEndJob, NumMethods };

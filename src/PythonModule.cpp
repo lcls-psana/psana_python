@@ -148,7 +148,7 @@ namespace psana_python {
 //----------------
 // Constructors --
 //----------------
-PythonModule::PythonModule(const string& name, PyObject* instance)
+PythonModule::PythonModule(const std::string& name, PyObject* instance)
   : Module(name)
   , m_instance(pytools::make_pyshared(instance, false))
   , m_pyanaCompat(true)
