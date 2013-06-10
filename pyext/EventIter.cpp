@@ -18,6 +18,7 @@
 //-----------------
 // C/C++ Headers --
 //-----------------
+#include <exception>
 #include <boost/python/object.hpp>
 
 //-------------------------------
@@ -68,7 +69,7 @@ EventIter_iter(PyObject* self)
 
 PyObject*
 EventIter_iternext(PyObject* self)
-{
+try {
   psana_python::pyext::EventIter* py_this = static_cast<psana_python::pyext::EventIter*>(self);
   boost::shared_ptr<PSEvt::Event> evt = py_this->m_obj.next();
   if (evt) {
@@ -78,6 +79,9 @@ EventIter_iternext(PyObject* self)
     PyErr_SetNone( PyExc_StopIteration );
     return 0;
   }
+} catch (const std::exception& ex) {
+  PyErr_SetString(PyExc_RuntimeError, ex.what());
+  return 0;
 }
 
 }

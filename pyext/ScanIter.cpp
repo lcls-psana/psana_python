@@ -18,6 +18,7 @@
 //-----------------
 // C/C++ Headers --
 //-----------------
+#include <exception>
 
 //-------------------------------
 // Collaborating Class Headers --
@@ -66,7 +67,7 @@ ScanIter_iter(PyObject* self)
 
 PyObject*
 ScanIter_iternext(PyObject* self)
-{
+try {
   psana_python::pyext::ScanIter* py_this = static_cast<psana_python::pyext::ScanIter*>(self);
   psana::Scan scan = py_this->m_obj.next();
   if (scan) {
@@ -76,6 +77,9 @@ ScanIter_iternext(PyObject* self)
     PyErr_SetNone( PyExc_StopIteration );
     return 0;
   }
+} catch (const std::exception& ex) {
+  PyErr_SetString(PyExc_RuntimeError, ex.what());
+  return 0;
 }
 
 }
