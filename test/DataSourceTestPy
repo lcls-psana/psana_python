@@ -83,12 +83,12 @@ class DataSourceTestPy ( unittest.TestCase ) :
 
     	self.assertEqual( nevents, 96 )
 
-    def test_ScanIter(self):
+    def test_StepIter(self):
 
         src = psana.dataSource(_input)
-    	nscans = len([scan for scan in src.scans()])
+    	nsteps = len([step for step in src.steps()])
 
-    	self.assertEqual( nscans, 1 )
+    	self.assertEqual( nsteps, 1 )
 
     def test_RunIter(self):
 
@@ -101,17 +101,17 @@ class DataSourceTestPy ( unittest.TestCase ) :
 
         src = psana.dataSource(_input)
     	nruns = 0
-    	nscans = 0
+    	nsteps = 0
     	nevents = 0
         for run in src.runs():
             nruns += 1
-            for scan in run.scans():
-                nscans += 1
-                for evt in scan.events():
+            for step in run.steps():
+                nsteps += 1
+                for evt in step.events():
                     nevents += 1
 
     	self.assertEqual( nruns, 1 )
-    	self.assertEqual( nscans, 1 )
+    	self.assertEqual( nsteps, 1 )
     	self.assertEqual( nevents, 96 )
 
 #
