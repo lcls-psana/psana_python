@@ -11,7 +11,12 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
-Tag: V00-08-03
+Tag: V00-09-00
+2013-06-24 Andy Salnikov
+- rename Scan and ScanIter classes to Step and StepIter
+- method scans() also renamed intp steps()
+
+Tag: V00-08-03 
 2013-06-10 Andy Salnikov
 - add exception handlers to few wrappers
 

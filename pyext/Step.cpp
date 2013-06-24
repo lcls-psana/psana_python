@@ -3,7 +3,7 @@
 //  $Id$
 //
 // Description:
-//  Class Scan...
+//  Class Step...
 //
 // Author List:
 //      Andrei Salnikov
@@ -13,7 +13,7 @@
 //-----------------------
 // This Class's Header --
 //-----------------------
-#include "Scan.h"
+#include "Step.h"
 
 //-----------------
 // C/C++ Headers --
@@ -32,20 +32,20 @@
 namespace {
 
   // type-specific methods
-  PyObject* Scan_events(PyObject* self, PyObject*);
-  PyObject* Scan_env(PyObject* self, PyObject*);
-  PyObject* Scan_nonzero(PyObject* self, PyObject*);
+  PyObject* Step_events(PyObject* self, PyObject*);
+  PyObject* Step_env(PyObject* self, PyObject*);
+  PyObject* Step_nonzero(PyObject* self, PyObject*);
 
   PyMethodDef methods[] = {
-    { "events",      Scan_events,    METH_NOARGS, "self.events() -> iterator\n\nReturns iterator for contained events (:py:class:`EventIter`)" },
-    { "env",         Scan_env,       METH_NOARGS, "self.env() -> object\n\nReturns environment object" },
-    { "__nonzero__", Scan_nonzero,   METH_NOARGS, "self.__nonzero__() -> bool\n\nReturns true for non-null object" },
+    { "events",      Step_events,    METH_NOARGS, "self.events() -> iterator\n\nReturns iterator for contained events (:py:class:`EventIter`)" },
+    { "env",         Step_env,       METH_NOARGS, "self.env() -> object\n\nReturns environment object" },
+    { "__nonzero__", Step_nonzero,   METH_NOARGS, "self.__nonzero__() -> bool\n\nReturns true for non-null object" },
     {0, 0, 0, 0}
    };
 
-  char typedoc[] = "Python wrapper for psana Scan type. Run type represents data originating "
-      "from a single scans (calib cycles) which contains events. This class provides way to "
-      "iterate over individual  events contained in a scan. Actual iteration is implemented in "
+  char typedoc[] = "Python wrapper for psana Step type. Step type represents data originating "
+      "from a single step (calib cycle) which contains events. This class provides way to "
+      "iterate over individual  events contained in a Step. Actual iteration is implemented in "
       ":py:class:`EventIter` class, this class serves as a factory for iterator instances.";
 
 }
@@ -55,36 +55,36 @@ namespace {
 //    ----------------------------------------
 
 void
-psana_python::pyext::Scan::initType(PyObject* module)
+psana_python::pyext::Step::initType(PyObject* module)
 {
   PyTypeObject* type = BaseType::typeObject() ;
   type->tp_doc = ::typedoc;
   type->tp_methods = ::methods;
 
-  BaseType::initType("Scan", module, "psana");
+  BaseType::initType("Step", module, "psana");
 }
 
 namespace {
 
 PyObject*
-Scan_events(PyObject* self, PyObject* )
+Step_events(PyObject* self, PyObject* )
 {
-  psana_python::pyext::Scan* py_this = static_cast<psana_python::pyext::Scan*>(self);
+  psana_python::pyext::Step* py_this = static_cast<psana_python::pyext::Step*>(self);
   return psana_python::pyext::EventIter::PyObject_FromCpp(py_this->m_obj.events());
 }
 
 PyObject*
-Scan_env(PyObject* self, PyObject* )
+Step_env(PyObject* self, PyObject* )
 {
-  psana_python::pyext::Scan* py_this = static_cast<psana_python::pyext::Scan*>(self);
+  psana_python::pyext::Step* py_this = static_cast<psana_python::pyext::Step*>(self);
   PSEnv::Env& env = py_this->m_obj.env();
   return psana_python::Env::PyObject_FromCpp(env.shared_from_this());
 }
 
 PyObject*
-Scan_nonzero(PyObject* self, PyObject* )
+Step_nonzero(PyObject* self, PyObject* )
 {
-  psana_python::pyext::Scan* py_this = static_cast<psana_python::pyext::Scan*>(self);
+  psana_python::pyext::Step* py_this = static_cast<psana_python::pyext::Step*>(self);
   return PyBool_FromLong(long(bool(py_this->m_obj)));
 }
 

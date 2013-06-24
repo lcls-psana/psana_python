@@ -23,7 +23,7 @@
 // Collaborating Class Headers --
 //-------------------------------
 #include "EventIter.h"
-#include "ScanIter.h"
+#include "StepIter.h"
 #include "psana_python/Env.h"
 
 //-----------------------------------------------------------------------
@@ -33,14 +33,14 @@
 namespace {
 
   // type-specific methods
-  PyObject* Run_scans(PyObject* self, PyObject*);
+  PyObject* Run_steps(PyObject* self, PyObject*);
   PyObject* Run_events(PyObject* self, PyObject*);
   PyObject* Run_nonzero(PyObject* self, PyObject*);
   PyObject* Run_env(PyObject* self, PyObject*);
   PyObject* Run_run(PyObject* self, PyObject*);
 
   PyMethodDef methods[] = {
-    { "scans",       Run_scans,     METH_NOARGS, "self.scans() -> iterator\n\nReturns iterator for contained scans (:py:class:`ScanIter`)" },
+    { "steps",       Run_steps,     METH_NOARGS, "self.Steps() -> iterator\n\nReturns iterator for contained steps (:py:class:`StepIter`)" },
     { "events",      Run_events,    METH_NOARGS, "self.events() -> iterator\n\nReturns iterator for contained events (:py:class:`EventIter`)" },
     { "env",         Run_env,       METH_NOARGS, "self.env() -> object\n\nReturns environment object" },
     { "run",         Run_run,       METH_NOARGS, "self.run() -> int\n\nReturns run number, -1 if unknown" },
@@ -49,10 +49,10 @@ namespace {
    };
 
   char typedoc[] = "Python wrapper for psana Run type. Run type represents data originating "
-      "from a single run and it contains one or more scans (calib cycles) which in turn contain "
-      "events. This class provides ways to iterate over individual scans in a run or over all "
-      "events contained in all scans of this run. Actual iteration is implemented in "
-      ":py:class:`ScanIter` and :py:class:`EventIter` classes, this class serves as a factory "
+      "from a single run and it contains one or more steps (calib cycles) which in turn contain "
+      "events. This class provides ways to iterate over individual steps in a run or over all "
+      "events contained in all steps of this run. Actual iteration is implemented in "
+      ":py:class:`StepIter` and :py:class:`EventIter` classes, this class serves as a factory "
       "for iterator instances.";
 
 }
@@ -74,10 +74,10 @@ psana_python::pyext::Run::initType(PyObject* module)
 namespace {
 
 PyObject*
-Run_scans(PyObject* self, PyObject* )
+Run_steps(PyObject* self, PyObject* )
 {
   psana_python::pyext::Run* py_this = static_cast<psana_python::pyext::Run*>(self);
-  return psana_python::pyext::ScanIter::PyObject_FromCpp(py_this->m_obj.scans());
+  return psana_python::pyext::StepIter::PyObject_FromCpp(py_this->m_obj.steps());
 }
 
 PyObject*

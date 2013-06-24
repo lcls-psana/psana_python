@@ -1,5 +1,5 @@
-#ifndef PSANA_PYTHON_PYEXT_SCANITER_H
-#define PSANA_PYTHON_PYEXT_SCANITER_H
+#ifndef PSANA_PYTHON_PYEXT_STEPITER_H
+#define PSANA_PYTHON_PYEXT_STEPITER_H
 
 //--------------------------------------------------------------------------
 // File and Version Information:
@@ -26,7 +26,7 @@
 //------------------------------------
 // Collaborating Class Declarations --
 //------------------------------------
-#include "psana/ScanIter.h"
+#include "psana/StepIter.h"
 
 //    ---------------------
 //    -- Class Interface --
@@ -44,10 +44,10 @@ namespace pyext {
  *  @author Andrei Salnikov
  */
 
-class ScanIter : public pytools::PyDataType<ScanIter, psana::ScanIter> {
+class StepIter : public pytools::PyDataType<StepIter, psana::StepIter> {
 public:
 
-  typedef pytools::PyDataType<ScanIter, psana::ScanIter> BaseType;
+  typedef pytools::PyDataType<StepIter, psana::StepIter> BaseType;
 
   /// Initialize Python type and register it in a module
   static void initType( PyObject* module );
@@ -57,4 +57,4 @@ public:
 } // namespace pyext
 } // namespace psana
 
-#endif // PSANA_PYTHON_PYEXT_SCANITER_H
+#endif // PSANA_PYTHON_PYEXT_STEPITER_H

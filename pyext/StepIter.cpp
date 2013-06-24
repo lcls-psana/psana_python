@@ -3,7 +3,7 @@
 //  $Id$
 //
 // Description:
-//  Class ScanIter...
+//  Class StepIter...
 //
 // Author List:
 //      Andrei Salnikov
@@ -13,7 +13,7 @@
 //-----------------------
 // This Class's Header --
 //-----------------------
-#include "ScanIter.h"
+#include "StepIter.h"
 
 //-----------------
 // C/C++ Headers --
@@ -23,7 +23,7 @@
 //-------------------------------
 // Collaborating Class Headers --
 //-------------------------------
-#include "Scan.h"
+#include "Step.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -32,12 +32,12 @@
 namespace {
 
   // type-specific methods
-  PyObject* ScanIter_iter(PyObject* self);
-  PyObject* ScanIter_iternext(PyObject* self);
+  PyObject* StepIter_iter(PyObject* self);
+  PyObject* StepIter_iternext(PyObject* self);
 
-  char typedoc[] = "Class which supports iteration over scans (calib cycles) contained in a "
+  char typedoc[] = "Class which supports iteration over steps (calib cycles) contained in a "
       "particular :py:class:`DataSource` or :py:class:`Run` instance. Iterator returns instances "
-      "of :py:class:`Scan` class.";
+      "of :py:class:`Step` class.";
 
 }
 
@@ -46,32 +46,32 @@ namespace {
 //    ----------------------------------------
 
 void
-psana_python::pyext::ScanIter::initType(PyObject* module)
+psana_python::pyext::StepIter::initType(PyObject* module)
 {
   PyTypeObject* type = BaseType::typeObject() ;
   type->tp_doc = ::typedoc;
-  type->tp_iter = ScanIter_iter;
-  type->tp_iternext = ScanIter_iternext;
+  type->tp_iter = StepIter_iter;
+  type->tp_iternext = StepIter_iternext;
 
-  BaseType::initType("ScanIter", module, "psana");
+  BaseType::initType("StepIter", module, "psana");
 }
 
 namespace {
 
 PyObject*
-ScanIter_iter(PyObject* self)
+StepIter_iter(PyObject* self)
 {
   Py_XINCREF(self);
   return self;
 }
 
 PyObject*
-ScanIter_iternext(PyObject* self)
+StepIter_iternext(PyObject* self)
 try {
-  psana_python::pyext::ScanIter* py_this = static_cast<psana_python::pyext::ScanIter*>(self);
-  psana::Scan scan = py_this->m_obj.next();
-  if (scan) {
-    return psana_python::pyext::Scan::PyObject_FromCpp(scan);
+  psana_python::pyext::StepIter* py_this = static_cast<psana_python::pyext::StepIter*>(self);
+  psana::Step step = py_this->m_obj.next();
+  if (step) {
+    return psana_python::pyext::Step::PyObject_FromCpp(step);
   } else {
     // stop iteration
     PyErr_SetNone( PyExc_StopIteration );

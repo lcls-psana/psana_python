@@ -1,5 +1,5 @@
-#ifndef PSANA_PYTHON_PYEXT_SCAN_H
-#define PSANA_PYTHON_PYEXT_SCAN_H
+#ifndef PSANA_PYTHON_PYEXT_STEP_H
+#define PSANA_PYTHON_PYEXT_STEP_H
 
 //--------------------------------------------------------------------------
 // File and Version Information:
@@ -26,7 +26,7 @@
 //------------------------------------
 // Collaborating Class Declarations --
 //------------------------------------
-#include "psana/Scan.h"
+#include "psana/Step.h"
 
 //    ---------------------
 //    -- Class Interface --
@@ -44,10 +44,10 @@ namespace pyext {
  *  @author Andrei Salnikov
  */
 
-class Scan : public pytools::PyDataType<Scan, psana::Scan> {
+class Step : public pytools::PyDataType<Step, psana::Step> {
 public:
 
-  typedef pytools::PyDataType<Scan, psana::Scan> BaseType;
+  typedef pytools::PyDataType<Step, psana::Step> BaseType;
 
   /// Initialize Python type and register it in a module
   static void initType( PyObject* module );
@@ -57,4 +57,4 @@ public:
 } // namespace pyext
 } // namespace psana
 
-#endif // PSANA_PYTHON_PYEXT_SCAN_H
+#endif // PSANA_PYTHON_PYEXT_STEP_H

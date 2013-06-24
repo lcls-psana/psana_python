@@ -27,8 +27,8 @@
 #include "PSAna.h"
 #include "Run.h"
 #include "RunIter.h"
-#include "Scan.h"
-#include "ScanIter.h"
+#include "Step.h"
+#include "StepIter.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -56,8 +56,8 @@ PyMODINIT_FUNC init_psana()
   psana_python::pyext::PSAna::initType( module );
   psana_python::pyext::Run::initType( module );
   psana_python::pyext::RunIter::initType( module );
-  psana_python::pyext::Scan::initType( module );
-  psana_python::pyext::ScanIter::initType( module );
+  psana_python::pyext::Step::initType( module );
+  psana_python::pyext::StepIter::initType( module );
 
   psana_python::createWrappers(module);
 }
