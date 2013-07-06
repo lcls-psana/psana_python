@@ -171,11 +171,13 @@ Env_epicsStore(PyObject* self, PyObject*)
 
 PyObject*
 Env_hmgr(PyObject* self, PyObject*)
-{
+try {
   boost::shared_ptr<PSEnv::Env>& cself = Env::cppObject(self);
   boost::python::object boo(cself->hmgr());
   Py_INCREF(boo.ptr());
   return boo.ptr();
+} catch (const boost::python::error_already_set& e) {
+  return 0;
 }
 
 PyObject*
