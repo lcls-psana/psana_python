@@ -34,8 +34,8 @@ namespace {
   PyObject* EventId_time(PyObject* self, PyObject*);
   PyObject* EventId_run(PyObject* self, PyObject*);
   PyObject* EventId_fiducials(PyObject* self, PyObject*);
+  PyObject* EventId_ticks(PyObject* self, PyObject*);
   PyObject* EventId_vector(PyObject* self, PyObject*);
-  PyObject* EventId_typeid(PyObject* self, PyObject*);
 
   PyMethodDef methods[] = {
     { "time",       EventId_time,     METH_NOARGS,
@@ -48,12 +48,15 @@ namespace {
         "frequently (fiducials clock runs at 360Hz) so this number is "
         "not unique. In some cases (e.g. when reading from old HDF5 "
         "files) fiducials is not know, 0 will be returned in this case." },
+    { "ticks",        EventId_ticks,      METH_NOARGS,
+        "self.ticks() -> int\n\nReturns 119MHz counter within the fiducial.\n"
+        "Returns the value of 119MHz counter within the fiducial for the event "
+        "code which initiated the readout. In some cases (e.g. when reading "
+        "from old HDF5 files) ticks are not know, 0 will be returned in this case." },
     { "vector",     EventId_vector,   METH_NOARGS, "self.vector() -> int\n\nReturns event counter since Configure.\n"
         "Note that counter is saved as 15-bits integer and will overflow "
         "frequently. In some cases (e.g. when reading from old HDF5 "
         "files) counter is not know, 0 will be returned  in this case." },
-    { "__typeid__", EventId_typeid,   METH_NOARGS|METH_CLASS, 
-        "self.__typeid__() -> long\n\nReturns internal address of C++ typeid instance." }, 
     {0, 0, 0, 0}
    };
 
@@ -107,18 +110,17 @@ EventId_fiducials(PyObject* self, PyObject* )
 }
 
 PyObject*
+EventId_ticks(PyObject* self, PyObject* )
+{
+  boost::shared_ptr<PSEvt::EventId> cself = psana_python::EventId::cppObject(self);
+  return PyInt_FromLong(cself->ticks());
+}
+
+PyObject*
 EventId_vector(PyObject* self, PyObject* )
 {
   boost::shared_ptr<PSEvt::EventId> cself = psana_python::EventId::cppObject(self);
   return PyInt_FromLong(cself->vector());
-}
-
-PyObject* 
-EventId_typeid(PyObject* self, PyObject*)
-{
-  static PyObject* ptypeid = PyCObject_FromVoidPtr((void*)&typeid(PSEvt::EventId), 0);
-  Py_INCREF(ptypeid);
-  return ptypeid;
 }
 
 }

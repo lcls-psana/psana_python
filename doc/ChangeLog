@@ -11,6 +11,11 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-09-04
+2013-08-13 Andy Salnikov
+- add forgotten method EventId.ticks()
+- remove eventId.__typeid__()
+
 Tag: V00-09-03
 2013-07-05 Andy Salnikov
 - raise NotImplementedError in Env_hmgr()
