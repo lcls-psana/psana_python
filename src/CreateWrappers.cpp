@@ -23,6 +23,7 @@
 #include <string>
 #include <functional>
 #include <boost/make_shared.hpp>
+#include <boost/python.hpp>
 
 //-------------------------------
 // Collaborating Class Headers --
@@ -54,6 +55,12 @@ using psddl_python::make_converter_fun;
 
 namespace {
 
+  template <typename PdsType, typename PsanaPyType>
+  struct PdsSrcConverter {
+    static PyObject* convert(PdsType const& pds) { return PsanaPyType::PyObject_FromCpp(pds); }
+    static PyTypeObject const* get_pytype() { return PsanaPyType::typeObject(); }
+  };
+
   bool
   _createWrappers(PyObject* module)
   {
@@ -78,6 +85,12 @@ namespace {
 
     // instantiate all sub-modules
     psddl_python::createDeviceWrappers(module);
+
+    // to help boost we need to register convertes for several types that we define here
+    boost::python::to_python_converter<Pds::Src, PdsSrcConverter<Pds::Src, psana_python::PdsSrc>, true>();
+    boost::python::to_python_converter<Pds::BldInfo, PdsSrcConverter<Pds::BldInfo, psana_python::PdsBldInfo>, true>();
+    boost::python::to_python_converter<Pds::DetInfo, PdsSrcConverter<Pds::DetInfo, psana_python::PdsDetInfo>, true>();
+    boost::python::to_python_converter<Pds::ProcInfo, PdsSrcConverter<Pds::ProcInfo, psana_python::PdsProcInfo>, true>();
 
     // must be after psddl_python as it needs numpy initialization which
     // happens in psddl_python

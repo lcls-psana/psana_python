@@ -11,6 +11,10 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-09-06
+2013-10-07 Andy Salnikov
+- register boost.python converters fro Pds::Src and friends
+
 Tag: V00-09-05
 2013-09-17 Andy Salnikov
 - documentation generation changed in SConsTools, updating SConscript
