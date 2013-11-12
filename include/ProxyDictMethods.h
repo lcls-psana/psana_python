@@ -97,6 +97,8 @@ namespace ProxyDictMethods {
 
   /**
    *  Implementation of pyana compatibility get() methods (deprecated):
+   *  - get(int, addr:Source)  - equivalent to get(type, addr, "") where type is deduced
+   *                           from integer assumed to be Pds::TypeId::Type value
    *  - get(int, addr:string)  - equivalent to get(type, Source(addr), "") where type is deduced
    *                           from integer assumed to be Pds::TypeId::Type value
    *  - get(int)               - equivalent to get(int, "")

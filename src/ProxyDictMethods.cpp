@@ -167,6 +167,11 @@ ProxyDictMethods::get_compat_typeid(PSEvt::ProxyDictI& proxyDict, PyObject* arg0
         PyErr_SetString(PyExc_ValueError, ex.what());
         return 0;
       }
+    } else if (psana_python::Source::Object_TypeCheck(arg1)) {
+      source = psana_python::Source::cppObject(arg1);
+    } else {
+      PyErr_SetString(PyExc_ValueError, "Unexpected type of source argument");
+      return 0;
     }
   }
 

@@ -57,6 +57,8 @@ namespace {
         "can accept variable number of parameters:\n"
         " * ``get(type, src)`` - find object of specified type and source address\n\n"
         "pyana compatibility methods (deprecated):\n"
+        " * ``get(int, addr:Source)`` - equivalent to ``get(type, addr)`` where type is deduced"
+        " from integer assumed to be Pds::TypeId::Type value\n"
         " * ``get(int, addr:string)`` - equivalent to ``get(type, Source(addr))`` where type is deduced"
         " from integer assumed to be Pds::TypeId::Type value\n"
         " * ``get(int)`` - equivalent to ``get(int, \"\")``\n\n"

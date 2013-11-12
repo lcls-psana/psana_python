@@ -66,6 +66,8 @@ namespace {
         " * ``get(type)`` - equivalent to ``get(type, Source(None), \"\")``\n\n"
         "pyana compatibility methods (deprecated):\n"
         " * ``get(string)`` - gets any Python object stored with ``put(object, string)``\n"
+        " * ``get(int, addr:Source)`` - equivalent to ``get(type, addr, \"\")`` where type is deduced"
+        " from integer assumed to be ``Pds::TypeId::Type`` value\n"
         " * ``get(int, addr:string)`` - equivalent to ``get(type, Source(addr), \"\")`` where type is deduced"
         " from integer assumed to be ``Pds::TypeId::Type`` value\n"
         " * ``get(int)`` - equivalent to ``get(int, \"\")``\n\n"
