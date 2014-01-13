@@ -37,7 +37,7 @@ namespace {
 
   template <typename T, unsigned Rank>
   void makeAndSave(const boost::shared_ptr<T>& data, const unsigned shape[], const int strides[],
-      PSEvt::ProxyDictI& proxyDict, const PSEvt::Source& source, const std::string& key)
+      PSEvt::ProxyDictI& proxyDict, const Pds::Src& source, const std::string& key)
   {
     typedef ndarray<T, Rank> ArrayType;
 
@@ -45,7 +45,7 @@ namespace {
     parray->strides(strides);
 
     boost::shared_ptr<PSEvt::ProxyI> proxyPtr(boost::make_shared<PSEvt::DataProxy<ArrayType> >(parray));
-    PSEvt::EventKey evKey(&typeid(const ArrayType), source.src(), key);
+    PSEvt::EventKey evKey(&typeid(const ArrayType), source, key);
 
     // this may throw
     proxyDict.put(proxyPtr, evKey);
@@ -53,7 +53,7 @@ namespace {
 
   template <typename T>
   bool makeAndSave(int rank, pytools::pyshared_ptr shndarr, const unsigned shape[], const int strides[],
-      PSEvt::ProxyDictI& proxyDict, const PSEvt::Source& source, const std::string& key)
+      PSEvt::ProxyDictI& proxyDict, const Pds::Src& source, const std::string& key)
   {
     boost::shared_ptr<T> dataptr(shndarr, static_cast<T*>(PyArray_DATA(shndarr.get())));
 
@@ -137,7 +137,7 @@ Ndarray2CppCvt::convert(PSEvt::ProxyDictI& proxyDict, const PSEvt::Source& sourc
 
 // Convert Python object to C++
 bool
-Ndarray2CppCvt::convert(PyObject* obj, PSEvt::ProxyDictI& proxyDict, const PSEvt::Source& source, const std::string& key) const
+Ndarray2CppCvt::convert(PyObject* obj, PSEvt::ProxyDictI& proxyDict, const Pds::Src& source, const std::string& key) const
 {
   // must be numpy array
   if (not PyArray_Check(obj)) return 0;

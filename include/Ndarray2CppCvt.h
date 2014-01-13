@@ -98,9 +98,9 @@ public:
   /**
    *  @brief Convert Python object to C++
    *
-   *  @return True for successful conversion, false otherwize
+   *  @return True for successful conversion, false otherwise
    */
-  virtual bool convert(PyObject* obj, PSEvt::ProxyDictI& proxyDict, const PSEvt::Source& source, const std::string& key) const;
+  virtual bool convert(PyObject* obj, PSEvt::ProxyDictI& proxyDict, const Pds::Src& source, const std::string& key) const;
 
 protected:
 

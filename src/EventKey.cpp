@@ -42,11 +42,13 @@ namespace {
   // type-specific methods
   PyObject* EventKey_type(PyObject* self, PyObject*);
   PyObject* EventKey_src(PyObject* self, PyObject*);
+  PyObject* EventKey_alias(PyObject* self, PyObject*);
   PyObject* EventKey_key(PyObject* self, PyObject*);
 
   PyMethodDef methods[] = {
     { "type",       EventKey_type,     METH_NOARGS, "self.type() -> type\n\nReturns Python type (class) or ``None`` if type cannot be deduced." },
     { "src",        EventKey_src,      METH_NOARGS, "self.src() -> object\n\nReturns data source address (:py:class:`Src`)." },
+    { "alias",      EventKey_alias,    METH_NOARGS, "self.alias() -> string\n\nReturns alias name for source or empty string if alias is not defined." },
     { "key",        EventKey_key,      METH_NOARGS, "self.key() -> string\n\nReturns string key." },
     {0, 0, 0, 0}
    };
@@ -93,6 +95,10 @@ psana_python::EventKey::print(std::ostream& out) const
     out << ", src=AnySource";
   } else if (m_obj.validSrc()) {
     out << ", src='" << m_obj.src() << '\'';
+  }
+
+  if (not m_obj.alias().empty()) {
+    out << ", alias='" << m_obj.alias() << '\'';
   }
 
   if (not m_obj.key().empty()) {
@@ -146,6 +152,13 @@ EventKey_src(PyObject* self, PyObject* )
   } else {
     return psana_python::PdsProcInfo::PyObject_FromCpp(static_cast<const Pds::ProcInfo&>(cself.src()));
   }
+}
+
+PyObject*
+EventKey_alias(PyObject* self, PyObject* )
+{
+  PSEvt::EventKey& cself = psana_python::EventKey::cppObject(self);
+  return PyString_FromString(cself.alias().c_str());
 }
 
 PyObject*

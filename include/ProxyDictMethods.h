@@ -120,13 +120,13 @@ namespace ProxyDictMethods {
    *  Add Python object to event, convert to C++ if possible. If it fails an exception is
    *  raised and zero pointer is returned, but may also throw C++ exception.
    */
-  PyObject* put(PSEvt::ProxyDictI& proxyDict, PyObject* arg0, const PSEvt::Source& source, const std::string& key);
+  PyObject* put(PSEvt::ProxyDictI& proxyDict, PyObject* arg0, const Pds::Src& source, const std::string& key);
 
   /**
    *  Remove object from event. If it fails an exception is raised and zero pointer is returned,
    *  but may also throw C++ exception.
    */
-  PyObject* remove(PSEvt::ProxyDictI& proxyDict, PyObject* arg0, const PSEvt::Source& source, const std::string& key);
+  PyObject* remove(PSEvt::ProxyDictI& proxyDict, PyObject* arg0, const Pds::Src& source, const std::string& key);
 
 } // namespace ProxyDictMethods
 

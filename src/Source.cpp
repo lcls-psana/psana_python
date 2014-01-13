@@ -32,15 +32,15 @@
 namespace {
 
   // standard Python stuff
-PyObject* Source_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds);
+  PyObject* Source_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds);
 
   // type-specific methods
-  PyObject* Source_src(PyObject* self, PyObject*);
+//  PyObject* Source_src(PyObject* self, PyObject*);
 
   PyMethodDef methods[] = {
-    { "src",     Source_src,   METH_NOARGS, 
-        "self.src() -> Src\n\nReturns instance of :py:class:`Src` class, clients do not usually need to call this,"
-        "it exists mostly for testing purposes." },
+//    { "src",     Source_src,   METH_NOARGS,
+//        "self.src() -> Src\n\nReturns instance of :py:class:`Src` class, clients do not usually need to call this,"
+//        "it exists mostly for testing purposes." },
     {0, 0, 0, 0}
    };
 
@@ -144,11 +144,11 @@ try {
   return 0;
 }
 
-PyObject*
-Source_src(PyObject* self, PyObject* )
-{
-  PSEvt::Source& cself = psana_python::Source::cppObject(self);
-  return psana_python::PdsSrc::PyObject_FromCpp(cself.src());
-}
+//PyObject*
+//Source_src(PyObject* self, PyObject* )
+//{
+//  PSEvt::Source& cself = psana_python::Source::cppObject(self);
+//  return psana_python::PdsSrc::PyObject_FromCpp(cself.src());
+//}
 
 }

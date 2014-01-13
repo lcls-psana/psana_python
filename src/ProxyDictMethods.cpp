@@ -233,7 +233,7 @@ ProxyDictMethods::get(PSEvt::ProxyDictI& proxyDict, PyObject* arg0, const PSEvt:
  *  raised and zero pointer is returned.
  */
 PyObject*
-ProxyDictMethods::put(PSEvt::ProxyDictI& proxyDict, PyObject* arg0, const PSEvt::Source& source, const std::string& key)
+ProxyDictMethods::put(PSEvt::ProxyDictI& proxyDict, PyObject* arg0, const Pds::Src& source, const std::string& key)
 {
   // get type of python object
   PyTypeObject* pytype = arg0->ob_type;
@@ -261,7 +261,7 @@ ProxyDictMethods::put(PSEvt::ProxyDictI& proxyDict, PyObject* arg0, const PSEvt:
     // replacement of the objects
     pytools::pyshared_ptr optr = pytools::make_pyshared(arg0, false);
     boost::shared_ptr<PSEvt::ProxyI> proxyPtr(boost::make_shared<PSEvt::DataProxy<PyObject> >(optr));
-    PSEvt::EventKey evKey(&typeid(const PyObject), source.src(), key);
+    PSEvt::EventKey evKey(&typeid(const PyObject), source, key);
     try {
       proxyDict.put(proxyPtr, evKey);
     } catch (const PSEvt::ExceptionDuplicateKey& e) {
@@ -280,7 +280,7 @@ ProxyDictMethods::put(PSEvt::ProxyDictI& proxyDict, PyObject* arg0, const PSEvt:
  *  but may also throw C++ exception.
  */
 PyObject*
-ProxyDictMethods::remove(PSEvt::ProxyDictI& proxyDict, PyObject* arg0, const PSEvt::Source& source, const std::string& key)
+ProxyDictMethods::remove(PSEvt::ProxyDictI& proxyDict, PyObject* arg0, const Pds::Src& source, const std::string& key)
 {
   // first argument is a type or list of types like in get()
   const std::vector<pytools::pyshared_ptr>& types = get_types(arg0, "remove");
@@ -300,14 +300,14 @@ ProxyDictMethods::remove(PSEvt::ProxyDictI& proxyDict, PyObject* arg0, const PSE
       // there are converters registered for this type, try all of them
       BOOST_FOREACH(boost::shared_ptr<Converter> cvt, converters) {
         BOOST_FOREACH(const std::type_info* cpptype, cvt->from_cpp_types()) {
-          PSEvt::EventKey evKey(cpptype, source.src(), key);
+          PSEvt::EventKey evKey(cpptype, source, key);
           if (proxyDict.remove(evKey)) return PyBool_FromLong(1L);
         }
       }
 
     } else if (pytype == &PyBaseObject_Type) {
 
-      PSEvt::EventKey evKey(&typeid(const PyObject), source.src(), key);
+      PSEvt::EventKey evKey(&typeid(const PyObject), source, key);
       result = proxyDict.remove(evKey);
 
     }

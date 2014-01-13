@@ -150,7 +150,7 @@ Event_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds)
   Event* py_this = static_cast<Event*>(self);
 
   // construct in place, cannot throw
-  boost::shared_ptr<PSEvt::ProxyDictI> dict = boost::make_shared<PSEvt::ProxyDict>();
+  boost::shared_ptr<PSEvt::ProxyDictI> dict = boost::make_shared<PSEvt::ProxyDict>(boost::shared_ptr<PSEvt::AliasMap>());
   new(&py_this->m_obj) boost::shared_ptr<PSEvt::Event>(new PSEvt::Event(dict));
 
   return self;
@@ -164,23 +164,25 @@ Event_keys(PyObject* self, PyObject* args)
 }
 
 // parse second and third argument of get() or put() method
-std::pair<PSEvt::Source, std::string>
-arg_get_put(PyObject* args, bool needExact = false)
+std::pair<Pds::Src, std::string>
+arg_get_put(PyObject* args, bool needExact, const PSEvt::AliasMap* amap)
 {
   // get two remaining arguments
   int nargs = PyTuple_GET_SIZE(args);
   PyObject* arg1 = nargs > 1 ? PyTuple_GET_ITEM(args, 1) : 0;
   PyObject* arg2 = nargs > 2 ? PyTuple_GET_ITEM(args, 2) : 0;
-  PSEvt::Source source(PSEvt::Source::null);
+  Pds::Src source = PSEvt::EventKey::noSource();
   std::string key;
   if (arg1) {
     if (psana_python::PdsSrc::Object_TypeCheck(arg1)) {
       // second argument is Src
-      source = PSEvt::Source(psana_python::PdsSrc::cppObject(arg1));
+      source = psana_python::PdsSrc::cppObject(arg1);
     } else if (psana_python::Source::Object_TypeCheck(arg1)) {
       // second argument is Source
-      source = psana_python::Source::cppObject(arg1);
-      if (needExact and not source.isExact()) {
+      PSEvt::Source src = psana_python::Source::cppObject(arg1);
+      PSEvt::Source::SrcMatch msrc = src.srcMatch(amap ? *amap : PSEvt::AliasMap());
+      source = msrc.src();
+      if (needExact and not msrc.isExact()) {
         PyErr_SetString(PyExc_ValueError, "Event.get/put(...) expecting exact source, found wildcard");
       }
     } else if (not arg2 and PyString_Check(arg1)) {
@@ -203,7 +205,7 @@ arg_get_put(PyObject* args, bool needExact = false)
 
 PyObject* 
 Event_get(PyObject* self, PyObject* args)
-{
+try {
   /*
    *  get(...) is very overloaded method, here is the list of possible argument combinations:
    *  get(type, src, key:string) 
@@ -287,6 +289,11 @@ Event_get(PyObject* self, PyObject* args)
     return psana_python::ProxyDictMethods::get(*cself->proxyDict(), arg0, source, key);
     
   }
+
+} catch (const std::exception& ex) {
+
+  PyErr_SetString(PyExc_ValueError, ex.what());
+  return 0;
 }
 
 PyObject* 
@@ -315,7 +322,7 @@ try {
   PyObject* arg0 = PyTuple_GET_ITEM(args, 0);
 
   // get two remaining arguments
-  std::pair<PSEvt::Source, std::string> src_key = arg_get_put(args, true);
+  std::pair<Pds::Src, std::string> src_key = arg_get_put(args, true, cself->proxyDict()->aliasMap());
   if (PyErr_Occurred()) return 0;
 
   return psana_python::ProxyDictMethods::put(*cself->proxyDict(), arg0, src_key.first, src_key.second);
@@ -343,7 +350,7 @@ try {
   PyObject* arg0 = PyTuple_GET_ITEM(args, 0);
 
   // get two remaining arguments
-  std::pair<PSEvt::Source, std::string> src_key = arg_get_put(args, true);
+  std::pair<Pds::Src, std::string> src_key = arg_get_put(args, true, cself->proxyDict()->aliasMap());
   if (PyErr_Occurred()) return 0;
   
   return psana_python::ProxyDictMethods::remove(*cself->proxyDict(), arg0, src_key.first, src_key.second);

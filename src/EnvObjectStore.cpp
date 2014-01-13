@@ -120,7 +120,7 @@ EnvObjectStore_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds)
   EnvObjectStore* py_this = static_cast<EnvObjectStore*>(self);
 
   // construct in place, cannot throw
-  boost::shared_ptr<PSEvt::ProxyDictI> dict = boost::make_shared<PSEvt::ProxyDict>();
+  boost::shared_ptr<PSEvt::ProxyDictI> dict = boost::make_shared<PSEvt::ProxyDict>(boost::shared_ptr<PSEvt::AliasMap>());
   new(&py_this->m_obj) boost::shared_ptr<PSEnv::EnvObjectStore>(new PSEnv::EnvObjectStore(dict));
 
   return self;
