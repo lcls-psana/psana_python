@@ -66,6 +66,9 @@ namespace {
     return msg;
   }
 
+  // initialization of interpreter
+  bool py_init();
+
   // names for psana-style methods, this must correspond to method enums in class declaration
   const char* psana_methods[] = {
     "beginJob", "beginRun", "beginCalibCycle", "event", "endCalibCycle", "endRun", "endJob"
@@ -256,20 +259,8 @@ moduleFactory(const string& name)
 
   MsgLog(logger, debug, "names: module=" << moduleName << " class=" << className << " full=" << fullName);
 
-  // Make sure python is initialized
-  Py_Initialize();
-
-  // Clear any lingering errors
-  PyErr_Clear();
-
-  // The whole shebang from this package needs to be initialized to expose the
-  // wrapped stuff to Python interpreter. We are doing this via importing the module _psana.
-  static pytools::pyshared_ptr psanamod = pytools::make_pyshared(PyImport_ImportModule("_psana"));
-  if (not psanamod) {
-    string msg = "failed to import module _psana: " + ::pyExcStr();
-    MsgLog(logger, error, msg);
-    throw ExceptionPyLoadError(ERR_LOC, msg);
-  }
+  // make sure that Python is initialized correctly
+  static bool pyInitOnce __attribute__((unused)) = ::py_init();
 
   // try to import module
   MsgLog(logger, debug, "import module name=" << moduleName);
@@ -384,6 +375,36 @@ moduleFactory(const string& name)
 
 
 namespace {
+
+
+bool py_init()
+{
+  // Make sure python is initialized
+  Py_Initialize();
+
+  // Some things (like IPython.embed) may depend on sys.argv which may not be defined
+  // by default (depending on how psana is instantiated), set it here.
+  char argv[] = "argv";  // need non-const char* pointer
+  if (not PySys_GetObject(argv)) {
+    char argv0[] = "psana";
+    char* pargv = argv0;
+    PySys_SetArgv(1, &pargv);
+  }
+
+  // Clear any lingering errors
+  PyErr_Clear();
+
+  // The whole shebang from this package needs to be initialized to expose the
+  // wrapped stuff to Python interpreter. We are doing this via importing the module _psana.
+  pytools::pyshared_ptr psanamod = pytools::make_pyshared(PyImport_ImportModule("_psana"));
+  if (not psanamod) {
+    string msg = "failed to import module _psana: " + ::pyExcStr();
+    MsgLog(logger, error, msg);
+    throw psana_python::ExceptionPyLoadError(ERR_LOC, msg);
+  }
+
+  return true;
+}
 
 psana_python::PythonModule*
 cpp_module(PyObject* self)
