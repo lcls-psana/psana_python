@@ -52,6 +52,13 @@ namespace psana_python {
 class PythonModule : public psana::Module {
 public:
 
+  /// Codes that can be returned from event() method which will be
+  /// translated into skip()/stop()/terminate(). This is pyana
+  /// compatibility feature but it may be useful to support it
+  /// in "native" psana. The numbers must be identical to what is
+  /// defined in pyana python module.
+  enum { Normal = 0, Skip = 1, Stop = 2, Terminate = 3 };
+
   PythonModule(const std::string& name, PyObject* instance);
 
   virtual ~PythonModule();
@@ -92,6 +99,9 @@ public:
   using Configurable::configStr;
   using Configurable::configSrc;
   using Configurable::configList;
+  using psana::Module::skip;
+  using psana::Module::stop;
+  using psana::Module::terminate;
 
 private:
 

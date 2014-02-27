@@ -39,6 +39,7 @@
 #include "psana_python/PdsDetInfo.h"
 #include "psana_python/PdsProcInfo.h"
 #include "psana_python/PdsSrc.h"
+#include "psana_python/PythonModule.h"
 #include "psana_python/Source.h"
 #include "psddl_python/ConverterMap.h"
 #include "psddl_python/ConverterFun.h"
@@ -97,6 +98,12 @@ namespace {
     psana_python::initNdarrayCvt(cmap, module);
     cmap.addConverter(boost::make_shared<psana_python::Ndarray2CppCvt>());
 
+    // add few constants
+    PyModule_AddIntConstant(module, "Normal", psana_python::PythonModule::Normal);
+    PyModule_AddIntConstant(module, "Skip", psana_python::PythonModule::Skip);
+    PyModule_AddIntConstant(module, "Stop", psana_python::PythonModule::Stop);
+    PyModule_AddIntConstant(module, "Terminate", psana_python::PythonModule::Terminate);
+
     return true;
   }
 
@@ -107,11 +114,7 @@ namespace psana_python {
 void
 createWrappers(PyObject* module)
 {
-  static bool createWrappersDone = _createWrappers(module);
-  // just to suppress warning about unused variable
-  if (not createWrappersDone) {
-    createWrappersDone = true;
-  }
+  static bool createWrappersDone __attribute__((unused)) = _createWrappers(module);
 }
 
 }

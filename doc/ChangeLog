@@ -11,6 +11,11 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-11-01
+2014-02-27 Andy Salnikov
+- added implementation of skip/stop/terminate
+- see https://pswww.slac.stanford.edu/trac/psdm/ticket/271 for details
+
 Tag: V00-11-00
 2014-02-26 Andy Salnikov
 - Env.cpp: add implementation of jobNameSub() and subprocess() methods

@@ -107,6 +107,9 @@ namespace {
   PyObject* extra_configListFloat(PyObject* self, PyObject* args);
   PyObject* extra_configListStr(PyObject* self, PyObject* args);
   PyObject* extra_configListSrc(PyObject* self, PyObject* args);
+  PyObject* extra_skip(PyObject* self, PyObject* args);
+  PyObject* extra_stop(PyObject* self, PyObject* args);
+  PyObject* extra_terminate(PyObject* self, PyObject* args);
 
   static PyMethodDef extraMethods[] = {
     {"name",        extra_name,          METH_NOARGS,  "self.name() -> str\n\nReturns the name of this module"},
@@ -136,6 +139,18 @@ namespace {
     {"configListSrc",   extra_configListSrc,     METH_O,
         "self.configListSrc(param:str) -> list of Source\n\nReturns value of parameter as a list of Source objects, "
         "if parameter is not defined then empty list is returned."},
+    {"skip",        extra_skip,          METH_NOARGS,  "self.skip()\n\n"
+        "Signal framework to skip current event and do not call other downstream modules. "
+        "Note that this method does not skip code in the current module, control is returned back to the module. "
+        "If you want to stop processing after this call then add a return statement."},
+    {"stop",        extra_stop,          METH_NOARGS,  "self.stop()\n\n"
+        "Signal framework to stop event loop and finish job gracefully. "
+        "Note that this method does not terminate processing in the current module. "
+        "If you want to stop processing after this call then add a return statement."},
+    {"terminate",   extra_terminate,     METH_NOARGS,  "self.terminate()\n\n"
+        "Signal framework to terminate immediately. "
+        "Note that this method does not terminate processing in the current module. "
+        "If you want to stop processing after this call then add a return statement."},
     {NULL},
   };
 
@@ -232,6 +247,23 @@ PythonModule::call(PyObject* method, bool pyana_optional_evt, PSEvt::Event& evt,
   if (not res) {
     PyErr_Print();
     throw ExceptionGenericPyError(ERR_LOC, "Python exception raised, check error output for details");
+  }
+
+  // if method returns integer number try to translate it into skip/stop/terminate
+  if (PyInt_Check(res.get())) {
+    switch (PyInt_AS_LONG(res.get())) {
+    case Skip:
+      skip();
+      break;
+    case Stop:
+      stop();
+      break;
+    case Terminate:
+      terminate();
+      break;
+    default:
+      break;
+    }
   }
 }
 
@@ -453,9 +485,6 @@ cpp_module(PyObject* self)
 PyObject*
 extra_name(PyObject* self, PyObject* args)
 {
-  MsgLog(logger, debug, "extra_name: self = " << self);
-  MsgLog(logger, debug, "extra_name: args = " << args);
-
   psana_python::PythonModule* module = cpp_module(self);
   if (not module) return 0;
 
@@ -749,6 +778,33 @@ extra_configListSrc(PyObject* self, PyObject* arg)
     PyErr_SetString(PyExc_ValueError, ex.what());
     return 0;
   }
+}
+
+PyObject*
+extra_skip(PyObject* self, PyObject*)
+{
+  psana_python::PythonModule* module = cpp_module(self);
+  if (not module) return 0;
+  module->skip();
+  Py_RETURN_NONE;
+}
+
+PyObject*
+extra_stop(PyObject* self, PyObject*)
+{
+  psana_python::PythonModule* module = cpp_module(self);
+  if (not module) return 0;
+  module->stop();
+  Py_RETURN_NONE;
+}
+
+PyObject*
+extra_terminate(PyObject* self, PyObject*)
+{
+  psana_python::PythonModule* module = cpp_module(self);
+  if (not module) return 0;
+  module->terminate();
+  Py_RETURN_NONE;
 }
 
 }
