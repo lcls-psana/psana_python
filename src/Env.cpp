@@ -37,15 +37,16 @@ namespace {
   // type-specific methods
   PyObject* Env_fwkName(PyObject* self, PyObject*);
   PyObject* Env_jobName(PyObject* self, PyObject*);
+  PyObject* Env_jobNameSub(PyObject* self, PyObject*);
   PyObject* Env_instrument(PyObject* self, PyObject*);
   PyObject* Env_experiment(PyObject* self, PyObject*);
   PyObject* Env_expNum(PyObject* self, PyObject*);
+  PyObject* Env_subprocess(PyObject* self, PyObject*);
   PyObject* Env_calibDir(PyObject* self, PyObject*);
   PyObject* Env_configStore(PyObject* self, PyObject*);
   PyObject* Env_calibStore(PyObject* self, PyObject*);
   PyObject* Env_epicsStore(PyObject* self, PyObject*);
   PyObject* Env_hmgr(PyObject* self, PyObject*);
-  PyObject* Env_subprocess(PyObject* self, PyObject*);
   PyObject* Env_getConfig(PyObject* self, PyObject* args);
 
   PyMethodDef methods[] = {
@@ -55,9 +56,14 @@ namespace {
         "\"pyana\", inside  psana framework it will return \"psana\". This method should be used as a primary mechanism for " 
         "distinguishing between different frameworks in cases when client needs to execute framework-specific code."},
     { "jobName",       Env_jobName,       METH_NOARGS, "self.jobName() -> str\n\nReturns job name."},
+    { "jobNameSub",    Env_jobNameSub,    METH_NOARGS, "self.jobNameSub() -> str\n\n"
+        "Returns combination of job name and subprocess index as a string which is unique for all subprocesses in a job."},
     { "instrument",    Env_instrument,    METH_NOARGS, "self.instrument() -> str\n\nReturns instrument name."},
     { "experiment",    Env_experiment,    METH_NOARGS, "self.experiment() -> str\n\nReturns experiment name."},
     { "expNum",        Env_expNum,        METH_NOARGS, "self.expNum() -> int\n\nReturns experiment number or 0."},
+    { "subprocess",    Env_subprocess,    METH_NOARGS, "self.subprocess() -> int\n\n"
+        "Returns sub-process number. In case of multi-processing job it will be a non-negative number"
+        "ranging from 0 to a total number of sub-processes. In case of single-process job it will return -1."},
     { "calibDir",      Env_calibDir,      METH_NOARGS, 
         "self.calibDir() -> str\n\nReturns path the calibration directory for current instrument/experiment, "
         "typically \"/reg/d/psdm/INSTR/exper/calib\" but can be changed from in job configuration."},
@@ -67,9 +73,6 @@ namespace {
         "self.calibStore() -> object\n\nAccess to Calibration Store (:py:class:`EnvObjectStore`) object."},
     { "epicsStore",    Env_epicsStore,    METH_NOARGS, "self.epicsStore() -> object\n\nAccess to EPICS Store (:py:class:`EpicsStore`) object."},
     { "hmgr",          Env_hmgr,          METH_NOARGS, "self.hmgr() -> object\n\nAccess to histogram manager."},
-    { "subprocess",    Env_subprocess,    METH_NOARGS,
-        "self.subprocess() -> int\n\nReturns subprocess number or 0 if running inside main process. If multi-processssing "
-        "is disabled always returns 0. Currently psana does not support multi-processing."},
     { "getConfig",     Env_getConfig,     METH_VARARGS, 
         "self.getConfig(...) -> object\n\nPyana compatibility method, shortcut for ``self.configStore().get()``, deprecated."},
     {0, 0, 0, 0}
@@ -120,6 +123,13 @@ Env_jobName(PyObject* self, PyObject*)
 }
 
 PyObject*
+Env_jobNameSub(PyObject* self, PyObject*)
+{
+  boost::shared_ptr<PSEnv::Env>& cself = Env::cppObject(self);
+  return PyString_FromString(cself->jobNameSub().c_str());
+}
+
+PyObject*
 Env_instrument(PyObject* self, PyObject*)
 {
   boost::shared_ptr<PSEnv::Env>& cself = Env::cppObject(self);
@@ -138,6 +148,13 @@ Env_expNum(PyObject* self, PyObject*)
 {
   boost::shared_ptr<PSEnv::Env>& cself = Env::cppObject(self);
   return PyInt_FromLong(cself->expNum());
+}
+
+PyObject*
+Env_subprocess(PyObject* self, PyObject*)
+{
+  boost::shared_ptr<PSEnv::Env>& cself = Env::cppObject(self);
+  return PyInt_FromLong(cself->subprocess());
 }
 
 PyObject*
@@ -173,12 +190,6 @@ Env_hmgr(PyObject* self, PyObject*)
 {
   PyErr_SetString(PyExc_NotImplementedError, "Method Env.hmgr() not implemented yet.");
   return 0;
-}
-
-PyObject*
-Env_subprocess(PyObject* self, PyObject*)
-{
-  return PyInt_FromLong(0);
 }
 
 PyObject* 

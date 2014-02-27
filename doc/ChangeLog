@@ -11,6 +11,10 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-11-00
+2014-02-26 Andy Salnikov
+- Env.cpp: add implementation of jobNameSub() and subprocess() methods
+
 Tag: V00-10-01
 2014-02-14 Andy Salnikov
 - PythonModule: define sys.argv if not defined yet
