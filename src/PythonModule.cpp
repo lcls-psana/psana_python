@@ -182,10 +182,6 @@ PythonModule::PythonModule(const std::string& name, PyObject* instance)
   // reset errors from PyObject_GetAttrString
   PyErr_Clear();
 
-  if (PyErr_Occurred()) {
-    PyErr_Print();
-  }
-
   // check for presence of any methods except of "event"
   bool any = m_methods[MethBeginJob] or m_methods[MethBeginRun] or m_methods[MethBeginScan] or
       m_methods[MethEndScan] or m_methods[MethEndRun] or m_methods[MethEndJob];
@@ -322,9 +318,16 @@ moduleFactory(const string& name)
   // define/override few extra methods, need to be called before we make an instance
   MsgLog(logger, debug, "define extra methods for a class");
   for (PyMethodDef *def = ::extraMethods; def->ml_name != 0; ++ def) {
-    pytools::pyshared_ptr method = pytools::make_pyshared(PyDescr_NewMethod((PyTypeObject*)cls.get(), def));
-    if (PyObject_SetAttrString(cls.get(), def->ml_name, method.get()) < 0) {
-      throw ExceptionGenericPyError(ERR_LOC, "PyObject_SetAttrString failed");
+    if (not PyObject_HasAttrString(cls.get(), def->ml_name)) {
+      
+      // reset errors from PyObject_GetAttrString
+      PyErr_Clear();
+
+      pytools::pyshared_ptr method = pytools::make_pyshared(PyDescr_NewMethod((PyTypeObject*)cls.get(), def));
+      if (PyObject_SetAttrString(cls.get(), def->ml_name, method.get()) < 0) {
+        throw ExceptionGenericPyError(ERR_LOC, "PyObject_SetAttrString failed");
+      }
+
     }
   }
 
