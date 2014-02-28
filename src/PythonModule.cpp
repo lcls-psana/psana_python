@@ -319,10 +319,6 @@ moduleFactory(const string& name)
   MsgLog(logger, debug, "define extra methods for a class");
   for (PyMethodDef *def = ::extraMethods; def->ml_name != 0; ++ def) {
     if (not PyObject_HasAttrString(cls.get(), def->ml_name)) {
-      
-      // reset errors from PyObject_GetAttrString
-      PyErr_Clear();
-
       pytools::pyshared_ptr method = pytools::make_pyshared(PyDescr_NewMethod((PyTypeObject*)cls.get(), def));
       if (PyObject_SetAttrString(cls.get(), def->ml_name, method.get()) < 0) {
         throw ExceptionGenericPyError(ERR_LOC, "PyObject_SetAttrString failed");
