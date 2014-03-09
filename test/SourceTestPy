@@ -1,0 +1,126 @@
+#!@PYTHON@
+#--------------------------------------------------------------------------
+# File and Version Information:
+#  $Id$
+#
+# Description:
+#  Script DataSourceTestPy...
+#
+#------------------------------------------------------------------------
+
+"""Unit test for python bindings for PSEvt::Source class.
+
+This software was developed for the LCLS project.  If you use all or 
+part of it, please give an appropriate acknowledgement.
+
+@see RelatedModule
+
+@version $Id$ 
+
+@author Andy Salnikov
+"""
+
+#------------------------------
+#  Module's version from CVS --
+#------------------------------
+__version__ = "$Revision: 8 $"
+# $Source$
+
+#--------------------------------
+#  Imports of standard modules --
+#--------------------------------
+import os
+import unittest
+
+#---------------------------------
+#  Imports of base class module --
+#---------------------------------
+
+#-----------------------------
+# Imports for other modules --
+#-----------------------------
+from _psana import Source, AliasMap
+
+#---------------------
+# Local definitions --
+#---------------------
+
+#-------------------------------
+#  Unit test class definition --
+#-------------------------------
+
+class DataSourceTestPy ( unittest.TestCase ) :
+    
+    #
+    # Most of the SOurce fuctionality is tested in C++ unit test in PSEvt package.
+    # This class only tests Python-specific things
+    #
+    
+
+    def setUp(self) :
+    	""" 
+    	Method called to prepare the test fixture. This is called immediately 
+    	before calling the test method; any exception raised by this method 
+    	will be considered an error rather than a test failure.  
+    	"""
+        pass
+    
+    def tearDown(self) :
+        """
+        Method called immediately after the test method has been called and 
+        the result recorded. This is called even if the test method raised 
+        an exception, so the implementation in subclasses may need to be 
+        particularly careful about checking internal state. Any exception raised 
+        by this method will be considered an error rather than a test failure. 
+        This method will only be called if the setUp() succeeds, regardless 
+        of the outcome of the test method. 
+        """
+        pass
+
+
+    def test_source_in_any(self):
+        # Test for "SrcMatch::in()" method which is called in_() on Python side but can also
+        # be called via pure Pythonic syntax "src in src". 
+
+        any = Source().srcMatch()
+
+    	self.assertTrue(any.in_(any))
+    	self.assertTrue(any in any)
+
+        nosrc = Source(None).srcMatch()
+        self.assertTrue(nosrc.in_(any))
+        self.assertTrue(nosrc in any)
+        self.assertFalse(any.in_(nosrc))
+        self.assertFalse(any in nosrc)
+
+        match1 = Source("DetInfo(NoDetector.*:NoDevice.0)").srcMatch()
+        self.assertTrue(match1 in any)
+        self.assertTrue(any not in match1)
+        
+        match2 = Source("DetInfo()").srcMatch()
+        self.assertTrue(match2 in any)
+        self.assertTrue(not any in match2)
+        
+        match3 = Source("BldInfo(EBeam)").srcMatch()
+        self.assertTrue(match3.in_(any))
+        self.assertTrue(not any.in_(match3))
+        
+        match4 = Source("BldInfo()").srcMatch()
+        self.assertTrue(match4 in any)
+        self.assertTrue(not any in match4)
+        
+        amap = AliasMap()
+        
+        match5 = Source("ProcInfo(1.2.3.4)").srcMatch(amap)
+        self.assertTrue(match5.in_(any))
+        self.assertTrue(not any.in_(match5));
+        
+        match6 = Source("ProcInfo()").srcMatch(amap)
+        self.assertTrue(match6.in_(any))
+        self.assertTrue(not any.in_(match6))
+
+#
+#  run unit tests when imported as a main module
+#
+if __name__ == "__main__":
+    unittest.main()

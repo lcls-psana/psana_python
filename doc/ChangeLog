@@ -11,6 +11,10 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-12-00
+- add wrappers for class AliaMap, SrcMatch
+- new unit test for Source class wrapper
+
 Tag: V00-11-03
 2014-02-27 Andy Salnikov
 - PythonModule: remove unnecessary piece of code

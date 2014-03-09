@@ -19,11 +19,14 @@
 // C/C++ Headers --
 //-----------------
 #include <exception>
+#include <boost/make_shared.hpp>
 
 //-------------------------------
 // Collaborating Class Headers --
 //-------------------------------
+#include "psana_python/AliasMap.h"
 #include "psana_python/PdsSrc.h"
+#include "psana_python/SrcMatch.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -35,12 +38,19 @@ namespace {
   PyObject* Source_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds);
 
   // type-specific methods
-//  PyObject* Source_src(PyObject* self, PyObject*);
+  PyObject* Source_srcMatch(PyObject* self, PyObject*);
 
   PyMethodDef methods[] = {
-//    { "src",     Source_src,   METH_NOARGS,
-//        "self.src() -> Src\n\nReturns instance of :py:class:`Src` class, clients do not usually need to call this,"
-//        "it exists mostly for testing purposes." },
+    { "srcMatch",     Source_srcMatch,   METH_VARARGS,
+        "self.srcMatch([aliases:AliasMap]) -> :py:class:`SrcMatch`\n\n"
+        "Returns object which can be used to match Src instances. If Source instance was constructed "
+        "from a string then this method tries to resolve string as an alias. If alias is not found "
+        "then it tries to parse the string according to the definitions above. If parsing fails then "
+        "exception is thrown.\n"
+        "Optional argument provides alias map instance which can be obtained from environment object"
+        " (:py:class:`Env`). If alias map is not provided then alias names are not resolved (aliases "
+        "cannot be used in this case)."
+        "" },
     {0, 0, 0, 0}
    };
 
@@ -144,11 +154,31 @@ try {
   return 0;
 }
 
-//PyObject*
-//Source_src(PyObject* self, PyObject* )
-//{
-//  PSEvt::Source& cself = psana_python::Source::cppObject(self);
-//  return psana_python::PdsSrc::PyObject_FromCpp(cself.src());
-//}
+PyObject*
+Source_srcMatch(PyObject* self, PyObject* args)
+{
+  PSEvt::Source& cself = psana_python::Source::cppObject(self);
+
+  // optional argument
+  PyObject* amapObj = 0;
+  if (not PyArg_ParseTuple(args, "|O!:Source.srcMatch", psana_python::AliasMap::typeObject(), &amapObj)) return 0;
+
+  // get or make alias map
+  boost::shared_ptr<PSEvt::AliasMap> amap;
+  if (amapObj) {
+    amap = psana_python::AliasMap::cppObject(amapObj);
+  } else {
+    amap = boost::make_shared<PSEvt::AliasMap>();
+  }
+
+  // forward to C++
+  try {
+    const PSEvt::Source::SrcMatch& srcMatch = cself.srcMatch(*amap);
+    return psana_python::SrcMatch::PyObject_FromCpp(srcMatch);
+  } catch (const std::exception& ex) {
+    PyErr_SetString(PyExc_ValueError, ex.what());
+    return 0;
+  }
+}
 
 }

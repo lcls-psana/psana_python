@@ -22,6 +22,7 @@
 //-------------------------------
 // Collaborating Class Headers --
 //-------------------------------
+#include "psana_python/AliasMap.h"
 #include "psana_python/EnvObjectStore.h"
 #include "psana_python/EpicsStore.h"
 #include "pytools/make_pyshared.h"
@@ -46,6 +47,7 @@ namespace {
   PyObject* Env_configStore(PyObject* self, PyObject*);
   PyObject* Env_calibStore(PyObject* self, PyObject*);
   PyObject* Env_epicsStore(PyObject* self, PyObject*);
+  PyObject* Env_aliasMap(PyObject* self, PyObject*);
   PyObject* Env_hmgr(PyObject* self, PyObject*);
   PyObject* Env_getConfig(PyObject* self, PyObject* args);
 
@@ -72,6 +74,8 @@ namespace {
     { "calibStore",    Env_calibStore,    METH_NOARGS,
         "self.calibStore() -> object\n\nAccess to Calibration Store (:py:class:`EnvObjectStore`) object."},
     { "epicsStore",    Env_epicsStore,    METH_NOARGS, "self.epicsStore() -> object\n\nAccess to EPICS Store (:py:class:`EpicsStore`) object."},
+    { "aliasMap",      Env_aliasMap,      METH_NOARGS, "self.aliasMap() -> object\n\nAccess to alias map (:py:class:`AliasMap`) object,"
+        " returns None if alias map is not defined."},
     { "hmgr",          Env_hmgr,          METH_NOARGS, "self.hmgr() -> object\n\nAccess to histogram manager."},
     { "getConfig",     Env_getConfig,     METH_VARARGS, 
         "self.getConfig(...) -> object\n\nPyana compatibility method, shortcut for ``self.configStore().get()``, deprecated."},
@@ -183,6 +187,18 @@ Env_epicsStore(PyObject* self, PyObject*)
 {
   boost::shared_ptr<PSEnv::Env>& cself = Env::cppObject(self);
   return EpicsStore::PyObject_FromCpp(cself->epicsStore().shared_from_this());
+}
+
+PyObject*
+Env_aliasMap(PyObject* self, PyObject*)
+{
+  boost::shared_ptr<PSEnv::Env>& cself = Env::cppObject(self);
+  boost::shared_ptr<PSEvt::AliasMap> aliasMap = cself->aliasMap();
+  if (aliasMap) {
+    return AliasMap::PyObject_FromCpp(cself->aliasMap());
+  } else {
+    Py_RETURN_NONE;
+  }
 }
 
 PyObject*

@@ -29,6 +29,7 @@
 // Collaborating Class Headers --
 //-------------------------------
 #include "MsgLogger/MsgLogger.h"
+#include "psana_python/AliasMap.h"
 #include "psana_python/Env.h"
 #include "psana_python/EnvObjectStore.h"
 #include "psana_python/EventId.h"
@@ -41,6 +42,7 @@
 #include "psana_python/PdsSrc.h"
 #include "psana_python/PythonModule.h"
 #include "psana_python/Source.h"
+#include "psana_python/SrcMatch.h"
 #include "psddl_python/ConverterMap.h"
 #include "psddl_python/ConverterFun.h"
 #include "psddl_python/CreateDeviceWrappers.h"
@@ -67,6 +69,7 @@ namespace {
   {
 
     // initialize all local types
+    psana_python::AliasMap::initType(module);
     psana_python::Env::initType(module);
     psana_python::EnvObjectStore::initType(module);
     psana_python::EpicsStore::initType(module);
@@ -78,6 +81,7 @@ namespace {
     psana_python::PdsProcInfo::initType(module);
     psana_python::PdsSrc::initType(module);
     psana_python::Source::initType(module);
+    psana_python::SrcMatch::initType(module);
 
     // register conversion for some classes
     ConverterMap& cmap = ConverterMap::instance();
