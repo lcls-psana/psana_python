@@ -37,45 +37,59 @@ namespace {
 
   template <typename T, unsigned Rank>
   void makeAndSave(const boost::shared_ptr<T>& data, const unsigned shape[], const int strides[],
-      PSEvt::ProxyDictI& proxyDict, const Pds::Src& source, const std::string& key)
+      PSEvt::ProxyDictI& proxyDict, const Pds::Src& source, const std::string& key, bool modifiable)
   {
-    typedef ndarray<T, Rank> ArrayType;
 
-    boost::shared_ptr<ArrayType> parray = boost::make_shared<ArrayType>(data, shape);
-    parray->strides(strides);
+    boost::shared_ptr<PSEvt::ProxyI> proxyPtr;
+    const std::type_info* tinfo = 0;
+    if (modifiable) {
 
-    boost::shared_ptr<PSEvt::ProxyI> proxyPtr(boost::make_shared<PSEvt::DataProxy<ArrayType> >(parray));
-    PSEvt::EventKey evKey(&typeid(const ArrayType), source, key);
+      typedef ndarray<T, Rank> ArrayType;
+      boost::shared_ptr<ArrayType> parray = boost::make_shared<ArrayType>(data, shape);
+      parray->strides(strides);
 
+      proxyPtr = boost::make_shared<PSEvt::DataProxy<ArrayType> >(parray);
+      tinfo = &typeid(const ArrayType);
+
+    } else {
+
+      typedef ndarray<const T, Rank> ArrayType;
+      boost::shared_ptr<ArrayType> parray = boost::make_shared<ArrayType>(data, shape);
+      parray->strides(strides);
+
+      proxyPtr = boost::make_shared<PSEvt::DataProxy<ArrayType> >(parray);
+      tinfo = &typeid(const ArrayType);
+    }
     // this may throw
+    PSEvt::EventKey evKey = PSEvt::EventKey(tinfo, source, key);
     proxyDict.put(proxyPtr, evKey);
   }
 
   template <typename T>
   bool makeAndSave(int rank, pytools::pyshared_ptr shndarr, const unsigned shape[], const int strides[],
-      PSEvt::ProxyDictI& proxyDict, const Pds::Src& source, const std::string& key)
+      PSEvt::ProxyDictI& proxyDict, const Pds::Src& source, const std::string& key, bool modifiable)
   {
     boost::shared_ptr<T> dataptr(shndarr, static_cast<T*>(PyArray_DATA(shndarr.get())));
 
     bool res = true;
     switch (rank) {
     case 1:
-      makeAndSave<T, 1>(dataptr, shape, strides, proxyDict, source, key);
+      makeAndSave<T, 1>(dataptr, shape, strides, proxyDict, source, key, modifiable);
       break;
     case 2:
-      makeAndSave<T, 2>(dataptr, shape, strides, proxyDict, source, key);
+      makeAndSave<T, 2>(dataptr, shape, strides, proxyDict, source, key, modifiable);
       break;
     case 3:
-      makeAndSave<T, 3>(dataptr, shape, strides, proxyDict, source, key);
+      makeAndSave<T, 3>(dataptr, shape, strides, proxyDict, source, key, modifiable);
       break;
     case 4:
-      makeAndSave<T, 4>(dataptr, shape, strides, proxyDict, source, key);
+      makeAndSave<T, 4>(dataptr, shape, strides, proxyDict, source, key, modifiable);
       break;
     case 5:
-      makeAndSave<T, 5>(dataptr, shape, strides, proxyDict, source, key);
+      makeAndSave<T, 5>(dataptr, shape, strides, proxyDict, source, key, modifiable);
       break;
     case 6:
-      makeAndSave<T, 6>(dataptr, shape, strides, proxyDict, source, key);
+      makeAndSave<T, 6>(dataptr, shape, strides, proxyDict, source, key, modifiable);
       break;
     default:
       res = false;
@@ -155,37 +169,39 @@ Ndarray2CppCvt::convert(PyObject* obj, PSEvt::ProxyDictI& proxyDict, const Pds::
     strides[i] = PyArray_STRIDE(obj, i) / itemsize; // numpy strides are in bytes
   }
 
+  bool modifiable = PyArray_CHKFLAGS(obj, NPY_WRITEABLE);
+
   bool result = true;
   switch (PyArray_TYPE(obj)) {
   case NPY_INT8:
-    result = makeAndSave<int8_t>(rank, shndarr, shape, strides, proxyDict, source, key);
+    result = makeAndSave<int8_t>(rank, shndarr, shape, strides, proxyDict, source, key, modifiable);
     break;
   case NPY_UINT8:
-    result = makeAndSave<uint8_t>(rank, shndarr, shape, strides, proxyDict, source, key);
+    result = makeAndSave<uint8_t>(rank, shndarr, shape, strides, proxyDict, source, key, modifiable);
     break;
   case NPY_INT16:
-    result = makeAndSave<int16_t>(rank, shndarr, shape, strides, proxyDict, source, key);
+    result = makeAndSave<int16_t>(rank, shndarr, shape, strides, proxyDict, source, key, modifiable);
     break;
   case NPY_UINT16:
-    result = makeAndSave<uint16_t>(rank, shndarr, shape, strides, proxyDict, source, key);
+    result = makeAndSave<uint16_t>(rank, shndarr, shape, strides, proxyDict, source, key, modifiable);
     break;
   case NPY_INT32:
-    result = makeAndSave<int32_t>(rank, shndarr, shape, strides, proxyDict, source, key);
+    result = makeAndSave<int32_t>(rank, shndarr, shape, strides, proxyDict, source, key, modifiable);
     break;
   case NPY_UINT32:
-    result = makeAndSave<uint32_t>(rank, shndarr, shape, strides, proxyDict, source, key);
+    result = makeAndSave<uint32_t>(rank, shndarr, shape, strides, proxyDict, source, key, modifiable);
     break;
   case NPY_INT64:
-    result = makeAndSave<int64_t>(rank, shndarr, shape, strides, proxyDict, source, key);
+    result = makeAndSave<int64_t>(rank, shndarr, shape, strides, proxyDict, source, key, modifiable);
     break;
   case NPY_UINT64:
-    result = makeAndSave<uint64_t>(rank, shndarr, shape, strides, proxyDict, source, key);
+    result = makeAndSave<uint64_t>(rank, shndarr, shape, strides, proxyDict, source, key, modifiable);
     break;
   case NPY_FLOAT32:
-    result = makeAndSave<float>(rank, shndarr, shape, strides, proxyDict, source, key);
+    result = makeAndSave<float>(rank, shndarr, shape, strides, proxyDict, source, key, modifiable);
     break;
   case NPY_FLOAT64:
-    result = makeAndSave<double>(rank, shndarr, shape, strides, proxyDict, source, key);
+    result = makeAndSave<double>(rank, shndarr, shape, strides, proxyDict, source, key, modifiable);
     break;
   default:
     result = false;
