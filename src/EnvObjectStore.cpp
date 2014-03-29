@@ -49,6 +49,7 @@ namespace {
   // type-specific methods
   PyObject* EnvObjectStore_keys(PyObject* self, PyObject* args);
   PyObject* EnvObjectStore_get(PyObject* self, PyObject* args);
+  PyObject* EnvObjectStore_put(PyObject* self, PyObject* args);
 
   PyMethodDef methods[] = {
     { "get",  EnvObjectStore_get,  METH_VARARGS, 
@@ -65,6 +66,14 @@ namespace {
         "In the first method type argument can be a type object or a list of type objects. "
         "If the list is given then object is returned whose type matches any one from the list. "
         "The src argument can be an instance of :py:class:`Source` or :py:class:`Src` types."},
+    { "put", EnvObjectStore_put,  METH_VARARGS,
+      "self.put(...) -> None\n\n"
+      "Store new object in the store. This is an overloaded method which "
+      "can accept a variable number of parameters:\n"
+      " * ``put(object,src)``\n"
+      " * ``put(object)`` - equivalent to ``put(type, Source(None), \"\")``\n\n"
+      "The src argument can be an instance of :py:class:`Source` or :py:class:`Src` types. If Source instance is used "
+      "for the src argument it must describe the source exactly (cannot contain wildcards)."},
     { "keys",  EnvObjectStore_keys,  METH_VARARGS, 
         "self.keys([src]) -> list\n\nGet the list of event keys (type :py:class:`EventKey`) for objects in the store. "
         "Optional argument can be either :py:class:`Source` instance or string. Without argument keys for all "
@@ -188,4 +197,49 @@ EnvObjectStore_get(PyObject* self, PyObject* args)
   }
 }
 
+PyObject* 
+EnvObjectStore_put(PyObject* self, PyObject* args)
+try {
+  /*
+   *  put(...) is overloaded method, possible argument combinations:
+   *  put(type, src)             - equivalent to put(type, src, "")
+   *  put(type)                  - equivalent to put(type, Source(None), "")
+   *  - pyana compatibility methods (deprecated):
+   *  No pyana compatible methods implemented - this was never available to pyana in the past
+   */
+
+  boost::shared_ptr<PSEnv::EnvObjectStore>& cself = psana_python::EnvObjectStore::cppObject(self);
+
+  int nargs = PyTuple_GET_SIZE(args);
+  if (nargs < 1 or nargs > 2) {
+    return PyErr_Format(PyExc_ValueError, "EnvObjectStore.put(...): one to two arguments required (%d provided)", nargs);
+  }
+  PyObject* arg0 = PyTuple_GET_ITEM(args, 0);
+
+  // get source
+  PyObject* arg1 = nargs > 1 ? PyTuple_GET_ITEM(args, 1) : 0;
+  Pds::Src source = PSEvt::EventKey::noSource();
+  if (arg1) {
+    if (psana_python::PdsSrc::Object_TypeCheck(arg1)) {
+      // second argument is Src
+      source = psana_python::PdsSrc::cppObject(arg1);
+    } else if (psana_python::Source::Object_TypeCheck(arg1)) {
+      // second argument is Source
+      PSEvt::Source src = psana_python::Source::cppObject(arg1);
+      const PSEvt::AliasMap *amap =  cself->proxyDict()->aliasMap();
+      PSEvt::Source::SrcMatch msrc = src.srcMatch(amap ? *amap : PSEvt::AliasMap());
+      source = msrc.src();
+      if (not msrc.isExact()) {
+        PyErr_SetString(PyExc_ValueError, "EnvObjectStore.put(...) expecting exact source, found wildcard");
+      }
+    }
+  }
+ 
+  return psana_python::ProxyDictMethods::put(*cself->proxyDict(), arg0, source, std::string());
+
+} catch (const std::exception& ex) {
+  PyErr_SetString(PyExc_ValueError, ex.what());
+  return 0;
 }
+
+} // local namespace

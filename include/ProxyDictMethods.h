@@ -14,6 +14,7 @@
 // C/C++ Headers --
 //-----------------
 #include "python/Python.h"
+#include <utility>
 #include <vector>
 #include <typeinfo>
 #include <boost/shared_ptr.hpp>
@@ -30,8 +31,10 @@
 // Collaborating Class Declarations --
 //------------------------------------
 #include "PSEvt/ProxyDictI.h"
+#include "PSEvt/AliasMap.h"
 #include "psana_python/Source.h"
 #include "pytools/make_pyshared.h"
+#include "pdsdata/xtc/Src.hh"
 
 //		---------------------
 // 		-- Class Interface --
@@ -68,7 +71,7 @@ namespace ProxyDictMethods {
    */
   PyObject* keys(PSEvt::ProxyDictI& proxyDict, PyObject* args);
 
-  /*
+  /**
    *  Returns the list types that are passed as a first argument to get() method.
    *  Not strictly a ProxyDict method, but shared between different classes which
    *  deal with ProxyDict. If argument is not good (not a type or not a list of types)
@@ -78,6 +81,22 @@ namespace ProxyDictMethods {
    *  @return Vector of Python objects
    */
   std::vector<pytools::pyshared_ptr> get_types(PyObject* arg0, const char* method);
+
+  /**
+   *  Returns the Src and Key typically passed in arguments 1 & 2 to the get() or put() method.
+   *  Not strictly a ProxyDict method, but shared between different classes which
+   *  deal with ProxyDict. If both arguments are not present, returns NoSource and an
+   *  empty string. If the first argument is a Pds::Src or PSEvt::Source, turns it into the
+   *  appropriate Pds::Src - checking for an exact Src match if needExact is true.
+   *  If the first argument is a string, again NoSource is returned and the key is this string.
+   *
+   *  @param[in] args      arguments to the Python function
+   *  @param[in] needExact an exact Pds::Src is required, throws error if wildcard found in Source
+   *  @param[in] amap      AliasMap to determine exact Pds::Src from alias
+   *  @return pair with a Pds::Src and std::string
+   */
+  std::pair<Pds::Src, std::string>
+    arg_get_put(PyObject* args, bool needExact, const PSEvt::AliasMap* amap);
 
   /**
    *  Implementation of the get method.

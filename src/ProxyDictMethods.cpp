@@ -27,6 +27,7 @@
 //-------------------------------
 #include "pdsdata/xtc/TypeId.hh"
 #include "psana_python/EventKey.h"
+#include "psana_python/PdsSrc.h"
 #include "psddl_python/ConverterMap.h"
 #include "PSEvt/DataProxy.h"
 #include "PSEvt/Exceptions.h"
@@ -117,6 +118,45 @@ ProxyDictMethods::get_types(PyObject* arg0, const char* method)
   }
 
   return types;
+}
+
+std::pair<Pds::Src, std::string>
+ProxyDictMethods::arg_get_put(PyObject* args, bool needExact, const PSEvt::AliasMap* amap)
+{
+  // get two remaining arguments
+  int nargs = PyTuple_GET_SIZE(args);
+  PyObject* arg1 = nargs > 1 ? PyTuple_GET_ITEM(args, 1) : 0;
+  PyObject* arg2 = nargs > 2 ? PyTuple_GET_ITEM(args, 2) : 0;
+  Pds::Src source = PSEvt::EventKey::noSource();
+  std::string key;
+  if (arg1) {
+    if (psana_python::PdsSrc::Object_TypeCheck(arg1)) {
+      // second argument is Src
+      source = psana_python::PdsSrc::cppObject(arg1);
+    } else if (psana_python::Source::Object_TypeCheck(arg1)) {
+      // second argument is Source
+      PSEvt::Source src = psana_python::Source::cppObject(arg1);
+      PSEvt::Source::SrcMatch msrc = src.srcMatch(amap ? *amap : PSEvt::AliasMap());
+      source = msrc.src();
+      if (needExact and not msrc.isExact()) {
+        PyErr_SetString(PyExc_ValueError, "Event.get/put(...) expecting exact source, found wildcard");
+      }
+    } else if (not arg2 and PyString_Check(arg1)) {
+      // second argument is string and no third argument
+      key = PyString_AsString(arg1);
+    } else {
+      // anything else is not expected
+      PyErr_SetString(PyExc_TypeError, "Event.get/put(...) unexpected type of second argument");
+    }
+  }
+  if (arg2) {
+    if (PyString_Check(arg2)) {
+      key = PyString_AsString(arg2);
+    } else {
+      PyErr_SetString(PyExc_TypeError, "Event.get/put(...) unexpected type of third argument");
+    }
+  }
+  return std::make_pair(source, key);
 }
 
 PyObject*
