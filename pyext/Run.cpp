@@ -18,6 +18,11 @@
 //-----------------
 // C/C++ Headers --
 //-----------------
+#include <vector>
+#include <boost/cstdint.hpp>
+#include <boost/python/object.hpp>
+#include "psddl_python/psddl_python_numpy.h"
+#include "psana_python/Event.h"
 
 //-------------------------------
 // Collaborating Class Headers --
@@ -25,6 +30,7 @@
 #include "EventIter.h"
 #include "StepIter.h"
 #include "psana_python/Env.h"
+#include "psana/Index.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -38,12 +44,16 @@ namespace {
   PyObject* Run_nonzero(PyObject* self, PyObject*);
   PyObject* Run_env(PyObject* self, PyObject*);
   PyObject* Run_run(PyObject* self, PyObject*);
+  PyObject* Run_times(PyObject* self, PyObject*);
+  PyObject* Run_event(PyObject* self, PyObject*);
 
   PyMethodDef methods[] = {
     { "steps",       Run_steps,     METH_NOARGS, "self.Steps() -> iterator\n\nReturns iterator for contained steps (:py:class:`StepIter`)" },
     { "events",      Run_events,    METH_NOARGS, "self.events() -> iterator\n\nReturns iterator for contained events (:py:class:`EventIter`)" },
     { "env",         Run_env,       METH_NOARGS, "self.env() -> object\n\nReturns environment object" },
     { "run",         Run_run,       METH_NOARGS, "self.run() -> int\n\nReturns run number, -1 if unknown" },
+    { "times",       Run_times,     METH_NOARGS, "self.times() -> array\n\nReturns array of event timestamps for a run for random access" },
+    { "event",       Run_event,     METH_VARARGS,"self.event() -> array\n\nReturns a randomly accessed event using timestamp argument" },
     { "__nonzero__", Run_nonzero,   METH_NOARGS, "self.__nonzero__() -> bool\n\nReturns true for non-null object" },
     {0, 0, 0, 0}
    };
@@ -107,6 +117,41 @@ Run_run(PyObject* self, PyObject* )
 {
   psana_python::pyext::Run* py_this = static_cast<psana_python::pyext::Run*>(self);
   return PyInt_FromLong(py_this->m_obj.run());
+}
+
+PyObject*
+Run_times(PyObject* self, PyObject* args)
+{
+  psana_python::pyext::Run* py_this = static_cast<psana_python::pyext::Run*>(self);
+  const std::vector<uint64_t>& idxtimes = py_this->m_obj.index().runtimes();
+  npy_intp length=idxtimes.size();
+  PyObject* times = PyArray_SimpleNewFromData(1, &length, NPY_UINT64, const_cast<uint64_t *> (&idxtimes[0]));
+
+  return Py_BuildValue("O", times);
+}
+
+PyObject *
+Run_event(PyObject* self, PyObject* args)
+{
+  int status;
+  PyObject *arg1=NULL;
+  if (!PyArg_ParseTuple(args, "O", &arg1)) return NULL;
+
+  uint64_t time;
+  PyArray_ScalarAsCtype(arg1,&time);
+
+  psana_python::pyext::Run* py_this = static_cast<psana_python::pyext::Run*>(self);
+  psana::Index& index = py_this->m_obj.index();
+  status = index.jump(time);
+  if (status) Py_RETURN_NONE;
+
+  psana::EventIter evt_iter = py_this->m_obj.events();
+  boost::shared_ptr<PSEvt::Event> evt = evt_iter.next();
+  if (evt) {
+    return psana_python::Event::PyObject_FromCpp(evt);
+  } else {
+    Py_RETURN_NONE;
+  }
 }
 
 }
