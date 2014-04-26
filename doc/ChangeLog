@@ -11,14 +11,14 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
-Tag: V00-13-01 David Schneider
-2014-04-26
+Tag: V00-13-01
+2014-04-26  David Schneider
 - fix for https://pswww.slac.stanford.edu/trac/psdm/ticket/282#comment:6
-- get event.keys() to print psana type for ndarray<const T,R>
-- trap for EventKeys differing only by ndarray const or non-const
+  - get event.keys() to print psana type for ndarray<const T,R>
+  - trap for EventKeys differing only by ndarray const or non-const
 
-Tag: V00-13-00 Chris O'Grady
-2014-04-16
+Tag: V00-13-00
+2014-04-16  Chris O'Grady
 - Indexing support
 
 Tag: V00-12-02 David Schneider
