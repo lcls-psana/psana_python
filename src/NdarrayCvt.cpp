@@ -18,12 +18,12 @@
 //-----------------
 // C/C++ Headers --
 //-----------------
-#include <tr1/type_traits>
+#include <stdexcept>
+#include <sstream>
 #include <boost/lexical_cast.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/preprocessor/seq/for_each_product.hpp>
 #include <boost/preprocessor/seq/elem.hpp>
-
 //-------------------------------
 // Collaborating Class Headers --
 //-------------------------------
@@ -91,7 +91,6 @@ namespace {
     static int numpyType() { return NPY_FLOAT64; }
   };
 
-
   // Type for Python objects that will hold C++ ndarray objects
   template <typename T, unsigned Rank>
   class NdarrayWrapper : public pytools::PyDataType<NdarrayWrapper<T, Rank>, ndarray<const T, Rank> > {
@@ -132,6 +131,17 @@ namespace {
     return true;
   }
 
+  template<typename T, unsigned Rank>
+  std::string BothConstAndNonConstNdarrayMsg(const PSEvt::Source &source, 
+                                             const std::string &key) {
+    std::ostringstream msg;
+    msg << "Both const and non-const element type found for ndarray<"
+          << Traits<T>::typeName() << "," << Rank << "> for event key with source=" 
+          << source << " and key=" << key 
+          << " convert is ambiguous. Use key string to distingish.";
+    return msg.str();
+  }
+
 }
 
 
@@ -164,7 +174,9 @@ template <typename T, unsigned Rank>
 std::vector<const std::type_info*>
 NdarrayCvt<T, Rank>::from_cpp_types() const
 {
-  return std::vector<const std::type_info*>(1, &typeid(ndarray<T, Rank>));
+  const std::type_info *types[2] = {&typeid(ndarray<T, Rank>), 
+                                    &typeid(ndarray<const T, Rank>)};
+  return std::vector<const std::type_info*>(types,types+2);
 }
 
 /// Returns source Python types.
@@ -187,6 +199,7 @@ NdarrayCvt<T, Rank>::to_py_types() const
   return res;
 }
 
+
 /// Convert C++ object to Python
 template <typename T, unsigned Rank>
 PyObject*
@@ -208,9 +221,10 @@ NdarrayCvt<T, Rank>::convert(PSEvt::ProxyDictI& proxyDict, const PSEvt::Source& 
   int flags = 0;
   PyObject* base = 0;
 
-  // try non-const array first, then const array
   if (boost::shared_ptr<void> vdata = proxyDict.get(&typeid(ArrType), source, key, 0)) {
-
+    if (proxyDict.get(&typeid(ConstArrType), source, key, 0)) {
+      throw std::runtime_error(BothConstAndNonConstNdarrayMsg<T,Rank>(source, key));
+    }
     const ArrType& arr = *boost::static_pointer_cast<ArrType>(vdata);
 
     std::copy(arr.shape(), arr.shape()+Rank, dims);
@@ -231,6 +245,9 @@ NdarrayCvt<T, Rank>::convert(PSEvt::ProxyDictI& proxyDict, const PSEvt::Source& 
     base = NdarrayWrapper<T, Rank>::PyObject_FromCpp(ConstArrType(arr));
 
   } else if (boost::shared_ptr<void> vdata = proxyDict.get(&typeid(ConstArrType), source, key, 0)) {
+    if (proxyDict.get(&typeid(ArrType), source, key, 0)) {
+      throw std::runtime_error(BothConstAndNonConstNdarrayMsg<T,Rank>(source, key));
+    }
 
     const ConstArrType& arr = *boost::static_pointer_cast<ConstArrType>(vdata);
 

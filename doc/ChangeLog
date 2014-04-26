@@ -11,6 +11,11 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-12-03 David Schneider
+- fix for https://pswww.slac.stanford.edu/trac/psdm/ticket/282#comment:6
+- get event.keys() to print psana type for ndarray<const T,R>
+- trap for EventKeys differing only by ndarray const or non-const
+
 Tag: V00-12-02 David Schneider
 - add wrapper for EnvObjectStore.put
 - move arg_get_put function into ProxyDictMethods
