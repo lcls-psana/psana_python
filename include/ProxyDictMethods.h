@@ -78,6 +78,7 @@ namespace ProxyDictMethods {
    *  then empty list is returned and Python exception is set.
    *
    *  @param[in] arg0  First argument to get() method
+   *  @param[out] method
    *  @return Vector of Python objects
    */
   std::vector<pytools::pyshared_ptr> get_types(PyObject* arg0, const char* method);
