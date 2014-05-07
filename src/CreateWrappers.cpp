@@ -37,6 +37,7 @@
 #include "psana_python/Event.h"
 #include "psana_python/EpicsStore.h"
 #include "psana_python/PdsBldInfo.h"
+#include "psana_python/PdsClockTime.h"
 #include "psana_python/PdsDetInfo.h"
 #include "psana_python/PdsProcInfo.h"
 #include "psana_python/PdsSrc.h"
@@ -77,6 +78,7 @@ namespace {
     psana_python::EventId::initType(module);
     psana_python::EventKey::initType(module);
     psana_python::PdsBldInfo::initType(module);
+    psana_python::PdsClockTime::initType(module);
     psana_python::PdsDetInfo::initType(module);
     psana_python::PdsProcInfo::initType(module);
     psana_python::PdsSrc::initType(module);
@@ -94,6 +96,7 @@ namespace {
     // to help boost we need to register convertes for several types that we define here
     boost::python::to_python_converter<Pds::Src, PdsSrcConverter<Pds::Src, psana_python::PdsSrc>, true>();
     boost::python::to_python_converter<Pds::BldInfo, PdsSrcConverter<Pds::BldInfo, psana_python::PdsBldInfo>, true>();
+    boost::python::to_python_converter<Pds::ClockTime, PdsSrcConverter<Pds::ClockTime, psana_python::PdsClockTime>, true>();
     boost::python::to_python_converter<Pds::DetInfo, PdsSrcConverter<Pds::DetInfo, psana_python::PdsDetInfo>, true>();
     boost::python::to_python_converter<Pds::ProcInfo, PdsSrcConverter<Pds::ProcInfo, psana_python::PdsProcInfo>, true>();
 
