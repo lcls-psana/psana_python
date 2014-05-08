@@ -123,9 +123,9 @@ PyObject*
 Run_times(PyObject* self, PyObject* args)
 {
   psana_python::pyext::Run* py_this = static_cast<psana_python::pyext::Run*>(self);
-  const std::vector<uint64_t>& idxtimes = py_this->m_obj.index().runtimes();
+  const std::vector<psana::EventTime>& idxtimes = py_this->m_obj.index().runtimes();
   npy_intp length=idxtimes.size();
-  PyObject* times = PyArray_SimpleNewFromData(1, &length, NPY_UINT64, const_cast<uint64_t *> (&idxtimes[0]));
+  PyObject* times = PyArray_SimpleNewFromData(1, &length, NPY_COMPLEX128, const_cast<psana::EventTime *> (&idxtimes[0]));
 
   return Py_BuildValue("O", times);
 }
@@ -137,7 +137,7 @@ Run_event(PyObject* self, PyObject* args)
   PyObject *arg1=NULL;
   if (!PyArg_ParseTuple(args, "O", &arg1)) return NULL;
 
-  uint64_t time;
+  psana::EventTime time;
   PyArray_ScalarAsCtype(arg1,&time);
 
   psana_python::pyext::Run* py_this = static_cast<psana_python::pyext::Run*>(self);
