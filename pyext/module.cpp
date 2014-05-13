@@ -29,6 +29,7 @@
 #include "RunIter.h"
 #include "Step.h"
 #include "StepIter.h"
+#include "EventTime.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -58,6 +59,7 @@ PyMODINIT_FUNC init_psana()
   psana_python::pyext::RunIter::initType( module );
   psana_python::pyext::Step::initType( module );
   psana_python::pyext::StepIter::initType( module );
+  psana_python::pyext::EventTime::initType( module );
 
   psana_python::createWrappers(module);
 }

@@ -30,6 +30,7 @@
 #include "EventIter.h"
 #include "StepIter.h"
 #include "psana_python/Env.h"
+#include "EventTime.h"
 #include "psana/Index.h"
 
 //-----------------------------------------------------------------------
@@ -124,25 +125,33 @@ Run_times(PyObject* self, PyObject* args)
 {
   psana_python::pyext::Run* py_this = static_cast<psana_python::pyext::Run*>(self);
   const std::vector<psana::EventTime>& idxtimes = py_this->m_obj.index().runtimes();
-  npy_intp length=idxtimes.size();
-  PyObject* times = PyArray_SimpleNewFromData(1, &length, NPY_COMPLEX128, const_cast<psana::EventTime *> (&idxtimes[0]));
 
-  return Py_BuildValue("O", times);
+  // the old way that worked when we used NPY_COMPLEX128 numpy arrays
+  // npy_intp length=idxtimes.size();
+  // PyObject* times = PyArray_SimpleNewFromData(1, &length, NPY_COMPLEX128, const_cast<psana::EventTime *> (&idxtimes[0]));
+  //  return Py_BuildValue("O", times);
+
+  PyObject *pTuple = PyTuple_New(idxtimes.size()); // new reference
+  for(unsigned i = 0; i < idxtimes.size(); ++i)
+    PyTuple_SetItem(pTuple, i, psana_python::pyext::EventTime::PyObject_FromCpp(idxtimes[i]));
+
+  return pTuple;
 }
 
 PyObject *
 Run_event(PyObject* self, PyObject* args)
 {
   int status;
-  PyObject *arg1=NULL;
-  if (!PyArg_ParseTuple(args, "O", &arg1)) return NULL;
+  psana_python::pyext::EventTime *pyEventTime=NULL;
+  if (!PyArg_ParseTuple(args, "O", &pyEventTime)) return NULL;
 
-  psana::EventTime time;
-  PyArray_ScalarAsCtype(arg1,&time);
+  // the old way that worked when we used NPY_COMPLEX128 numpy arrays
+  // psana::EventTime time;
+  // PyArray_ScalarAsCtype(pyEventTime,&time);
 
   psana_python::pyext::Run* py_this = static_cast<psana_python::pyext::Run*>(self);
   psana::Index& index = py_this->m_obj.index();
-  status = index.jump(time);
+  status = index.jump(pyEventTime->m_obj);
   if (status) Py_RETURN_NONE;
 
   psana::EventIter evt_iter = py_this->m_obj.events();
