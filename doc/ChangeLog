@@ -11,16 +11,11 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
-Tag: V00-13-03
-2014-05-07 David Schneider
-- add wrapper for Pds::ClockTime 
-- needed for ControlData.ConfigV* duration() method
-- trac ticket #298
-
 Tag: V00-13-02
-2014-05-01 Mikhail Dubrovin
-- ProxyDictMethods.h - fix doxygen issue
-	
+2014-05-13  Christopher O'Grady
+- Add python class for EventTime, used with indexing.  Modify
+  Run.cpp to use the new class.
+
 Tag: V00-13-01
 2014-04-26  David Schneider
 - fix for https://pswww.slac.stanford.edu/trac/psdm/ticket/282#comment:6
