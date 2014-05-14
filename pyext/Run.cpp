@@ -129,7 +129,7 @@ Run_times(PyObject* self, PyObject* args)
   // the old way that worked when we used NPY_COMPLEX128 numpy arrays
   // npy_intp length=idxtimes.size();
   // PyObject* times = PyArray_SimpleNewFromData(1, &length, NPY_COMPLEX128, const_cast<psana::EventTime *> (&idxtimes[0]));
-  //  return Py_BuildValue("O", times);
+  // return Py_BuildValue("O", times);
 
   PyObject *pTuple = PyTuple_New(idxtimes.size()); // new reference
   for(unsigned i = 0; i < idxtimes.size(); ++i)
