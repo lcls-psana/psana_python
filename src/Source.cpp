@@ -93,6 +93,10 @@ try {
 
   // parse arguments
   PSEvt::Source source;
+
+  // don't support keywords at the moment
+  if (kwds!=0) Py_RETURN_NONE;
+
   if (PyTuple_GET_SIZE(args) == 1) {
     PyObject* arg0 = PyTuple_GET_ITEM(args, 0);
     if (arg0 == Py_None) {

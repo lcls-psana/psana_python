@@ -11,10 +11,19 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
-Tag: V00-13-04
+Tag: V00-14-04
+2014-05-22  Christopher O'Grady
+- Return Py_None where keyword arguments are given to the Source
+  constructor to make more explicit the fact that keyword arguments
+  are not supported.  Previously it would fail silently, giving
+  the user back Source("") which would end up matching the
+  first detector when used in evt.get().
+
+Tag: V00-14-03
 2014-05-13  Christopher O'Grady
 - Add python class for EventTime, used with indexing.  Modify
-  Run.cpp to use the new class.
+  Run.cpp to use the new class.  Later: looks like I made a mistake
+  with the tag name.
 
 Tag: V00-13-01
 2014-04-26  David Schneider
