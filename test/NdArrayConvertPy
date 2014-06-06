@@ -1,0 +1,161 @@
+#!@PYTHON@
+#--------------------------------------------------------------------------
+# Description:
+#   Test script for ndarray conversion through event store, C++ -> Python
+#   and Python -> C++
+#   
+#------------------------------------------------------------------------
+
+
+#--------------------------------
+#  Imports of standard modules --
+#--------------------------------
+import sys
+import os
+import unittest
+import subprocess as sb
+from psana_test.psanaTestLib import cmdTimeOut, filterPsanaStderr
+
+# a short test file to use while moving ndarrys through the event store
+DATADIR = "/reg/g/psdm/data_test/Translator"
+TESTDATA = os.path.join(DATADIR,'test_042_Translator_t1.xtc')
+
+#-------------------------------
+#  Unit test class definition --
+#-------------------------------
+class NdArrayConvert( unittest.TestCase ) :
+
+    def setUp(self) :
+    	""" 
+    	Method called to prepare the test fixture. This is called immediately 
+    	before calling the test method; any exception raised by this method 
+    	will be considered an error rather than a test failure.  
+        """
+        assert os.path.exists(DATADIR), "Data dir: %s not found" % DATADIR
+        assert os.path.exists(TESTDATA), "Test data %s not found" % TESTDATA
+        try:
+            file(TESTDATA,'r')
+        except IOError:
+            raise Exception("Cannot read test data: %s" % TESTDATA)
+                            
+
+    def tearDown(self) :
+        """
+        Method called immediately after the test method has been called and 
+        the result recorded. This is called even if the test method raised 
+        an exception, so the implementation in subclasses may need to be 
+        particularly careful about checking internal state. Any exception raised 
+        by this method will be considered an error rather than a test failure. 
+        This method will only be called if the setUp() succeeds, regardless 
+        of the outcome of the test method. 
+        """
+        pass
+
+    def test_Cpp_to_Cpp(self):
+        '''put const and non-const ndarrays under same key from C++, get from C++
+        '''
+        # test that ndarrays go through the C++ interface correctly
+        cmd = 'psana -n 1 -m psana_test.PsanaModulePutNDArrayCpp,psana_test.PsanaModuleGetNDArrayCpp'
+        cmd += ' -o psana_test.PsanaModulePutNDArrayCpp.const_key=key'
+        cmd += ' -o psana_test.PsanaModulePutNDArrayCpp.nonconst_key=key'
+        cmd += ' -o psana_test.PsanaModuleGetNDArrayCpp.const_key=key'
+        cmd += ' -o psana_test.PsanaModuleGetNDArrayCpp.nonconst_key=key'
+        cmd += ' %s' % TESTDATA
+        o,e = cmdTimeOut(cmd)
+        errors = [ln.strip() for ln in e.split('\n') if not filterPsanaStderr(ln.strip())]
+        failMsg="errors running\ncmd=%s\nstdout=\n%s\nstderr=\n%s" % (cmd,o,e)
+        self.assertFalse(errors,msg=failMsg)
+
+        failMsg="Did not get both const/non-const ndarrays from store. stdout=\n%s" % o
+        # the PsanaModuleGetNDArrayCpp module writes const_arr is null, and nonconat_arr is null
+        # if it can't get one of those
+        self.assertEqual(o.find('null'),-1,msg=failMsg)
+
+    def test_Cpp_to_Python_key_collision(self):
+        '''Cpp sends const/non-const to same key should generate error for Python'''
+        cmd = 'psana -n 1 -m psana_test.PsanaModulePutNDArrayCpp,psana_test.PsanaModuleGetArrayPy'
+        cmd += ' -o psana_test.PsanaModulePutNDArrayCpp.const_key=key'
+        cmd += ' -o psana_test.PsanaModulePutNDArrayCpp.nonconst_key=key'
+        cmd += ' -o psana_test.PsanaModuleGetArrayPy.const_key=key'
+        cmd += ' -o psana_test.PsanaModuleGetArrayPy.nonconst_key=key'
+        cmd += ' %s' % TESTDATA
+        o,e = cmdTimeOut(cmd)
+        expectedError='ValueError: Both const and non-const element type found'
+        correctErrorGiven = e.find(expectedError)>=0
+        failMsg = "used same key for both const and non-const, should have generated error,\n"
+        failMsg += "but no error generated. "
+        failMsg += "Expected error:\n%s\ncmd:\n%s\nreceived stderr=\n%s" % (expectedError, cmd, e )
+        self.assertTrue(correctErrorGiven,msg=failMsg)
+        
+    def test_Cpp_to_Python(self):
+        '''test that C++ const and nonconst ndarrays are converted correctly to Python'''
+        cmd = 'psana -n 1 -m psana_test.PsanaModulePutNDArrayCpp,psana_test.PsanaModuleGetArrayPy'
+        cmd += ' -o psana_test.PsanaModulePutNDArrayCpp.const_key=constkey'
+        cmd += ' -o psana_test.PsanaModulePutNDArrayCpp.nonconst_key=nonconstkey'
+        cmd += ' -o psana_test.PsanaModuleGetArrayPy.const_key=constkey'
+        cmd += ' -o psana_test.PsanaModuleGetArrayPy.nonconst_key=nonconstkey'
+        cmd += ' %s' % TESTDATA
+        o,e = cmdTimeOut(cmd)
+        errors = [ln.strip() for ln in e.split('\n') if not filterPsanaStderr(ln.strip())]
+        failMsg="using different keys for const and non-const, there should be no errors in\n"
+        failMsg += "cmd=%s\nBut received stderr=\n%s" % (cmd,e)
+        self.assertFalse(errors,msg=failMsg)
+
+    def test_Python_ReadOnly_for_const(self):
+        '''if Python thinks a const ndarray is non-const, should generate error, 
+        likewise for thinking non-const is const'''
+        cmd = 'psana -n 1 -m psana_test.PsanaModulePutNDArrayCpp,psana_test.PsanaModuleGetArrayPy'
+        cmd += ' -o psana_test.PsanaModulePutNDArrayCpp.const_key=constkey'
+        cmd += ' -o psana_test.PsanaModulePutNDArrayCpp.nonconst_key=nonconstkey'
+        cmd += ' -o psana_test.PsanaModuleGetArrayPy.const_key=nonconstkey'
+        cmd += ' -o psana_test.PsanaModuleGetArrayPy.nonconst_key=constkey'
+        cmd += ' %s' % TESTDATA
+        o,e = cmdTimeOut(cmd)
+        expectedConstWriteErrorMsg = 'ERROR: writing to const ndarray did not trigger exception'
+        wasAbleToWriteToConst = e.find(expectedConstWriteErrorMsg)>=0
+        expectedNonConstWriteErrorMsg = 'ERROR: writing to nonconst array generated exception'
+        failedToWriteToNonConst = e.find(expectedNonConstWriteErrorMsg)>=0
+        failMsgWhenCanWriteToConst="swaped keys so Python's const ndarray was really nonconst.\n"
+        failMsgWhenCanWriteToConst += "Expected to see msg=\n%s\n in stderr but did not. stderr=\n%s" % \
+                                      (expectedConstWriteErrorMsg, e)
+        self.assertTrue(wasAbleToWriteToConst, msg=failMsgWhenCanWriteToConst)
+        failMsgWhenCantWriteToNonConst = "swapped keys so Python;s nonconst ndarray was really const.\n"
+        failMsgWhenCantWriteToNonConst +="It should have printed error when writing,\n"
+        failMsgWhenCantWriteToNonConst +="expected error: %s\n" % expectedNonConstWriteErrorMsg
+        failMsgWhenCantWriteToNonConst += "but it did dot. stderr=\n%s" % e
+        self.assertTrue(failedToWriteToNonConst, msg=failMsgWhenCantWriteToNonConst)
+        
+    def test_Python_to_Cpp(self):
+        '''are both const and nonconst ndarrays going from Python to Cpp?'''
+        cmd = 'psana -n 1 -m psana_test.PsanaModulePutArrayPy,psana_test.PsanaModuleGetNDArrayCpp'
+        cmd += ' -o psana_test.PsanaModulePutArrayPy.const_key=constkey'
+        cmd += ' -o psana_test.PsanaModulePutArrayPy.nonconst_key=nonconstkey'
+        cmd += ' -o psana_test.PsanaModuleGetNDArrayCpp.const_key=constkey'
+        cmd += ' -o psana_test.PsanaModuleGetNDArrayCpp.nonconst_key=nonconstkey'
+        cmd += ' %s' % TESTDATA
+        o,e = cmdTimeOut(cmd)
+        errors = [ln.strip() for ln in e.split('\n') if not filterPsanaStderr(ln.strip())]
+        failMsg = "errors running cmd=%s\nstdout=\n%s\nstderr=\n%s" % (cmd,o,e)
+        self.assertFalse(errors,msg=failMsg)
+        CppGotConstArr = o.find('const_arr:')>=0
+        CppGotNonConstArr = o.find('nonconst_arr:')>=0
+        self.assertTrue(CppGotNonConstArr,msg="did not get nonconst arr, stdout=\n%s" % o)
+        self.assertTrue(CppGotConstArr, msg="did not get const arr, stdout=\n%s" % o)
+
+    def test_Cpp_forget_to_ask_for_const(self):
+        '''check for warning message if C++ asks for nonconst ndarray but const is present'''
+        cmd = 'psana -n 1 -m psana_test.PsanaModulePutArrayPy,psana_test.PsanaModuleGetNDArrayCpp'
+        cmd += ' -o psana_test.PsanaModulePutArrayPy.const_key=key'
+        cmd += ' -o psana_test.PsanaModuleGetNDArrayCpp.nonconst_key=key'
+        cmd += ' %s' % TESTDATA
+        o,e = cmdTimeOut(cmd)
+        expectedWarning = 'requested ndarray<T,R> *not* present *but* ndarray<const T,R> is'
+        warningPresent = e.find(expectedWarning)>=0
+        failMsg="ndarray: Python -> C++: only const ndarray in event store, C++ asked for non-const, "
+        failMsg += "but did not get expected warning.\nExpected warning: %s\n" %  expectedWarning
+        failMsg += "stdout=\n%s" % o
+        failMsg += "\nstderr=\n%s" % e
+        self.assertTrue(warningPresent, msg=failMsg)
+
+if __name__ == "__main__":
+    unittest.main(argv=[sys.argv[0], '-v'])

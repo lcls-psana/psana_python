@@ -11,6 +11,12 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-14-05
+2014-06-06 David Schneider
+- Add unit test for ndarray event conversion
+  C++ -> Python, Python -> C++,  const vs. non-const ndarrays
+- test adds Python dependency on psana_test package
+
 Tag: V00-14-04
 2014-05-22  Christopher O'Grady
 - Return Py_None where keyword arguments are given to the Source
