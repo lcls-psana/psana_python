@@ -55,7 +55,7 @@ class NdArrayConvert( unittest.TestCase ) :
         '''put const and non-const ndarrays under same key from C++, get from C++
         '''
         # test that ndarrays go through the C++ interface correctly
-        cmd = 'psana -n 1 -m psana_test.PsanaModulePutNDArrayCpp,psana_test.PsanaModuleGetNDArrayCpp'
+        cmd = 'psana -n 1 -c "" -m psana_test.PsanaModulePutNDArrayCpp,psana_test.PsanaModuleGetNDArrayCpp'
         cmd += ' -o psana_test.PsanaModulePutNDArrayCpp.const_key=key'
         cmd += ' -o psana_test.PsanaModulePutNDArrayCpp.nonconst_key=key'
         cmd += ' -o psana_test.PsanaModuleGetNDArrayCpp.const_key=key'
@@ -73,7 +73,7 @@ class NdArrayConvert( unittest.TestCase ) :
 
     def test_Cpp_to_Python_key_collision(self):
         '''Cpp sends const/non-const to same key should generate error for Python'''
-        cmd = 'psana -n 1 -m psana_test.PsanaModulePutNDArrayCpp,psana_test.PsanaModuleGetArrayPy'
+        cmd = 'psana -n 1  -c "" -m psana_test.PsanaModulePutNDArrayCpp,psana_test.PsanaModuleGetArrayPy'
         cmd += ' -o psana_test.PsanaModulePutNDArrayCpp.const_key=key'
         cmd += ' -o psana_test.PsanaModulePutNDArrayCpp.nonconst_key=key'
         cmd += ' -o psana_test.PsanaModuleGetArrayPy.const_key=key'
@@ -89,7 +89,7 @@ class NdArrayConvert( unittest.TestCase ) :
         
     def test_Cpp_to_Python(self):
         '''test that C++ const and nonconst ndarrays are converted correctly to Python'''
-        cmd = 'psana -n 1 -m psana_test.PsanaModulePutNDArrayCpp,psana_test.PsanaModuleGetArrayPy'
+        cmd = 'psana -n 1  -c "" -m psana_test.PsanaModulePutNDArrayCpp,psana_test.PsanaModuleGetArrayPy'
         cmd += ' -o psana_test.PsanaModulePutNDArrayCpp.const_key=constkey'
         cmd += ' -o psana_test.PsanaModulePutNDArrayCpp.nonconst_key=nonconstkey'
         cmd += ' -o psana_test.PsanaModuleGetArrayPy.const_key=constkey'
@@ -104,7 +104,7 @@ class NdArrayConvert( unittest.TestCase ) :
     def test_Python_ReadOnly_for_const(self):
         '''if Python thinks a const ndarray is non-const, should generate error, 
         likewise for thinking non-const is const'''
-        cmd = 'psana -n 1 -m psana_test.PsanaModulePutNDArrayCpp,psana_test.PsanaModuleGetArrayPy'
+        cmd = 'psana -n 1  -c "" -m psana_test.PsanaModulePutNDArrayCpp,psana_test.PsanaModuleGetArrayPy'
         cmd += ' -o psana_test.PsanaModulePutNDArrayCpp.const_key=constkey'
         cmd += ' -o psana_test.PsanaModulePutNDArrayCpp.nonconst_key=nonconstkey'
         cmd += ' -o psana_test.PsanaModuleGetArrayPy.const_key=nonconstkey'
@@ -127,7 +127,7 @@ class NdArrayConvert( unittest.TestCase ) :
         
     def test_Python_to_Cpp(self):
         '''are both const and nonconst ndarrays going from Python to Cpp?'''
-        cmd = 'psana -n 1 -m psana_test.PsanaModulePutArrayPy,psana_test.PsanaModuleGetNDArrayCpp'
+        cmd = 'psana -n 1  -c "" -m psana_test.PsanaModulePutArrayPy,psana_test.PsanaModuleGetNDArrayCpp'
         cmd += ' -o psana_test.PsanaModulePutArrayPy.const_key=constkey'
         cmd += ' -o psana_test.PsanaModulePutArrayPy.nonconst_key=nonconstkey'
         cmd += ' -o psana_test.PsanaModuleGetNDArrayCpp.const_key=constkey'
@@ -144,7 +144,7 @@ class NdArrayConvert( unittest.TestCase ) :
 
     def test_Cpp_forget_to_ask_for_const(self):
         '''check for warning message if C++ asks for nonconst ndarray but const is present'''
-        cmd = 'psana -n 1 -m psana_test.PsanaModulePutArrayPy,psana_test.PsanaModuleGetNDArrayCpp'
+        cmd = 'psana -n 1  -c "" -m psana_test.PsanaModulePutArrayPy,psana_test.PsanaModuleGetNDArrayCpp'
         cmd += ' -o psana_test.PsanaModulePutArrayPy.const_key=key'
         cmd += ' -o psana_test.PsanaModuleGetNDArrayCpp.nonconst_key=key'
         cmd += ' %s' % TESTDATA
