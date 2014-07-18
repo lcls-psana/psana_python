@@ -11,6 +11,11 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-14-07
+2014-07-18 Christopher O'Grady
+- Add Index::end method to allow user to indicate when they
+  are done with accessing a file randomly (sends an EndRun transition)
+
 Tag: V00-14-06
 2014-06-07 David Schneider
 - unit test - make sure command line calls to psana don't accidentally 

@@ -42,6 +42,7 @@ namespace {
   // type-specific methods
   PyObject* Run_steps(PyObject* self, PyObject*);
   PyObject* Run_events(PyObject* self, PyObject*);
+  PyObject* Run_end(PyObject* self, PyObject*);
   PyObject* Run_nonzero(PyObject* self, PyObject*);
   PyObject* Run_env(PyObject* self, PyObject*);
   PyObject* Run_run(PyObject* self, PyObject*);
@@ -51,6 +52,7 @@ namespace {
   PyMethodDef methods[] = {
     { "steps",       Run_steps,     METH_NOARGS, "self.Steps() -> iterator\n\nReturns iterator for contained steps (:py:class:`StepIter`)" },
     { "events",      Run_events,    METH_NOARGS, "self.events() -> iterator\n\nReturns iterator for contained events (:py:class:`EventIter`)" },
+    { "end",         Run_end,       METH_NOARGS, "self.end() -> forces endrun (for use with indexing)" },
     { "env",         Run_env,       METH_NOARGS, "self.env() -> object\n\nReturns environment object" },
     { "run",         Run_run,       METH_NOARGS, "self.run() -> int\n\nReturns run number, -1 if unknown" },
     { "times",       Run_times,     METH_NOARGS, "self.times() -> array\n\nReturns array of event timestamps for a run for random access" },
@@ -96,6 +98,19 @@ Run_events(PyObject* self, PyObject* )
 {
   psana_python::pyext::Run* py_this = static_cast<psana_python::pyext::Run*>(self);
   return psana_python::pyext::EventIter::PyObject_FromCpp(py_this->m_obj.events());
+}
+
+PyObject*
+Run_end(PyObject* self, PyObject* )
+{
+  // tell the index object to give us the EndRun datagram
+  psana_python::pyext::Run* py_this = static_cast<psana_python::pyext::Run*>(self);
+  py_this->m_obj.index().end();
+  
+  // use the event iterator to fetch the endrun and send it to the modules
+  psana::EventIter evt_iter = py_this->m_obj.events();
+  boost::shared_ptr<PSEvt::Event> evt = evt_iter.next();
+  Py_RETURN_NONE;
 }
 
 PyObject*
