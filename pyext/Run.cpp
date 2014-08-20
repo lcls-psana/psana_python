@@ -47,6 +47,7 @@ namespace {
   PyObject* Run_env(PyObject* self, PyObject*);
   PyObject* Run_run(PyObject* self, PyObject*);
   PyObject* Run_times(PyObject* self, PyObject*);
+  PyObject* Run_nsteps(PyObject* self, PyObject*);
   PyObject* Run_event(PyObject* self, PyObject*);
 
   PyMethodDef methods[] = {
@@ -55,7 +56,8 @@ namespace {
     { "end",         Run_end,       METH_NOARGS, "self.end() -> forces endrun (for use with indexing)" },
     { "env",         Run_env,       METH_NOARGS, "self.env() -> object\n\nReturns environment object" },
     { "run",         Run_run,       METH_NOARGS, "self.run() -> int\n\nReturns run number, -1 if unknown" },
-    { "times",       Run_times,     METH_NOARGS, "self.times() -> array\n\nReturns array of event timestamps for a run for random access" },
+    { "times",       Run_times,     METH_VARARGS,"self.times() -> array\n\nReturns tuple of event timestamps for a run for random access with indexing" },
+    { "nsteps",      Run_nsteps,    METH_NOARGS, "self.nsteps() -> int\n\nReturns number of steps (a.k.a. calib-cycles) for a run.  works only with random access (indexing)." },
     { "event",       Run_event,     METH_VARARGS,"self.event() -> array\n\nReturns a randomly accessed event using timestamp argument" },
     { "__nonzero__", Run_nonzero,   METH_NOARGS, "self.__nonzero__() -> bool\n\nReturns true for non-null object" },
     {0, 0, 0, 0}
@@ -136,19 +138,38 @@ Run_run(PyObject* self, PyObject* )
 }
 
 PyObject*
+Run_nsteps(PyObject* self, PyObject* args)
+{
+  psana_python::pyext::Run* py_this = static_cast<psana_python::pyext::Run*>(self);
+  return Py_BuildValue("i",py_this->m_obj.index().nsteps());
+}
+
+PyObject*
 Run_times(PyObject* self, PyObject* args)
 {
   psana_python::pyext::Run* py_this = static_cast<psana_python::pyext::Run*>(self);
-  const std::vector<psana::EventTime>& idxtimes = py_this->m_obj.index().runtimes();
+  unsigned nstep;
+  if (!PyArg_ParseTuple(args, "|I", &nstep)) return NULL;
+  unsigned getsteptimes = PyTuple_Size(args);
+  psana::Index::EventTimeIter begin;
+  psana::Index::EventTimeIter end;
+
+  if (getsteptimes)
+    py_this->m_obj.index().times(nstep,begin,end);
+  else
+    py_this->m_obj.index().times(begin,end);
 
   // the old way that worked when we used NPY_COMPLEX128 numpy arrays
   // npy_intp length=idxtimes.size();
   // PyObject* times = PyArray_SimpleNewFromData(1, &length, NPY_COMPLEX128, const_cast<psana::EventTime *> (&idxtimes[0]));
   // return Py_BuildValue("O", times);
 
-  PyObject *pTuple = PyTuple_New(idxtimes.size()); // new reference
-  for(unsigned i = 0; i < idxtimes.size(); ++i)
-    PyTuple_SetItem(pTuple, i, psana_python::pyext::EventTime::PyObject_FromCpp(idxtimes[i]));
+  PyObject *pTuple = PyTuple_New(end-begin); // new reference
+  unsigned i=0;
+  for(psana::Index::EventTimeIter it=begin; it!=end; ++it) {
+    PyTuple_SetItem(pTuple, i, psana_python::pyext::EventTime::PyObject_FromCpp(*it));
+    i++;
+  }
 
   return pTuple;
 }

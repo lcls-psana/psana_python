@@ -23,6 +23,8 @@
 // Collaborating Class Headers --
 //-------------------------------
 #include "PSTime/Time.h"
+#include "pyext/EventTime.h"
+#include "psana/EventTime.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -32,6 +34,7 @@ namespace {
 
   // type-specific methods
   PyObject* EventId_time(PyObject* self, PyObject*);
+  PyObject* EventId_idxtime(PyObject* self, PyObject*);
   PyObject* EventId_run(PyObject* self, PyObject*);
   PyObject* EventId_fiducials(PyObject* self, PyObject*);
   PyObject* EventId_ticks(PyObject* self, PyObject*);
@@ -40,6 +43,8 @@ namespace {
   PyMethodDef methods[] = {
     { "time",       EventId_time,     METH_NOARGS,
         "self.time() -> tuple\n\nReturn the time for event, which is tuple containing seconds and nanoseconds." },
+    { "idxtime",    EventId_idxtime,  METH_NOARGS,
+        "self.idxtime() -> EventTime\n\nReturn the time for event, in a class suitable for use with indexing." },
     { "run",        EventId_run,      METH_NOARGS,
         "self.run() -> int\n\nReturn the run number for event. If run number is not known -1 will be returned." },
     { "fiducials",  EventId_fiducials,METH_NOARGS,
@@ -93,6 +98,17 @@ EventId_time(PyObject* self, PyObject* )
   PyTuple_SET_ITEM(tuple, 1, PyInt_FromLong(time.nsec()));
 
   return tuple;
+}
+
+PyObject*
+EventId_idxtime(PyObject* self, PyObject* )
+{
+  boost::shared_ptr<PSEvt::EventId> cself = psana_python::EventId::cppObject(self);
+  const PSTime::Time& time = cself->time();
+
+  uint64_t t = (uint64_t)(time.sec())<<32 | time.nsec();
+  psana::EventTime et(t,cself->fiducials());
+  return psana_python::pyext::EventTime::PyObject_FromCpp(et);
 }
 
 PyObject*
