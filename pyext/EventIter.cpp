@@ -67,11 +67,36 @@ EventIter_iter(PyObject* self)
   return self;
 }
 
+/// class for releasing and restoring the the Python GIL lock
+class GILReleaser {
+public:
+  inline GILReleaser()
+  {
+    m_thread_state = PyEval_SaveThread();
+  }
+  
+  inline ~GILReleaser()
+  {
+    PyEval_RestoreThread(m_thread_state);
+    m_thread_state = NULL;
+  }
+
+private:
+  PyThreadState * m_thread_state;
+};
+
 PyObject*
 EventIter_iternext(PyObject* self)
 try {
   psana_python::pyext::EventIter* py_this = static_cast<psana_python::pyext::EventIter*>(self);
-  boost::shared_ptr<PSEvt::Event> evt = py_this->m_obj.next();
+  boost::shared_ptr<PSEvt::Event> evt;
+  {
+    // Release GIL lock during processing of all Psana Modules. 
+    // psana will ensure the GIL is restored/released for Psana Python Modules.
+    // effectively the GIL will be released for only C++ modules.
+    GILReleaser releaseGIL;
+    evt = py_this->m_obj.next();
+  }
   if (evt) {
     return psana_python::Event::PyObject_FromCpp(evt);
   } else {

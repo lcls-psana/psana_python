@@ -221,6 +221,9 @@ PythonModule::call(PyObject* method, bool pyana_optional_evt, PSEvt::Event& evt,
 {
   if (not method) return;
 
+  // ensuer GIL is locked, restore when lock goes out of scope
+  GILLocker lock;
+
   // in pyana mode some methods can take either (env) or (evt, env),
   // check number of arguments to guess how to call it
   int nargs = 2;

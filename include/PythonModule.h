@@ -104,7 +104,22 @@ public:
   using psana::Module::terminate;
 
 private:
-
+  /**
+   * class to ensure the GIL is locked and then restore it.
+   * Intended to be used before/after calling the PythonModule functions.
+   */
+  class GILLocker {
+    public:
+      GILLocker() : m_gilState(PyGILState_Ensure()) {}
+    
+      ~GILLocker() {
+        PyGILState_Release(m_gilState);
+      }
+    
+    private:
+      PyGILState_STATE m_gilState;
+  };
+  
   /**
    *   Method to call provided Python method with event and env args.
    *
