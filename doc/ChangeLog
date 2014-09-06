@@ -11,6 +11,11 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-14-10
+2014-09-05 David Schneider
+- Provide informative error message when trying to replace Event/EnvObjectStore
+  objects from Python that have C++ converters - see comments JIRA PSAS-25
+
 Tag: V00-14-09
 2014-09-05 David Schneider
 - have the Python extension unlock/restore the GIL before calling C++

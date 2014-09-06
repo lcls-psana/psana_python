@@ -291,6 +291,7 @@ ProxyDictMethods::put(PSEvt::ProxyDictI& proxyDict, PyObject* arg0, const Pds::S
         }
       } catch (const PSEvt::ExceptionDuplicateKey& e) {
         // means already there, we do not allow replacement of C++ objects, raise Python exception
+	PyErr_SetString(PyExc_ValueError, "Cannot replace objects visible to C++");
         return 0;
       }
     }
