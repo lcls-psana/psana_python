@@ -11,6 +11,10 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-14-11
+2014-09-09 David Schneider
+- Extend configStore and calibStore to take key strings - address JIRA PSAS-25
+
 Tag: V00-14-10
 2014-09-05 David Schneider
 - Provide informative error message when trying to replace Event/EnvObjectStore

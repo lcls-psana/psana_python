@@ -57,6 +57,7 @@ namespace {
         "Finds and retrieves objects from a store. This is an overloaded method which "
         "can accept variable number of parameters:\n"
         " * ``get(type, src)`` - find object of specified type and source address\n\n"
+        " * ``get(type, src, key:string)`` - find object of specified type and source address with the given key\n\n"
         "pyana compatibility methods (deprecated):\n"
         " * ``get(int, addr:Source)`` - equivalent to ``get(type, addr)`` where type is deduced"
         " from integer assumed to be Pds::TypeId::Type value\n"
@@ -148,6 +149,7 @@ EnvObjectStore_get(PyObject* self, PyObject* args)
   /*
    *  get(...) is very overloaded method, here is the list of possible argument combinations:
    *  get(type, src)             - equivalent to get(type, src, "")
+   *  get(type, src, key)        - equivalent to get(type, src, "")
    *  get(type)                  - equivalent to get(type, Source(None), "")
    *  - pyana compatibility methods (deprecated):
    *  get(int, addr:string)  - equivalent to get(type, Source(addr), "") where type is deduced
@@ -162,22 +164,24 @@ EnvObjectStore_get(PyObject* self, PyObject* args)
   boost::shared_ptr<PSEnv::EnvObjectStore>& cself = psana_python::EnvObjectStore::cppObject(self);
 
   int nargs = PyTuple_GET_SIZE(args);
-  if (nargs < 1 or nargs > 2) {
-    return PyErr_Format(PyExc_ValueError, "EnvObjectStore.get(...): one to two arguments required (%d provided)", nargs);
+  if (nargs < 1 or nargs > 3) {
+    return PyErr_Format(PyExc_ValueError, "EnvObjectStore.get(...): one to three arguments required (%d provided)", nargs);
   }
 
   PyObject* arg0 = PyTuple_GET_ITEM(args, 0);
-  PyObject* arg1 = nargs > 1 ? PyTuple_GET_ITEM(args, 1) : 0;
+  PyObject* arg1 = nargs >= 2 ? PyTuple_GET_ITEM(args, 1) : 0;
+  PyObject *arg2 = nargs >= 3 ? PyTuple_GET_ITEM(args, 2) : 0;
 
   if (PyInt_Check(arg0)) {
-    
+
     // get(int, ...)
     return psana_python::ProxyDictMethods::get_compat_typeid(*cself->proxyDict(), arg0, arg1);
     
   } else {
 
-    // get source
+    // get source and key
     PSEvt::Source source;
+    std::string key;
     if (arg1) {
       if (psana_python::PdsSrc::Object_TypeCheck(arg1)) {
         // second argument is Src
@@ -191,8 +195,16 @@ EnvObjectStore_get(PyObject* self, PyObject* args)
         return 0;
       }
     }
+    if (arg2) {
+      if (PyString_Check(arg2)) {
+        key = PyString_AsString(arg2);
+      } else {
+        PyErr_SetString(PyExc_TypeError, "Event.get(...) unexpected type of third argument");
+        return 0;
+      }
+    }
 
-    return psana_python::ProxyDictMethods::get(*cself->proxyDict(), arg0, source, std::string());
+    return psana_python::ProxyDictMethods::get(*cself->proxyDict(), arg0, source, key);
     
   }
 }
@@ -203,6 +215,8 @@ try {
   /*
    *  put(...) is overloaded method, possible argument combinations:
    *  put(type, src)             - equivalent to put(type, src, "")
+   *  put(type,key)
+   *  put(type, src, key)        - equivalent to put(type, src, key)
    *  put(type)                  - equivalent to put(type, Source(None), "")
    *  - pyana compatibility methods (deprecated):
    *  No pyana compatible methods implemented - this was never available to pyana in the past
@@ -211,31 +225,17 @@ try {
   boost::shared_ptr<PSEnv::EnvObjectStore>& cself = psana_python::EnvObjectStore::cppObject(self);
 
   int nargs = PyTuple_GET_SIZE(args);
-  if (nargs < 1 or nargs > 2) {
-    return PyErr_Format(PyExc_ValueError, "EnvObjectStore.put(...): one to two arguments required (%d provided)", nargs);
+  if (nargs < 1 or nargs > 3) {
+    return PyErr_Format(PyExc_ValueError, "EnvObjectStore.put(...): one to three arguments required (%d provided)", nargs);
   }
   PyObject* arg0 = PyTuple_GET_ITEM(args, 0);
 
-  // get source
-  PyObject* arg1 = nargs > 1 ? PyTuple_GET_ITEM(args, 1) : 0;
-  Pds::Src source = PSEvt::EventKey::noSource();
-  if (arg1) {
-    if (psana_python::PdsSrc::Object_TypeCheck(arg1)) {
-      // second argument is Src
-      source = psana_python::PdsSrc::cppObject(arg1);
-    } else if (psana_python::Source::Object_TypeCheck(arg1)) {
-      // second argument is Source
-      PSEvt::Source src = psana_python::Source::cppObject(arg1);
-      const PSEvt::AliasMap *amap =  cself->proxyDict()->aliasMap();
-      PSEvt::Source::SrcMatch msrc = src.srcMatch(amap ? *amap : PSEvt::AliasMap());
-      source = msrc.src();
-      if (not msrc.isExact()) {
-        PyErr_SetString(PyExc_ValueError, "EnvObjectStore.put(...) expecting exact source, found wildcard");
-      }
-    }
-  }
- 
-  return psana_python::ProxyDictMethods::put(*cself->proxyDict(), arg0, source, std::string());
+  // get source and key
+  std::pair<Pds::Src, std::string> src_key;
+  src_key = psana_python::ProxyDictMethods::arg_get_put(args, false, cself->proxyDict()->aliasMap());
+  if (PyErr_Occurred()) return 0;
+  PyObject * retVal = psana_python::ProxyDictMethods::put(*cself->proxyDict(), arg0, src_key.first, src_key.second);
+  return retVal;
 
 } catch (const std::exception& ex) {
   PyErr_SetString(PyExc_ValueError, ex.what());

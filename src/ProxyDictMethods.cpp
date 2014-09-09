@@ -139,21 +139,21 @@ ProxyDictMethods::arg_get_put(PyObject* args, bool needExact, const PSEvt::Alias
       PSEvt::Source::SrcMatch msrc = src.srcMatch(amap ? *amap : PSEvt::AliasMap());
       source = msrc.src();
       if (needExact and not msrc.isExact()) {
-        PyErr_SetString(PyExc_ValueError, "Event.get/put(...) expecting exact source, found wildcard");
+        PyErr_SetString(PyExc_ValueError, "get/put(...) expecting exact source, found wildcard");
       }
     } else if (not arg2 and PyString_Check(arg1)) {
       // second argument is string and no third argument
       key = PyString_AsString(arg1);
     } else {
       // anything else is not expected
-      PyErr_SetString(PyExc_TypeError, "Event.get/put(...) unexpected type of second argument");
+      PyErr_SetString(PyExc_TypeError, "get/put(...) unexpected type of second argument");
     }
   }
   if (arg2) {
     if (PyString_Check(arg2)) {
       key = PyString_AsString(arg2);
     } else {
-      PyErr_SetString(PyExc_TypeError, "Event.get/put(...) unexpected type of third argument");
+      PyErr_SetString(PyExc_TypeError, "get/put(...) unexpected type of third argument");
     }
   }
   return std::make_pair(source, key);
@@ -288,7 +288,7 @@ ProxyDictMethods::put(PSEvt::ProxyDictI& proxyDict, PyObject* arg0, const Pds::S
       try {
         if (cvt->convert(arg0, proxyDict, source, key)) {
           Py_RETURN_NONE;
-        }
+	}
       } catch (const PSEvt::ExceptionDuplicateKey& e) {
         // means already there, we do not allow replacement of C++ objects, raise Python exception
 	PyErr_SetString(PyExc_ValueError, "Cannot replace objects visible to C++");
