@@ -11,6 +11,11 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-14-12
+2014-09-09 Christopher O'Grady
+- Put in fix for configuration-parameter "inheritance" where not
+  all parameters were passed to the python constructor.
+
 Tag: V00-14-11
 2014-09-09 David Schneider
 - Extend configStore and calibStore to take key strings - address JIRA PSAS-25

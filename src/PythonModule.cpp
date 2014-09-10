@@ -350,6 +350,15 @@ moduleFactory(const string& name)
     // Create keyword args list.
     pytools::pyshared_ptr kwargs = pytools::make_pyshared(PyDict_New());
     ConfigSvc::ConfigSvc cfg(psana::Context::get());
+
+    std::list<std::string> keys_mod = cfg.getKeys(moduleName);
+    std::list<std::string>::iterator it_mod;
+    for (it_mod = keys_mod.begin(); it_mod != keys_mod.end(); it_mod++) {
+      const std::string& key = *it_mod;
+      const char* value = cfg.getStr(moduleName, key).c_str();
+      PyDict_SetItemString(kwargs.get(), key.c_str(), PyString_FromString(value));
+    }
+
     std::list<std::string> keys = cfg.getKeys(fullName);
     std::list<std::string>::iterator it;
     for (it = keys.begin(); it != keys.end(); it++) {
