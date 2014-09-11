@@ -182,13 +182,17 @@ EnvObjectStore_get(PyObject* self, PyObject* args)
     // get source and key
     PSEvt::Source source;
     std::string key;
+
     if (arg1) {
+      source = PSEvt::Source(PSEvt::Source::null);
       if (psana_python::PdsSrc::Object_TypeCheck(arg1)) {
         // second argument is Src
         source = PSEvt::Source(psana_python::PdsSrc::cppObject(arg1));
       } else if (psana_python::Source::Object_TypeCheck(arg1)) {
         // second argument is Source
         source = psana_python::Source::cppObject(arg1);
+      } else if (not arg2 and PyString_Check(arg1)) {
+        key = PyString_AsString(arg1);
       } else {
         // anything else is not expected
         PyErr_SetString(PyExc_TypeError, "EnvObjectStore.get(...) unexpected type of second argument");
@@ -197,10 +201,10 @@ EnvObjectStore_get(PyObject* self, PyObject* args)
     }
     if (arg2) {
       if (PyString_Check(arg2)) {
-        key = PyString_AsString(arg2);
+	key = PyString_AsString(arg2);
       } else {
-        PyErr_SetString(PyExc_TypeError, "Event.get(...) unexpected type of third argument");
-        return 0;
+	PyErr_SetString(PyExc_TypeError, "Event.get(...) unexpected type of third argument");
+	return 0;
       }
     }
 

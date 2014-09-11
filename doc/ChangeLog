@@ -11,6 +11,10 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-14-13
+2014-09-11 David Schneider
+- fix bug with using key strings for get/put and configStore/calibStore
+
 Tag: V00-14-12
 2014-09-09 Christopher O'Grady
 - Put in fix for configuration-parameter "inheritance" where not
