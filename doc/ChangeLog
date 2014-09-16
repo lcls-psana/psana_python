@@ -11,6 +11,10 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-14-14
+2014-09-16 David Schneider
+- Add Python str to C++ std::string converter for event/config store
+
 Tag: V00-14-13
 2014-09-11 David Schneider
 - fix bug with using key strings for get/put and configStore/calibStore

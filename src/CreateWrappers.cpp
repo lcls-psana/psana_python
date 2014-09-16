@@ -49,6 +49,7 @@
 #include "psddl_python/CreateDeviceWrappers.h"
 #include "psana_python/Ndarray2CppCvt.h"
 #include "psana_python/NdarrayCvt.h"
+#include "psana_python/StringCvt.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -89,6 +90,9 @@ namespace {
     ConverterMap& cmap = ConverterMap::instance();
     cmap.addConverter(make_converter_fun<PSEvt::EventId>(std::ptr_fun(&psana_python::EventId::PyObject_FromCpp),
         psana_python::EventId::typeObject()));
+
+    // register converter for standard Python str (takes no module argument)
+    cmap.addConverter(boost::make_shared<psana_python::StringCvt>());
 
     // instantiate all sub-modules
     psddl_python::createDeviceWrappers(module);
