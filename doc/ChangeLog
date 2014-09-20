@@ -11,6 +11,11 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-14-15
+2014-09-19 Christopher O'Grady
+- Add DataSource::end method to give scripts using indexing the
+  ability to get endJob called in their modules.
+
 Tag: V00-14-14
 2014-09-16 David Schneider
 - Add Python str to C++ std::string converter for event/config store
