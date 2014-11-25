@@ -50,6 +50,7 @@
 #include "psana_python/Ndarray2CppCvt.h"
 #include "psana_python/NdarrayCvt.h"
 #include "psana_python/StringCvt.h"
+#include "psana_python/python_converter.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -109,6 +110,9 @@ namespace {
     psana_python::initNdarrayCvt(cmap, module);
     cmap.addConverter(boost::make_shared<psana_python::Ndarray2CppCvt>());
 
+    // Add additional python converters
+    psana_python::createConverters();
+    
     // add few constants
     PyModule_AddIntConstant(module, "Normal", psana_python::PythonModule::Normal);
     PyModule_AddIntConstant(module, "Skip", psana_python::PythonModule::Skip);

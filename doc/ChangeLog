@@ -10,7 +10,16 @@ Package author: Joseph S. Barrera III
 
 Please describe any modifications that you made to the package in the
 reverse time order.
-
+	
+Tag: V00-14-16
+2014-11-24 Ankush Mitra
+- Add additonal BOOST python converters
+  - converters for numpy to ndarary for all numpy types and dimensions 1->6
+  - converters for ndarray to numpy for all numpy types and dimensions 1->6
+  - converters for stl:list<numpy types> to numpy for all numpy types
+  - NB: these converters are instantiated after the psddl and event store converters
+        and avoid double registration
+	
 Tag: V00-14-15
 2014-09-19 Christopher O'Grady
 - Add DataSource::end method to give scripts using indexing the
