@@ -11,6 +11,16 @@
 
 #include <pytools/PyDataType.h>
 
+#include <PSEvt/Event.h>
+#include <psana_python/Event.h>
+
+#include <PSEnv/Env.h>
+#include <psana_python/Env.h>
+
+#include <PSEvt/Source.h>
+#include <psana_python/Source.h>
+
+
 #include <string>
 #include <iostream>
 #include "MsgLogger/MsgLogger.h"
@@ -75,7 +85,15 @@ namespace psana_python {
 
     BOOST_PP_SEQ_FOR_EACH(REGISTER_STLLIST_TO_NUMPY_CONVERTER,BOOST_PP_EMPTY(),ND_TYPES)
 
+    // Register Python-Event to Event converter  
+    psana_python::PyEvtToEvt().from_python();
+    
+    // Register Python-Env to Env converter  
+    psana_python::PyEnvToEnv().from_python();
 
+    // Register Python-Source to Source converter  
+    psana_python::PySourceToSource().from_python();
+    
     return;
   }
 
@@ -422,20 +440,20 @@ namespace psana_python {
 	   "Value from PyArray_Check " << PyArray_Check(obj) );
 
     if ( !PyArray_Check(obj) ) {
-      MsgLog(pyConverterlogger, error,"PYTHON OBJECT IS NOT A NUMPY ARRAY");
+      MsgLog(pyConverterlogger, debug,"PYTHON OBJECT IS NOT A NUMPY ARRAY");
       return NULL;
      }
 
     PyArrayObject* arrayPtr = reinterpret_cast<PyArrayObject*>(obj);
     const int rank = PyArray_NDIM(arrayPtr);
     if (rank != Rank) {
-      MsgLog(pyConverterlogger, error,
+      MsgLog(pyConverterlogger, debug,
 	     "INCORRECT NUMBER OF DIMENSIONS. Expected:" << Rank << " Got:" << rank);
       return NULL;
     }
 
     if (Traits<T>::numpyType() != PyArray_TYPE(arrayPtr)) {
-      MsgLog(pyConverterlogger, error,
+      MsgLog(pyConverterlogger, debug,
 	     "INCORRECT TYPE.  Expected " << Traits<T>::typeName()
 	     << " Got:" << PyArray_TYPE(arrayPtr));
       return NULL;
@@ -606,6 +624,282 @@ namespace psana_python {
 //    END OF STL-LIST<NUMBERS> TO NDARRAY CONVERTER
 // ***************************************************************************
 // ***************************************************************************
+
+
+
+
+
+  // ***************************************************************************
+  // ***************************************************************************
+  //    START OF PYTHON-EVENT TO CPP-EVENT CONVERTER
+  // ***************************************************************************
+  // ***************************************************************************
+
+  // Python-Event to Event convert for BOOST
+  PyEvtToEvt& PyEvtToEvt::from_python()
+  {
+    // Check if converter was already registered
+    boost::python::type_info tinfo = boost::python::type_id< boost::shared_ptr<PSEvt::Event> >();
+    boost::python::converter::registration const* reg = boost::python::converter::registry::query(tinfo);
+
+    // For debugging, printing out the contents of the reg pointer will be useful. 
+    MsgLog(pyConverterlogger, debug,"reg:" << reg);
+    if (reg == NULL) {
+      boost::python::converter::registry::push_back(&PyEvtToEvt::convertible,
+						    &PyEvtToEvt::construct,
+						    boost::python::type_id<boost::shared_ptr<PSEvt::Event> >());
+      
+      MsgLog(pyConverterlogger, debug,"REGISTER BOOST PYTHON converter for Event");  
+
+    } else if ((*reg).rvalue_chain == NULL && (*reg).lvalue_chain == NULL) {
+      boost::python::converter::registry::push_back(&PyEvtToEvt::convertible,
+						    &PyEvtToEvt::construct,
+						    boost::python::type_id<boost::shared_ptr<PSEvt::Event> >());
+      MsgLog(pyConverterlogger, debug,"REGISTER BOOST PYTHON converter for Event");  
+      // NB:When Python-Event-->Event converter is missing, both rvalue_chain and lvalue_chain are NULL
+      // NB: the rvalue and lvalue was only checked emperically. So could be incorrect...
+      
+    } else {
+      MsgLog(pyConverterlogger, debug,"BOOST PYTHON converter for Event ALREADY REGISTERED"); 	    
+    } 
+    
+    return *this;
+  }
+
+
+  // Check object can be converted
+  void* PyEvtToEvt::convertible(PyObject* obj) 
+  {
+    MsgLog(pyConverterlogger, debug,"CHECKING PYTHON OBJECT IS A PYTHON-EVENT");
+    MsgLog(pyConverterlogger, debug,"Pyobject type " << obj->ob_type->tp_name );
+
+    if (!psana_python::Event::Object_TypeCheck(obj)) {
+      MsgLog(pyConverterlogger, debug,"PYTHON OBJECT IS NOT A PSANA EVENT");
+      return NULL;
+     }
+
+    MsgLog(pyConverterlogger, debug,"PYTHON OBJECT IS A PSANA EVENT");
+    MsgLog(pyConverterlogger, debug,"Leaving convertible");
+    return obj;
+  }
+
+
+
+
+
+  
+  void PyEvtToEvt::construct(PyObject* obj, BoostData* boostData) 
+  {
+    // Reminder that BoostData is a typedef defined in the header file
+    //  --->  typedef boost::python::converter::rvalue_from_python_stage1_data BoostData;
+
+    // --> Set boostData's convertible attribute to point to the original PSANA Event object
+    MsgLog(pyConverterlogger, debug,"Pointing back to original PSANA Event Object");
+
+    // NB: WE ARE GIVING BOOST A REFERENCE TO A SMART POINTER. WE
+    // ASSUME THAT BOOST PASSES THE SMART POINTER BY VALUE WHEN
+    // CALLING THE C++ FUNCTION, THUS INCREMENTING THE SHARED POINTER
+    // REFERENCE COUNT
+    // (PYTHON CANNOT DELETE THE SHARED POINTER WHILE THIS HAPPENS)
+
+    MsgLog(pyConverterlogger, debug,
+	   " WE ARE GIVING BOOST A REFERENCE TO A SMART POINTER")
+    psana_python::Event* py_this = static_cast<psana_python::Event*>(obj);
+    boostData->convertible = static_cast<void*> (&(py_this->m_obj));
+
+    return;
+  }
+  // ***************************************************************************
+  // ***************************************************************************
+  //    END OF PYTHON-EVENT TO CPP-EVENT CONVERTER
+  // ***************************************************************************
+  // ***************************************************************************
+
+
+
+
+  
+  // ***************************************************************************
+  // ***************************************************************************
+  //    START OF PYTHON-ENV TO CPP-ENV CONVERTER
+  // ***************************************************************************
+  // ***************************************************************************
+
+  // Python-Env to Env convert for BOOST
+  PyEnvToEnv& PyEnvToEnv::from_python()
+  {
+    // Check if converter was already registered
+    boost::python::type_info tinfo = boost::python::type_id< boost::shared_ptr<PSEnv::Env> >();
+    boost::python::converter::registration const* reg = boost::python::converter::registry::query(tinfo);
+
+    // For debugging, printing out the contents of the reg pointer will be useful. 
+    MsgLog(pyConverterlogger, debug,"reg:" << reg);
+    if (reg == NULL) {
+      boost::python::converter::registry::push_back(&PyEnvToEnv::convertible,
+						    &PyEnvToEnv::construct,
+						    boost::python::type_id<boost::shared_ptr<PSEnv::Env> >());
+      
+      MsgLog(pyConverterlogger, debug,"REGISTER BOOST PYTHON converter for Env");  
+
+    } else if ((*reg).rvalue_chain == NULL && (*reg).lvalue_chain == NULL) {
+      boost::python::converter::registry::push_back(&PyEnvToEnv::convertible,
+						    &PyEnvToEnv::construct,
+						    boost::python::type_id<boost::shared_ptr<PSEnv::Env> >());
+      MsgLog(pyConverterlogger, debug,"REGISTER BOOST PYTHON converter for Env");  
+      // NB:When Python-Env-->Env converter is missing, both rvalue_chain and lvalue_chain are NULL
+      // NB: the rvalue and lvalue was only checked emperically. So could be incorrect...
+      
+    } else {
+      MsgLog(pyConverterlogger, debug,"BOOST PYTHON converter for Env ALREADY REGISTERED"); 	    
+    } 
+    
+    return *this;
+  }
+
+
+  // Check object can be converted
+  void* PyEnvToEnv::convertible(PyObject* obj) 
+  {
+    MsgLog(pyConverterlogger, debug,"CHECKING PYTHON OBJECT IS A PYTHON-ENV");
+    MsgLog(pyConverterlogger, debug,"Pyobject type " << obj->ob_type->tp_name );
+
+    if (!psana_python::Env::Object_TypeCheck(obj)) {
+      MsgLog(pyConverterlogger, debug,"PYTHON OBJECT IS NOT A PSANA ENV");
+      return NULL;
+     }
+
+    MsgLog(pyConverterlogger, debug,"PYTHON OBJECT IS A PSANA ENV");
+    MsgLog(pyConverterlogger, debug,"Leaving convertible");
+    return obj;
+  }
+
+
+
+
+
+  
+  void PyEnvToEnv::construct(PyObject* obj, BoostData* boostData) 
+  {
+    // Reminder that BoostData is a typedef defined in the header file
+    //  --->  typedef boost::python::converter::rvalue_from_python_stage1_data BoostData;
+
+    // --> Set boostData's convertible attribute to point to the original PSANA Env object
+    MsgLog(pyConverterlogger, debug,"Pointing back to original PSANA Env Object");
+
+
+    // NB: WE ARE GIVING BOOST A REFERENCE TO A SMART POINTER. WE
+    // ASSUME THAT BOOST PASSES THE SMART POINTER BY VALUE WHEN
+    // CALLING THE C++ FUNCTION, THUS INCREMENTING THE SHARED POINTER
+    // REFERENCE COUNT
+    // (PYTHON CANNOT DELETE THE SHARED POINTER WHILE THIS HAPPENS)
+    MsgLog(pyConverterlogger, debug,
+	   " WE ARE GIVING BOOST A REFERENCE TO A SMART POINTER")      
+    psana_python::Env* py_this = static_cast<psana_python::Env*>(obj);
+    boostData->convertible = static_cast<void*> (&(py_this->m_obj));
+
+    return;
+  }
+  // ***************************************************************************
+  // ***************************************************************************
+  //    END OF PYTHON-ENV TO CPP-ENV CONVERTER
+  // ***************************************************************************
+  // ***************************************************************************
+
+
+
+
+
+  // ***************************************************************************
+  // ***************************************************************************
+  //    START OF PYTHON-SOURCE TO CPP-SOURCE CONVERTER
+  // ***************************************************************************
+  // ***************************************************************************
+
+  // Python-Source to Source convert for BOOST
+  PySourceToSource& PySourceToSource::from_python()
+  {
+    // Check if converter was already registered
+    boost::python::type_info tinfo = boost::python::type_id<PSEvt::Source>();
+    boost::python::converter::registration const* reg = boost::python::converter::registry::query(tinfo);
+
+    // For debugging, printing out the contents of the reg pointer will be useful. 
+    MsgLog(pyConverterlogger, debug,"reg:" << reg);
+    if (reg == NULL) {
+      boost::python::converter::registry::push_back(&PySourceToSource::convertible,
+						    &PySourceToSource::construct,
+						    boost::python::type_id<PSEvt::Source>());
+						          
+      MsgLog(pyConverterlogger, debug,"REGISTER BOOST PYTHON converter for Source");  
+
+    } else if ((*reg).rvalue_chain == NULL && (*reg).lvalue_chain == NULL) {
+      boost::python::converter::registry::push_back(&PySourceToSource::convertible,
+						    &PySourceToSource::construct,
+      						    boost::python::type_id<PSEvt::Source>());
+      MsgLog(pyConverterlogger, debug,"REGISTER BOOST PYTHON converter for Source");  
+      // NB:When Python-Source-->Source converter is missing, both rvalue_chain and lvalue_chain are NULL
+      // NB: the rvalue and lvalue was only checked emperically. So could be incorrect...
+      
+    } else {
+      MsgLog(pyConverterlogger, debug,"BOOST PYTHON converter for Source ALREADY REGISTERED"); 	    
+    } 
+    
+    return *this;
+  }
+
+
+  // Check object can be converted
+  void* PySourceToSource::convertible(PyObject* obj) 
+  {
+    MsgLog(pyConverterlogger, debug,"CHECKING PYTHON OBJECT IS A PYTHON-SOURCE");
+
+    if (!psana_python::Source::Object_TypeCheck(obj) ) {
+      MsgLog(pyConverterlogger, debug,"PYTHON OBJECT IS NOT A PSANA SOURCE");
+      return NULL;
+    }
+
+    MsgLog(pyConverterlogger, debug,"PYTHON OBJECT IS A PSANA SOURCE");
+    MsgLog(pyConverterlogger, debug,"Leaving convertible");
+    return obj;
+  }
+
+
+
+
+
+  
+  void PySourceToSource::construct(PyObject* obj, BoostData* boostData) 
+  {
+    // Reminder that BoostData is a typedef defined in the header file
+    //  --->  typedef boost::python::converter::rvalue_from_python_stage1_data BoostData;
+
+    // --> Set boostData's convertible attribute to point to the original PSANA Source object
+    MsgLog(pyConverterlogger, debug,"Pointing back to original PSANA Source Object");
+
+    psana_python::Source* py_this = static_cast<psana_python::Source*>(obj);
+    
+    
+    // Get pointer to the converter's allocated memory block for the
+    // outgoing CPP-SOURCE
+    // --> first create typedef storagetype for convenience
+    typedef boost::python::converter::rvalue_from_python_storage<PSEvt::Source> storagetype;
+    // --> Now grab the pointer that BOOST has allocated to store the
+    // --> CPP-SOURCE
+    void* storage = reinterpret_cast<storagetype*> (boostData)->storage.bytes;
+
+    // --> Now set data's convertible attribute to outgoing CPP-SOURCE
+    MsgLog(pyConverterlogger, debug,"Creating outgoing CPP-SOURCE");
+    boostData->convertible = new(storage) PSEvt::Source(py_this->m_obj);
+
+    return;
+  }
+  // ***************************************************************************
+  // ***************************************************************************
+  //    END OF PYTHON-SOURCE TO CPP-SOURCE CONVERTER
+  // ***************************************************************************
+  // ***************************************************************************
+
+
+
 
 
 }  // end of psana_python namespace

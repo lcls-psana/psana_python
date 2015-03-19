@@ -10,7 +10,18 @@ Package author: Joseph S. Barrera III
 
 Please describe any modifications that you made to the package in the
 reverse time order.
-	
+
+Tag: V00-14-17
+2015-03-18 Ankush Mitra
+- Additional BOOST python converters added for
+  - PSANA Event
+  - PSANA Env
+  - PSANA Source
+- Changed some debug statements from error to debug
+  in the Python NDArray converters
+  - avoids unnecessary print out of error statements when calling
+    overloaded C++ functions in python
+    
 Tag: V00-14-16
 2014-11-24 Ankush Mitra
 - Add additonal BOOST python converters

@@ -47,6 +47,57 @@ namespace psana_python {
     // Register STL list<number> to Numpy converter with BOOST
     static void register_stllist_to_numpy_cvt();
   };
+
+
+
+  // Converter for PYTHON-PSANA-Event to CPP-PSANA-Event for BOOST
+  struct PyEvtToEvt
+  {
+    // Registers Python-Event to CPP-Event converter with BOOST
+    PyEvtToEvt& from_python();
+
+    // Check incoming PYTHON object can be converted to Event Object
+    static void* convertible(PyObject* obj);
+    
+    // Converts Python-Event to Event
+    typedef boost::python::converter::rvalue_from_python_stage1_data BoostData;
+    static void  construct(PyObject* obj, BoostData* boostData);        
+  };
+
+
+
+  // Converter for PYTHON-PSANA-Env to CPP-PSANA-Env for BOOST
+  struct PyEnvToEnv
+  {
+    // Registers Python-Env to CPP-Env converter with BOOST
+    PyEnvToEnv& from_python();
+
+    // Check incoming PYTHON object can be converted to Env Object
+    static void* convertible(PyObject* obj);
+    
+    // Converts Python-Env to Env
+    typedef boost::python::converter::rvalue_from_python_stage1_data BoostData;
+    static void  construct(PyObject* obj, BoostData* boostData);        
+  };
+
+
+
+  
+  // Converter for PYTHON-PSANA-SOURCE to CPP-PSANA-SOURCE for BOOST
+  struct PySourceToSource
+  {
+    // Registers Python-Source to CPP-Source converter with BOOST
+    PySourceToSource& from_python();
+
+    // Check incoming PYTHON object can be converted to Source Object
+    static void* convertible(PyObject* obj);
+    
+    // Converts Python-Source to Source
+    typedef boost::python::converter::rvalue_from_python_stage1_data BoostData;
+    static void  construct(PyObject* obj, BoostData* boostData);        
+  };
+
+
   
 }
 
