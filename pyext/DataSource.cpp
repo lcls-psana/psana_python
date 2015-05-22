@@ -18,6 +18,9 @@
 //-----------------
 // C/C++ Headers --
 //-----------------
+#include <iostream>
+#include <string>
+#include "MsgLogger/MsgLogger.h"
 
 //-------------------------------
 // Collaborating Class Headers --
@@ -26,6 +29,7 @@
 #include "RunIter.h"
 #include "StepIter.h"
 #include "psana_python/Env.h"
+#include "psana_python/PythonModule.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -40,6 +44,7 @@ namespace {
   PyObject* DataSource_events(PyObject* self, PyObject*);
   PyObject* DataSource_env(PyObject* self, PyObject*);
   PyObject* DataSource_end(PyObject* self, PyObject*);
+  PyObject* DataSource_addmodule(PyObject* self, PyObject*);
 
   PyMethodDef methods[] = {
     { "empty",   DataSource_empty,   METH_NOARGS, "self.empty() -> bool\n\nReturns true if data source has no associated data (\"null\" source)" },
@@ -48,6 +53,7 @@ namespace {
     { "events",  DataSource_events,  METH_NOARGS, "self.events() -> iterator\n\nReturns iterator for contained events  (:py:class:`EventIter`)" },
     { "env",     DataSource_env,     METH_NOARGS, "self.env() -> object\n\nReturns environment object, cannot be called for \"null\" source" },
     { "end",     DataSource_end,     METH_NOARGS, "self.end() -> for data sources using random access, allows user to specify end-of-job" },
+    { "add_module", DataSource_addmodule, METH_O, "add_module -> allow user to manually add modules"},
     {0, 0, 0, 0}
    };
 
@@ -57,6 +63,9 @@ namespace {
       "to end, or you can iterate over steps and then over events in individual step. Collaborating "
       "classes (:py:class:`RunIter`, :py:class:`StepIter`, and :py:class:`EventIter`) provide iterators "
       "which implement different scanning algorithm, this class serves as a factory for iterators.";
+  
+  // String to identify debug statements produced by this code
+  const char *pyDSlogger = "Python_DataSource";
 
 }
 
@@ -126,5 +135,25 @@ DataSource_end(PyObject* self, PyObject* )
   py_this->m_obj.events().next();
   Py_RETURN_NONE;
 }
+
+
+PyObject* 
+DataSource_addmodule(PyObject* self, PyObject* obj)
+{
+  // Convert incoming PYTHON object 'obj' to PSANA Python Module. This
+  // will take care of memory management for PYTHON and C++
+  MsgLog(pyDSlogger, debug, "Converting incoming PYTHON object (obj) into PSANA Python Module");
+  psana_python::PythonModule* pymod = new psana_python::PythonModule("PSANA_PYTHON_MODULE", obj);
+
+  // Cast self as Python DataSouce object
+  psana_python::pyext::DataSource* py_this = static_cast<psana_python::pyext::DataSource*>(self);
+
+  // Add obj to list of PSANA's modules
+  MsgLog(pyDSlogger, debug, "Adding obj to PSANA's internal list of modules");
+  py_this->m_obj.addmodule(boost::shared_ptr<Module>(pymod));
+
+  Py_RETURN_NONE;
+}
+
 
 }
