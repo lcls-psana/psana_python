@@ -53,7 +53,7 @@ namespace {
     { "events",  DataSource_events,  METH_NOARGS, "self.events() -> iterator\n\nReturns iterator for contained events  (:py:class:`EventIter`)" },
     { "env",     DataSource_env,     METH_NOARGS, "self.env() -> object\n\nReturns environment object, cannot be called for \"null\" source" },
     { "end",     DataSource_end,     METH_NOARGS, "self.end() -> for data sources using random access, allows user to specify end-of-job" },
-    { "add_module", DataSource_addmodule, METH_O, "add_module -> allow user to manually add modules"},
+    { "__add_module", DataSource_addmodule, METH_O, "add_module -> allow user to manually add modules"},
     {0, 0, 0, 0}
    };
 
