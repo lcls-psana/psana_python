@@ -18,8 +18,6 @@
 //-----------------
 // C/C++ Headers --
 //-----------------
-#include <iostream>
-#include <string>
 #include "MsgLogger/MsgLogger.h"
 
 //-------------------------------
