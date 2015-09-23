@@ -43,6 +43,7 @@ namespace {
   PyObject* DataSource_env(PyObject* self, PyObject*);
   PyObject* DataSource_end(PyObject* self, PyObject*);
   PyObject* DataSource_addmodule(PyObject* self, PyObject*);
+  PyObject* DataSource_liveAvail(PyObject* self, PyObject*, PyObject*);
 
   PyMethodDef methods[] = {
     { "empty",   DataSource_empty,   METH_NOARGS, "self.empty() -> bool\n\nReturns true if data source has no associated data (\"null\" source)" },
@@ -51,6 +52,11 @@ namespace {
     { "events",  DataSource_events,  METH_NOARGS, "self.events() -> iterator\n\nReturns iterator for contained events  (:py:class:`EventIter`)" },
     { "env",     DataSource_env,     METH_NOARGS, "self.env() -> object\n\nReturns environment object, cannot be called for \"null\" source" },
     { "end",     DataSource_end,     METH_NOARGS, "self.end() -> for data sources using random access, allows user to specify end-of-job" },
+    { "liveAvail", (PyCFunction)DataSource_liveAvail,  METH_VARARGS | METH_KEYWORDS, 
+      "self.liveAvail() -> bool\n\nReturns True if live mode and the available events > numEvents arg.\n"
+      "Used to skip events and catch up with latest for live data.\n"
+      "Calculation of available events is approximate given\n"
+      "asynchronous updates of live data." },
     { "__add_module", DataSource_addmodule, METH_O, "add_module -> allow user to manually add modules"},
     {0, 0, 0, 0}
    };
@@ -132,6 +138,21 @@ DataSource_end(PyObject* self, PyObject* )
   // it isn't necessary.  - cpo
   py_this->m_obj.events().next();
   Py_RETURN_NONE;
+}
+
+PyObject*
+DataSource_liveAvail(PyObject* self, PyObject* args, PyObject *keywds)
+{
+  int numEvents;
+  static char *kwlist[] = {(char *)"numEvents", NULL};
+
+  if (!PyArg_ParseTupleAndKeywords(args, keywds, "i", kwlist, &numEvents)) {
+    return NULL;
+  }
+ 
+  psana_python::pyext::DataSource* py_this = static_cast<psana_python::pyext::DataSource*>(self);
+  bool result = py_this->m_obj.liveAvail(numEvents);
+  return PyBool_FromLong(long(result));
 }
 
 
