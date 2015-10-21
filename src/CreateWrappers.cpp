@@ -30,6 +30,7 @@
 //-------------------------------
 #include "MsgLogger/MsgLogger.h"
 #include "psana_python/AliasMap.h"
+#include "psana_python/DgramList.h"
 #include "psana_python/Env.h"
 #include "psana_python/EnvObjectStore.h"
 #include "psana_python/EventId.h"
@@ -73,6 +74,7 @@ namespace {
 
     // initialize all local types
     psana_python::AliasMap::initType(module);
+    psana_python::DgramList::initType(module);
     psana_python::Env::initType(module);
     psana_python::EnvObjectStore::initType(module);
     psana_python::EpicsStore::initType(module);
@@ -91,6 +93,9 @@ namespace {
     ConverterMap& cmap = ConverterMap::instance();
     cmap.addConverter(make_converter_fun<PSEvt::EventId>(std::ptr_fun(&psana_python::EventId::PyObject_FromCpp),
         psana_python::EventId::typeObject()));
+
+    cmap.addConverter(make_converter_fun<XtcInput::DgramList>(std::ptr_fun(&psana_python::DgramList::PyObject_FromCpp),
+        psana_python::DgramList::typeObject()));
 
     // register converter for standard Python str (takes no module argument)
     cmap.addConverter(boost::make_shared<psana_python::StringCvt>());
