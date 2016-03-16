@@ -11,12 +11,16 @@ Package author: Joseph S. Barrera III
 Please describe any modifications that you made to the package in the
 reverse time order.
 
-Tag: V00-14-20
+Tag: V00-15-21
+2016-03-15 Christopher O'Grady, TJ Lane
+- add methods to return tuple of Pds::Src from AliasMap object
+
+Tag: V00-15-20
 2015-10-21 David Schneider
 - add wrapper for DgramList from the XtcInput package.
 - remove the python interface to liveAvail.
-	
-Tag: V00-14-19
+
+Tag: V00-15-19
 2015-9-23 David Schneider
 - add wrapper for liveAvail feature JIRA PSAS-184	
 

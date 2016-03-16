@@ -46,6 +46,7 @@ namespace {
   PyObject* AliasMap_clear(PyObject* self, PyObject* args);
   PyObject* AliasMap_src(PyObject* self, PyObject* args);
   PyObject* AliasMap_alias(PyObject* self, PyObject* args);
+  PyObject* AliasMap_srcs(PyObject* self, PyObject* args);
 
   PyMethodDef methods[] = {
     { "add",    AliasMap_add,    METH_VARARGS,  "self.add(alias:string, source:Src)\n\nAdd one more alias to the map."},
@@ -54,6 +55,7 @@ namespace {
         "If specified alias name does not exist in the map then default-constructed instance of Src will be returned."},
     { "alias",  AliasMap_alias,  METH_VARARGS,  "self.alias(source:Src)\n\nFind matching alias name for given Src. "
         "If specified Src does not exist in the map then empty string will be returned."},
+    { "srcs",  AliasMap_srcs,  METH_VARARGS,  "return a tuple of Pds::Src"},
     {0, 0, 0, 0}
    };
 
@@ -159,6 +161,25 @@ AliasMap_alias(PyObject* self, PyObject* args)
 
   const std::string& alias = cself->alias(PdsSrc::cppObject(srcObj));
   return PyString_FromStringAndSize(alias.data(), alias.size());
+}
+
+PyObject*
+AliasMap_srcs(PyObject* self, PyObject* args)
+{
+  boost::shared_ptr<PSEvt::AliasMap>& cself = psana_python::AliasMap::cppObject(self);
+
+  const std::vector<Pds::Src>& srcs = cself->srcs();
+  
+  PyObject *pTuple = PyTuple_New(srcs.size());
+
+  int i=0;
+  for(std::vector<Pds::Src>::const_iterator src = srcs.begin(); src != srcs.end(); ++src) {
+    PyTuple_SetItem(pTuple, i, PdsSrc::PyObject_FromCpp(*src));
+    i++;
+  }
+
+  return pTuple;
+
 }
 
 }
