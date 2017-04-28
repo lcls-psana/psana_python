@@ -81,11 +81,11 @@ namespace {
     psana_python::Event::initType(module);
     psana_python::EventId::initType(module);
     psana_python::EventKey::initType(module);
+    psana_python::PdsSrc::initType(module);
     psana_python::PdsBldInfo::initType(module);
     psana_python::PdsClockTime::initType(module);
     psana_python::PdsDetInfo::initType(module);
     psana_python::PdsProcInfo::initType(module);
-    psana_python::PdsSrc::initType(module);
     psana_python::Source::initType(module);
     psana_python::SrcMatch::initType(module);
 
