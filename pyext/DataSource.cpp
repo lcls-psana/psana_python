@@ -19,6 +19,7 @@
 // C/C++ Headers --
 //-----------------
 #include "MsgLogger/MsgLogger.h"
+#include "psana_python/Event.h"
 
 //-------------------------------
 // Collaborating Class Headers --
@@ -26,6 +27,7 @@
 #include "EventIter.h"
 #include "RunIter.h"
 #include "StepIter.h"
+#include "psana_python/Exceptions.h"
 #include "psana_python/Env.h"
 #include "psana_python/PythonModule.h"
 
@@ -43,6 +45,7 @@ namespace {
   PyObject* DataSource_env(PyObject* self, PyObject*);
   PyObject* DataSource_end(PyObject* self, PyObject*);
   PyObject* DataSource_addmodule(PyObject* self, PyObject*);
+  PyObject* DataSource_jump(PyObject* self, PyObject*);
 
   PyMethodDef methods[] = {
     { "empty",   DataSource_empty,   METH_NOARGS, "self.empty() -> bool\n\nReturns true if data source has no associated data (\"null\" source)" },
@@ -52,6 +55,7 @@ namespace {
     { "env",     DataSource_env,     METH_NOARGS, "self.env() -> object\n\nReturns environment object, cannot be called for \"null\" source" },
     { "end",     DataSource_end,     METH_NOARGS, "self.end() -> for data sources using random access, allows user to specify end-of-job" },
     { "__add_module", DataSource_addmodule, METH_O, "add_module -> allow user to manually add modules"},
+    { "jump",    DataSource_jump,    METH_VARARGS,"self.jump(filenames, offsets) -> event\n\nfor data sources using random access, jumps to a specific event" },
     {0, 0, 0, 0}
    };
 
@@ -151,6 +155,78 @@ DataSource_addmodule(PyObject* self, PyObject* obj)
   py_this->m_obj.addmodule(boost::shared_ptr<Module>(pymod));
 
   Py_RETURN_NONE;
+}
+
+PyObject *
+DataSource_jump(PyObject* self, PyObject* args)
+{
+  int status;
+  PyObject *py_filenames;
+  PyObject *py_offsets;
+  if (!PyArg_ParseTuple(args, "OO", &py_filenames, &py_offsets)) return NULL;
+
+  std::vector<std::string> filenames;
+  std::vector<int64_t> offsets;
+
+  if (PyString_Check(py_filenames)) {
+    filenames.push_back(PyString_AsString(py_filenames));
+  } else if (PyList_Check(py_filenames)) {
+    size_t size = PyList_Size(py_filenames);
+    for (size_t i = 0; i < size; i++) {
+      PyObject *elt = PyList_GetItem(py_filenames, i);
+      if (PyString_Check(elt)) {
+        filenames.push_back(PyString_AsString(elt));
+      } else {
+        const char *msg = "First argument to jump must be a string or list of strings";
+        MsgLog(pyDSlogger, error, msg);
+        throw psana_python::ExceptionGenericPyError(ERR_LOC, msg);
+      }
+    }
+  } else {
+    const char *msg = "First argument to jump must be a string or list of strings";
+    MsgLog(pyDSlogger, error, msg);
+    throw psana_python::ExceptionGenericPyError(ERR_LOC, msg);
+  }
+
+  if (PyLong_Check(py_offsets)) {
+    offsets.push_back(PyLong_AsLongLong(py_offsets));
+  } else if (PyList_Check(py_offsets)) {
+    size_t size = PyList_Size(py_offsets);
+    for (size_t i = 0; i < size; i++) {
+      PyObject *elt = PyList_GetItem(py_offsets, i);
+      if (PyLong_Check(elt)) {
+        offsets.push_back(PyLong_AsLongLong(elt));
+      } else {
+        const char *msg = "Second argument to jump must be a long or list of longs";
+        MsgLog(pyDSlogger, error, msg);
+        // FIXME: Not sure what exception to throw here
+        throw psana_python::ExceptionGenericPyError(ERR_LOC, msg);
+      }
+    }
+  } else {
+    const char *msg = "Second argument to jump must be a long or list of longs";
+    MsgLog(pyDSlogger, error, msg);
+    throw psana_python::ExceptionGenericPyError(ERR_LOC, msg);
+  }
+
+  if (filenames.size() != offsets.size()) {
+    const char *msg = "Arguments to jump must be of the same length";
+    MsgLog(pyDSlogger, error, msg);
+    throw psana_python::ExceptionGenericPyError(ERR_LOC, msg);
+  }
+
+  psana_python::pyext::DataSource* py_this = static_cast<psana_python::pyext::DataSource*>(self);
+  psana::RandomAccess& randomAccess = py_this->m_obj.randomAccess();
+  status = randomAccess.jump(filenames, offsets);
+  if (status) Py_RETURN_NONE;
+
+  psana::EventIter evt_iter = py_this->m_obj.events();
+  boost::shared_ptr<PSEvt::Event> evt = evt_iter.next();
+  if (evt) {
+    return psana_python::Event::PyObject_FromCpp(evt);
+  } else {
+    Py_RETURN_NONE;
+  }
 }
 
 

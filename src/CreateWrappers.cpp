@@ -35,6 +35,7 @@
 #include "psana_python/EnvObjectStore.h"
 #include "psana_python/EventId.h"
 #include "psana_python/EventKey.h"
+#include "psana_python/EventOffset.h"
 #include "psana_python/Event.h"
 #include "psana_python/EpicsStore.h"
 #include "psana_python/PdsBldInfo.h"
@@ -81,6 +82,7 @@ namespace {
     psana_python::Event::initType(module);
     psana_python::EventId::initType(module);
     psana_python::EventKey::initType(module);
+    psana_python::EventOffset::initType(module);
     psana_python::PdsSrc::initType(module);
     psana_python::PdsBldInfo::initType(module);
     psana_python::PdsClockTime::initType(module);
@@ -93,6 +95,9 @@ namespace {
     ConverterMap& cmap = ConverterMap::instance();
     cmap.addConverter(make_converter_fun<PSEvt::EventId>(std::ptr_fun(&psana_python::EventId::PyObject_FromCpp),
         psana_python::EventId::typeObject()));
+
+    cmap.addConverter(make_converter_fun<PSEvt::EventOffset>(std::ptr_fun(&psana_python::EventOffset::PyObject_FromCpp),
+        psana_python::EventOffset::typeObject()));
 
     cmap.addConverter(make_converter_fun<XtcInput::DgramList>(std::ptr_fun(&psana_python::DgramList::PyObject_FromCpp),
         psana_python::DgramList::typeObject()));
