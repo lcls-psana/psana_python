@@ -55,7 +55,7 @@ namespace {
     { "env",     DataSource_env,     METH_NOARGS, "self.env() -> object\n\nReturns environment object, cannot be called for \"null\" source" },
     { "end",     DataSource_end,     METH_NOARGS, "self.end() -> for data sources using random access, allows user to specify end-of-job" },
     { "__add_module", DataSource_addmodule, METH_O, "add_module -> allow user to manually add modules"},
-    { "jump",    DataSource_jump,    METH_VARARGS,"self.jump(filenames, offsets) -> event\n\nfor data sources using random access, jumps to a specific event" },
+    { "jump",    DataSource_jump,    METH_VARARGS,"self.jump(filenames, offsets, lastBeginCalibCycleDgram) -> event\n\nfor data sources using random access, jumps to a specific event" },
     {0, 0, 0, 0}
    };
 
@@ -163,10 +163,12 @@ DataSource_jump(PyObject* self, PyObject* args)
   int status;
   PyObject *py_filenames;
   PyObject *py_offsets;
-  if (!PyArg_ParseTuple(args, "OO", &py_filenames, &py_offsets)) return NULL;
+  PyObject *py_lastBeginCalibCycleDgram;
+  if (!PyArg_ParseTuple(args, "OOO", &py_filenames, &py_offsets, &py_lastBeginCalibCycleDgram)) return NULL;
 
   std::vector<std::string> filenames;
   std::vector<int64_t> offsets;
+  std::string lastBeginCalibCycleDgram(PyString_AsString(py_lastBeginCalibCycleDgram), PyString_Size(py_lastBeginCalibCycleDgram));
 
   if (PyString_Check(py_filenames)) {
     filenames.push_back(PyString_AsString(py_filenames));
@@ -217,7 +219,7 @@ DataSource_jump(PyObject* self, PyObject* args)
 
   psana_python::pyext::DataSource* py_this = static_cast<psana_python::pyext::DataSource*>(self);
   psana::RandomAccess& randomAccess = py_this->m_obj.randomAccess();
-  status = randomAccess.jump(filenames, offsets);
+  status = randomAccess.jump(filenames, offsets, lastBeginCalibCycleDgram);
   if (status) Py_RETURN_NONE;
 
   psana::EventIter evt_iter = py_this->m_obj.events();
