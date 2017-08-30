@@ -32,18 +32,12 @@ namespace {
   // type-specific methods
   PyObject* EventOffset_offsets(PyObject* self, PyObject*);
   PyObject* EventOffset_filenames(PyObject* self, PyObject*);
-  PyObject* EventOffset_configureOffset(PyObject* self, PyObject*);
-  PyObject* EventOffset_beginRunOffset(PyObject* self, PyObject*);
-  PyObject* EventOffset_lastBeginCalibCycleOffset(PyObject* self, PyObject*);
-  PyObject* EventOffset_lastBeginCalibCycleFilename(PyObject* self, PyObject*);
+  PyObject* EventOffset_lastBeginCalibCycleDgram(PyObject* self, PyObject*);
 
   PyMethodDef methods[] = {
-    { "filenames",                   EventOffset_filenames,                   METH_NOARGS, "self.filenames() -> list\n\nReturns list of datagram filenames."},
-    { "offsets",                     EventOffset_offsets,                     METH_NOARGS, "self.offsets() -> list\n\nReturns list of event offsets in datagram."},
-    { "configureOffset",             EventOffset_configureOffset,             METH_NOARGS, "self.configureOffset() -> int\n\nReturns offset of configure transition in datagram."},
-    { "beginRunOffset",              EventOffset_beginRunOffset,              METH_NOARGS, "self.beginRunOffset() -> int\n\nReturns offset of beginRun transition in datagram."},
-    { "lastBeginCalibCycleFilename", EventOffset_lastBeginCalibCycleFilename, METH_NOARGS, "self.lastBeginCalibCycleFilename() -> int\n\nReturns filename containing beginCalibCycle transition."},
-    { "lastBeginCalibCycleOffset",   EventOffset_lastBeginCalibCycleOffset,   METH_NOARGS, "self.lastBeginCalibCycleOffset() -> int\n\nReturns offset of beginCalibCycle transition in datagram."},
+    { "filenames",                EventOffset_filenames,                METH_NOARGS, "self.filenames() -> list\n\nReturns list of datagram filenames."},
+    { "offsets",                  EventOffset_offsets,                  METH_NOARGS, "self.offsets() -> list\n\nReturns list of event offsets in datagram."},
+    { "lastBeginCalibCycleDgram", EventOffset_lastBeginCalibCycleDgram, METH_NOARGS, "self.lastBeginCalibCycleDgram() -> int\n\nReturns the last beginCalibCycle transition datagram contents."},
     {0, 0, 0, 0}
    };
 
@@ -94,31 +88,10 @@ EventOffset_filenames(PyObject* self, PyObject* )
 }
 
 PyObject*
-EventOffset_configureOffset(PyObject* self, PyObject* )
+EventOffset_lastBeginCalibCycleDgram(PyObject* self, PyObject* )
 {
   boost::shared_ptr<PSEvt::EventOffset> cself = psana_python::EventOffset::cppObject(self);
-  return PyLong_FromLongLong(cself->configureOffset());
-}
-
-PyObject*
-EventOffset_beginRunOffset(PyObject* self, PyObject* )
-{
-  boost::shared_ptr<PSEvt::EventOffset> cself = psana_python::EventOffset::cppObject(self);
-  return PyLong_FromLongLong(cself->beginRunOffset());
-}
-
-PyObject*
-EventOffset_lastBeginCalibCycleOffset(PyObject* self, PyObject* )
-{
-  boost::shared_ptr<PSEvt::EventOffset> cself = psana_python::EventOffset::cppObject(self);
-  return PyLong_FromLongLong(cself->lastBeginCalibCycleOffset());
-}
-
-PyObject*
-EventOffset_lastBeginCalibCycleFilename(PyObject* self, PyObject* )
-{
-  boost::shared_ptr<PSEvt::EventOffset> cself = psana_python::EventOffset::cppObject(self);
-  return PyString_FromString(cself->lastBeginCalibCycleFilename().c_str());
+  return PyString_FromStringAndSize(cself->lastBeginCalibCycleDgram().c_str(), cself->lastBeginCalibCycleDgram().size());
 }
 
 }
