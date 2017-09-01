@@ -26,4 +26,4 @@ Import('*')
 # PYEXTMOD - name of the Python extension module, package name used by default
 #
 #
-standardSConscript(PYEXTMOD="_psana", DOCGEN={"doxy-all": "psana_python", "psana-ref": "psana"})
+standardSConscript(PYEXTMOD="_psana", DOCGEN={"doxy-all": "psana_python", "psana-ref": "psana"}, CCFLAGS="-fabi-version=2")
