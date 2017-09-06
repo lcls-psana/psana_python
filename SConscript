@@ -26,4 +26,11 @@ Import('*')
 # PYEXTMOD - name of the Python extension module, package name used by default
 #
 #
-standardSConscript(PYEXTMOD="_psana", DOCGEN={"doxy-all": "psana_python", "psana-ref": "psana"}, CCFLAGS="-std=c++98 -fabi-version=2 -D_GLIBCXX_USE_CXX11_ABI=0")
+
+import os
+
+PYEXTMOD="_psana"
+DOCGEN={"doxy-all": "psana_python", "psana-ref": "psana"}
+if "PSANA_LEGION_DIR" in os.environ:
+    CCFLAGS="-std=c++98 -fabi-version=2 -D_GLIBCXX_USE_CXX11_ABI=0 -DPSANA_USE_LEGION"
+standardSConscript(**locals())

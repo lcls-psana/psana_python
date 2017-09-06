@@ -55,7 +55,7 @@ namespace {
     { "env",     DataSource_env,     METH_NOARGS, "self.env() -> object\n\nReturns environment object, cannot be called for \"null\" source" },
     { "end",     DataSource_end,     METH_NOARGS, "self.end() -> for data sources using random access, allows user to specify end-of-job" },
     { "__add_module", DataSource_addmodule, METH_O, "add_module -> allow user to manually add modules"},
-    { "jump",    DataSource_jump,    METH_VARARGS,"self.jump(filenames, offsets, lastBeginCalibCycleDgram, runtime, context) -> event\n\nfor data sources using random access, jumps to a specific event" },
+    { "jump",    DataSource_jump,    METH_VARARGS,"self.jump(filenames, offsets, lastBeginCalibCycleDgram, legionRuntime, legionContext) -> event\n\nfor data sources using random access, jumps to a specific event. Legion arguments are optional." },
     {0, 0, 0, 0}
    };
 
@@ -164,9 +164,9 @@ DataSource_jump(PyObject* self, PyObject* args)
   PyObject *py_filenames;
   PyObject *py_offsets;
   PyObject *py_lastBeginCalibCycleDgram;
-  unsigned long long runtime;
-  unsigned long long ctx;
-  if (!PyArg_ParseTuple(args, "OOOKK", &py_filenames, &py_offsets, &py_lastBeginCalibCycleDgram, &runtime, &ctx)) return NULL;
+  unsigned long long runtime = 0;
+  unsigned long long ctx = 0;
+  if (!PyArg_ParseTuple(args, "OOO|KK", &py_filenames, &py_offsets, &py_lastBeginCalibCycleDgram, &runtime, &ctx)) return NULL;
 
   std::vector<std::string> filenames;
   std::vector<int64_t> offsets;
