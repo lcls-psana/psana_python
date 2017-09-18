@@ -91,7 +91,7 @@ PyObject*
 EventOffset_lastBeginCalibCycleDgram(PyObject* self, PyObject* )
 {
   boost::shared_ptr<PSEvt::EventOffset> cself = psana_python::EventOffset::cppObject(self);
-  return PyString_FromStringAndSize(cself->lastBeginCalibCycleDgram().c_str(), cself->lastBeginCalibCycleDgram().size());
+  return PyString_FromStringAndSize(cself->lastBeginCalibCycleDgram()->c_str(), cself->lastBeginCalibCycleDgram()->size());
 }
 
 }
