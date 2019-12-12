@@ -40,7 +40,7 @@ namespace psana_python {
   void createConverters() {
     
     // Initialise NUMPY 
-    import_array();
+    _import_array();
 
     // These templates and BOOST preprocessor macros can be hard to understand what's
     // going on.  Here's a couple of examples of what they trying to do....
