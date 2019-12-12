@@ -10,6 +10,10 @@
 //
 //------------------------------------------------------------------------
 
+#if PY_MAJOR_VERSION >= 3
+#define IS_PY3K
+#endif
+
 //-----------------------
 // This Class's Header --
 //-----------------------
@@ -36,6 +40,7 @@
 #include "psana_python/Source.h"
 #include "psana_python/ProxyDictMethods.h"
 #include "pytools/make_pyshared.h"
+#include "psana_python/PyUtil.h"
 //#include "psana_python/arg_get_put.h"
 
 //-----------------------------------------------------------------------
@@ -196,7 +201,11 @@ try {
   PyObject* arg1 = nargs > 1 ? PyTuple_GET_ITEM(args, 1) : 0;
 
   // check the type of the first argument
+#ifdef IS_PY3K
+  if (PyUnicode_Check(arg0) or PyBytes_Check(arg0)) {
+#else
   if (PyString_Check(arg0)) {
+#endif
 
     // get(str)
     if (nargs != 1) {
@@ -204,7 +213,11 @@ try {
     }
     return psana_python::ProxyDictMethods::get_compat_string(*cself->proxyDict(), arg0);
     
+#ifdef IS_PY3K
+  } else if (PyLong_Check(arg0)) {
+#else
   } else if (PyInt_Check(arg0)) {
+#endif
     
     // get(int, ...)
     if (nargs > 2) {
@@ -230,9 +243,13 @@ try {
       } else if (psana_python::Source::Object_TypeCheck(arg1)) {
         // second argument is Source
         source = psana_python::Source::cppObject(arg1);
+#ifdef IS_PY3K
+      } else if (not arg2 and (PyUnicode_Check(arg1) or PyBytes_Check(arg1))) {
+#else
       } else if (not arg2 and PyString_Check(arg1)) {
+#endif
         // second argument is string and no third argument
-        key = PyString_AsString(arg1);
+        key = PyString_AsString_Compatible(arg1);
       } else {
         // anything else is not expected
         PyErr_SetString(PyExc_TypeError, "Event.get(...) unexpected type of second argument");
@@ -240,8 +257,12 @@ try {
       }
     }
     if (arg2) {
+#ifdef IS_PY3K
+      if (PyUnicode_Check(arg2) or PyBytes_Check(arg2)) {
+#else
       if (PyString_Check(arg2)) {
-        key = PyString_AsString(arg2);
+#endif
+        key = PyString_AsString_Compatible(arg2);
       } else {
         PyErr_SetString(PyExc_TypeError, "Event.get(...) unexpected type of third argument");
         return 0;
@@ -336,7 +357,11 @@ Event_run(PyObject* self, PyObject* args)
   const boost::shared_ptr<PSEvt::EventId>& eventId = cself->get();
   if (eventId) run = eventId->run();
 
+#ifdef IS_PY3K
+  return PyLong_FromLong(run);
+#else
   return PyInt_FromLong(run);
+#endif
 }
 
 }

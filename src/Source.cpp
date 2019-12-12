@@ -10,6 +10,10 @@
 //
 //------------------------------------------------------------------------
 
+#if PY_MAJOR_VERSION >= 3
+#define IS_PY3K
+#endif
+
 //-----------------------
 // This Class's Header --
 //-----------------------
@@ -27,6 +31,7 @@
 #include "psana_python/AliasMap.h"
 #include "psana_python/PdsSrc.h"
 #include "psana_python/SrcMatch.h"
+#include "psana_python/PyUtil.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -102,17 +107,27 @@ try {
     if (arg0 == Py_None) {
       // None means no-source
       source = PSEvt::Source(PSEvt::Source::null);
+#ifdef IS_PY3K
+    } else if (PyLong_Check(arg0)) {
+      // integer argument means BldInfo type, check the reange
+      int val = PyLong_AS_LONG(arg0);
+#else
     } else if (PyInt_Check(arg0)) {
       // integer argument means BldInfo type, check the reange
       int val = PyInt_AS_LONG(arg0);
+#endif
       if (val < 0 or val >= Pds::BldInfo::NumberOf) {
         PyErr_SetString(PyExc_ValueError, "Error: BLD type out of range");
         return 0;
       }
       source = PSEvt::Source(Pds::BldInfo::Type(val));
+#ifdef IS_PY3K
+    } else if (PyUnicode_Check(arg0) or PyBytes_Check(arg0)) {
+#else
     } else if (PyString_Check(arg0)) {
+#endif
       // string is passed to Source ctor, which can throw
-      source = PSEvt::Source(PyString_AsString(arg0));
+      source = PSEvt::Source(PyString_AsString_Compatible(arg0));
     } else if (psana_python::PdsSrc::Object_TypeCheck(arg0)) {
       // Pds::Src wrapped into Python object
       const Pds::Src& src = psana_python::PdsSrc::cppObject(arg0);

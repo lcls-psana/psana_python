@@ -10,6 +10,10 @@
 //
 //------------------------------------------------------------------------
 
+#if PY_MAJOR_VERSION >= 3
+#define IS_PY3K
+#endif
+
 //-----------------------
 // This Class's Header --
 //-----------------------
@@ -134,49 +138,77 @@ PyObject*
 PdsDetInfo_processId(PyObject* self, PyObject* )
 {
   Pds::DetInfo& cself = psana_python::PdsDetInfo::cppObject(self);
+#ifdef IS_PY3K
+  return PyLong_FromLong(cself.processId());
+#else
   return PyInt_FromLong(cself.processId());
+#endif
 }
 
 PyObject*
 PdsDetInfo_detector(PyObject* self, PyObject* )
 {
   Pds::DetInfo& cself = psana_python::PdsDetInfo::cppObject(self);
+#ifdef IS_PY3K
+  return PyLong_FromLong(cself.detector());
+#else
   return PyInt_FromLong(cself.detector());
+#endif
 }
 
 PyObject*
 PdsDetInfo_device(PyObject* self, PyObject* )
 {
   Pds::DetInfo& cself = psana_python::PdsDetInfo::cppObject(self);
+#ifdef IS_PY3K
+  return PyLong_FromLong(cself.device());
+#else
   return PyInt_FromLong(cself.device());
+#endif
 }
 
 PyObject*
 PdsDetInfo_detId(PyObject* self, PyObject* )
 {
   Pds::DetInfo& cself = psana_python::PdsDetInfo::cppObject(self);
+#ifdef IS_PY3K
+  return PyLong_FromLong(cself.detId());
+#else
   return PyInt_FromLong(cself.detId());
+#endif
 }
 
 PyObject*
 PdsDetInfo_devId(PyObject* self, PyObject* )
 {
   Pds::DetInfo& cself = psana_python::PdsDetInfo::cppObject(self);
+#ifdef IS_PY3K
+  return PyLong_FromLong(cself.devId());
+#else
   return PyInt_FromLong(cself.devId());
+#endif
 }
 
 PyObject*
 PdsDetInfo_detName(PyObject* self, PyObject* )
 {
   Pds::DetInfo& cself = psana_python::PdsDetInfo::cppObject(self);
+#ifdef IS_PY3K
+  return PyUnicode_FromString(Pds::DetInfo::name(cself.detector()));
+#else
   return PyString_FromString(Pds::DetInfo::name(cself.detector()));
+#endif
 }
 
 PyObject*
 PdsDetInfo_devName(PyObject* self, PyObject* )
 {
   Pds::DetInfo& cself = psana_python::PdsDetInfo::cppObject(self);
+#ifdef IS_PY3K
+  return PyUnicode_FromString(Pds::DetInfo::name(cself.device()));
+#else
   return PyString_FromString(Pds::DetInfo::name(cself.device()));
+#endif
 }
 
 }

@@ -10,6 +10,10 @@
 //
 //------------------------------------------------------------------------
 
+#if PY_MAJOR_VERSION >= 3
+#define IS_PY3K
+#endif
+
 //-----------------------
 // This Class's Header --
 //-----------------------
@@ -34,6 +38,7 @@
 #include "psana_python/Source.h"
 #include "psana_python/ProxyDictMethods.h"
 #include "pytools/make_pyshared.h"
+#include "psana_python/PyUtil.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -172,7 +177,11 @@ EnvObjectStore_get(PyObject* self, PyObject* args)
   PyObject* arg1 = nargs >= 2 ? PyTuple_GET_ITEM(args, 1) : 0;
   PyObject *arg2 = nargs >= 3 ? PyTuple_GET_ITEM(args, 2) : 0;
 
+#ifdef IS_PY3K
+  if (PyLong_Check(arg0)) {
+#else
   if (PyInt_Check(arg0)) {
+#endif
 
     // get(int, ...)
     return psana_python::ProxyDictMethods::get_compat_typeid(*cself->proxyDict(), arg0, arg1);
@@ -191,8 +200,12 @@ EnvObjectStore_get(PyObject* self, PyObject* args)
       } else if (psana_python::Source::Object_TypeCheck(arg1)) {
         // second argument is Source
         source = psana_python::Source::cppObject(arg1);
+#ifdef IS_PY3K
+      } else if (not arg2 and (PyUnicode_Check(arg1) or PyBytes_Check(arg1))) {
+#else
       } else if (not arg2 and PyString_Check(arg1)) {
-        key = PyString_AsString(arg1);
+#endif
+        key = PyString_AsString_Compatible(arg1);
       } else {
         // anything else is not expected
         PyErr_SetString(PyExc_TypeError, "EnvObjectStore.get(...) unexpected type of second argument");
@@ -200,8 +213,12 @@ EnvObjectStore_get(PyObject* self, PyObject* args)
       }
     }
     if (arg2) {
+#ifdef IS_PY3K
+      if (PyUnicode_Check(arg2) or PyBytes_Check(arg2)) {
+#else
       if (PyString_Check(arg2)) {
-	key = PyString_AsString(arg2);
+#endif
+	key = PyString_AsString_Compatible(arg2);
       } else {
 	PyErr_SetString(PyExc_TypeError, "Event.get(...) unexpected type of third argument");
 	return 0;

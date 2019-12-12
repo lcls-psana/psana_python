@@ -10,6 +10,10 @@
 //
 //------------------------------------------------------------------------
 
+#if PY_MAJOR_VERSION >= 3
+#define IS_PY3K
+#endif
+
 //-----------------------
 // This Class's Header --
 //-----------------------
@@ -72,14 +76,22 @@ PyObject*
 PdsClockTime_seconds(PyObject* self, PyObject* )
 {
   Pds::ClockTime& cself = psana_python::PdsClockTime::cppObject(self);
+#ifdef IS_PY3K
+  return PyLong_FromLong(cself.seconds());
+#else
   return PyInt_FromLong(cself.seconds());
+#endif
 }
 
 PyObject*
 PdsClockTime_nanoseconds(PyObject* self, PyObject* )
 {
   Pds::ClockTime& cself = psana_python::PdsClockTime::cppObject(self);
+#ifdef IS_PY3K
+  return PyLong_FromLong(cself.nanoseconds());
+#else
   return PyInt_FromLong(cself.nanoseconds());
+#endif
 }
 
 PyObject*

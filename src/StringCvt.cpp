@@ -29,6 +29,7 @@
 // Collaborating Class Headers --
 //-------------------------------
 #include "PSEvt/DataProxy.h"
+#include "psana_python/PyUtil.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -106,15 +107,23 @@ StringCvt::convert(PSEvt::ProxyDictI& proxyDict, const PSEvt::Source& source, co
       throw std::runtime_error("C++ std::string.c_str() in event store is 0");
       return 0;
     }
+#ifdef IS_PY3K
+    return PyUnicode_FromString(data);
+#else
     return PyString_FromString(data);
+#endif
   }
   return 0;
 }
 
 bool StringCvt::convert(PyObject* obj, PSEvt::ProxyDictI& proxyDict, const Pds::Src& source, const std::string& key) const
 {
+#ifdef IS_PY3K
+  if (not (PyUnicode_Check(obj) or PyBytes_Check(obj))) return false;
+#else
   if (not PyString_Check(obj)) return false;
-  boost::shared_ptr<std::string> cppStr = boost::make_shared<std::string>(PyString_AsString(obj));
+#endif
+  boost::shared_ptr<std::string> cppStr = boost::make_shared<std::string>(PyString_AsString_Compatible(obj));
   PSEvt::EventKey evKey = PSEvt::EventKey(&typeid(std::string), source, key);
   boost::shared_ptr<PSEvt::ProxyI> proxyPtr = boost::make_shared<PSEvt::DataProxy<std::string> >(cppStr);
   proxyDict.put(proxyPtr, evKey);

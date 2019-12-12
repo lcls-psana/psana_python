@@ -10,6 +10,10 @@
 //
 //------------------------------------------------------------------------
 
+#if PY_MAJOR_VERSION >= 3
+#define IS_PY3K
+#endif
+
 //-----------------------
 // This Class's Header --
 //-----------------------
@@ -123,21 +127,33 @@ PyObject*
 PdsBldInfo_processId(PyObject* self, PyObject* )
 {
   Pds::BldInfo& cself = psana_python::PdsBldInfo::cppObject(self);
+#ifdef IS_PY3K
+  return PyLong_FromLong(cself.processId());
+#else
   return PyInt_FromLong(cself.processId());
+#endif
 }
 
 PyObject*
 PdsBldInfo_type(PyObject* self, PyObject* )
 {
   Pds::BldInfo& cself = psana_python::PdsBldInfo::cppObject(self);
+#ifdef IS_PY3K
+  return PyLong_FromLong(cself.type());
+#else
   return PyInt_FromLong(cself.type());
+#endif
 }
 
 PyObject*
 PdsBldInfo_typeName(PyObject* self, PyObject* )
 {
   Pds::BldInfo& cself = psana_python::PdsBldInfo::cppObject(self);
+#ifdef IS_PY3K
+  return PyUnicode_FromString(Pds::BldInfo::name(cself));
+#else
   return PyString_FromString(Pds::BldInfo::name(cself));
+#endif
 }
 
 }

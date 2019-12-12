@@ -37,6 +37,7 @@
 #include "psana_python/Env.h"
 #include "psana_python/Event.h"
 #include "psana_python/Source.h"
+#include "psana_python/PyUtil.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -58,7 +59,7 @@ namespace {
 
     PyErr_Fetch(&ptype, &pvalue, &ptraceback);
     PyObject* errstr = PyObject_Str(pvalue);
-    string msg = PyString_AsString(errstr);
+    string msg = PyString_AsString_Compatible(errstr);
 
     PyErr_Display(ptype, pvalue, ptraceback);
 
@@ -91,7 +92,7 @@ namespace {
   std::ostream& operator<<(std::ostream& str, PyObject* obj) {
     if (obj) {
       pytools::pyshared_ptr repr = pytools::make_pyshared(PyObject_Repr(obj));
-      return str << PyString_AsString(repr.get());
+      return str << PyString_AsString_Compatible(repr.get());
     } else {
       return str << "PyObject<NULL>";
     }
@@ -253,8 +254,13 @@ PythonModule::call(PyObject* method, bool pyana_optional_evt, PSEvt::Event& evt,
   }
 
   // if method returns integer number try to translate it into skip/stop/terminate
+#ifdef IS_PY3K
+  if (PyLong_Check(res.get())) {
+    switch (PyLong_AS_LONG(res.get())) {
+#else
   if (PyInt_Check(res.get())) {
     switch (PyInt_AS_LONG(res.get())) {
+#endif
     case Skip:
       skip();
       break;
@@ -337,7 +343,11 @@ moduleFactory(const string& name)
   // this is a dirty hack to make module name available inside module constructor,
   // this is not thread safe
   MsgLog(logger, debug, "set special attribute for module name");
+#ifdef IS_PY3K
+  pytools::pyshared_ptr modname = pytools::make_pyshared(PyUnicode_FromString(fullName.c_str()));
+#else
   pytools::pyshared_ptr modname = pytools::make_pyshared(PyString_FromString(fullName.c_str()));
+#endif
   if (PyObject_SetAttrString(cls.get(), "__psana_module_name__", modname.get()) < 0) {
     throw ExceptionGenericPyError(ERR_LOC, "PyObject_SetAttrString failed");
   }
@@ -360,7 +370,11 @@ moduleFactory(const string& name)
     for (it_mod = keys_mod.begin(); it_mod != keys_mod.end(); it_mod++) {
       const std::string& key = *it_mod;
       const char* value = cfg.getStr(moduleName, key).c_str();
+#ifdef IS_PY3K
+      PyDict_SetItemString(kwargs.get(), key.c_str(), PyUnicode_FromString(value));
+#else
       PyDict_SetItemString(kwargs.get(), key.c_str(), PyString_FromString(value));
+#endif
     }
 
     std::list<std::string> keys = cfg.getKeys(fullName);
@@ -368,7 +382,11 @@ moduleFactory(const string& name)
     for (it = keys.begin(); it != keys.end(); it++) {
       const std::string& key = *it;
       const char* value = cfg.getStr(fullName, key).c_str();
+#ifdef IS_PY3K
+      PyDict_SetItemString(kwargs.get(), key.c_str(), PyUnicode_FromString(value));
+#else
       PyDict_SetItemString(kwargs.get(), key.c_str(), PyString_FromString(value));
+#endif
     }
 
     MsgLog(logger, debug, "try to make pyana-compatible module instance, class name=" << className << " kw=" << kwargs.get());
@@ -433,8 +451,13 @@ bool py_init()
   // by default (depending on how psana is instantiated), set it here.
   char argv[] = "argv";  // need non-const char* pointer
   if (not PySys_GetObject(argv)) {
+#ifdef IS_PY3K
+    wchar_t argv0[] = L"psana";
+    wchar_t* pargv = argv0;
+#else
     char argv0[] = "psana";
     char* pargv = argv0;
+#endif
     PySys_SetArgv(1, &pargv);
   }
 
@@ -465,7 +488,7 @@ cpp_module(PyObject* self)
     // make C++ module instance
     psana_python::PythonModule* module = 0;
     try {
-      const char* cmodname = PyString_AsString(modname.get());
+      const char* cmodname = PyString_AsString_Compatible(modname.get()).c_str();
       MsgLog(logger, debug, "make C++ instance for module " << cmodname);
       module = new psana_python::PythonModule(cmodname, self);
     } catch (const std::exception& ex) {
@@ -515,7 +538,11 @@ extra_name(PyObject* self, PyObject* args)
   psana_python::PythonModule* module = cpp_module(self);
   if (not module) return 0;
 
+#ifdef IS_PY3K
+  return PyUnicode_FromString(module->name().c_str());
+#else
   return PyString_FromString(module->name().c_str());
+#endif
 }
 
 PyObject*
@@ -524,7 +551,11 @@ extra_className(PyObject* self, PyObject* args)
   psana_python::PythonModule* module = cpp_module(self);
   if (not module) return 0;
 
+#ifdef IS_PY3K
+  return PyUnicode_FromString(module->className().c_str());
+#else
   return PyString_FromString(module->className().c_str());
+#endif
 }
 
 PyObject*
@@ -540,7 +571,11 @@ extra_configStr(PyObject* self, PyObject* args)
 
   // call C++ module method, take care of all exceptions
   try {
+#ifdef IS_PY3K
+    return PyUnicode_FromString(module->configStr(parm).c_str());
+#else
     return PyString_FromString(module->configStr(parm).c_str());
+#endif
   } catch (const ConfigSvc::ExceptionMissing& ex) {
     // parameter not found, return default value if present without any conversion
     if (def) {
@@ -594,7 +629,11 @@ extra_configInt(PyObject* self, PyObject* args)
 
   // call C++ module method, take care of all exceptions
   try {
+#ifdef IS_PY3K
+    return PyLong_FromLong(static_cast<long>(module->config(parm)));
+#else
     return PyInt_FromLong(static_cast<long>(module->config(parm)));
+#endif
   } catch (const ConfigSvc::ExceptionMissing& ex) {
     // parameter not found, return default value if present without any conversion
     if (def) {
@@ -668,7 +707,7 @@ extra_configListBool(PyObject* self, PyObject* arg)
   if (not module) return 0;
 
   // parse args
-  const char* parm = PyString_AsString(arg);
+  const char* parm = PyString_AsString_Compatible(arg).c_str();
   if (not parm) return 0;
 
   // call C++ module method, take care of all exceptions
@@ -697,7 +736,7 @@ extra_configListInt(PyObject* self, PyObject* arg)
   if (not module) return 0;
 
   // parse args
-  const char* parm = PyString_AsString(arg);
+  const char* parm = PyString_AsString_Compatible(arg).c_str();
   if (not parm) return 0;
 
   // call C++ module method, take care of all exceptions
@@ -709,7 +748,11 @@ extra_configListInt(PyObject* self, PyObject* arg)
     PyObject* res = PyList_New(cfglist.size());
     unsigned i = 0;
     BOOST_FOREACH(long v, cfglist) {
+#ifdef IS_PY3K
+      PyList_SET_ITEM(res, i, PyLong_FromLong(v));
+#else
       PyList_SET_ITEM(res, i, PyInt_FromLong(v));
+#endif
       ++ i;
     }
     return res;
@@ -726,7 +769,7 @@ extra_configListFloat(PyObject* self, PyObject* arg)
   if (not module) return 0;
 
   // parse args
-  const char* parm = PyString_AsString(arg);
+  const char* parm = PyString_AsString_Compatible(arg).c_str();
   if (not parm) return 0;
 
   // call C++ module method, take care of all exceptions
@@ -755,7 +798,7 @@ extra_configListStr(PyObject* self, PyObject* arg)
   if (not module) return 0;
 
   // parse args
-  const char* parm = PyString_AsString(arg);
+  const char* parm = PyString_AsString_Compatible(arg).c_str();
   if (not parm) return 0;
 
   // call C++ module method, take care of all exceptions
@@ -767,7 +810,11 @@ extra_configListStr(PyObject* self, PyObject* arg)
     PyObject* res = PyList_New(cfglist.size());
     unsigned i = 0;
     BOOST_FOREACH(const std::string& v, cfglist) {
+#ifdef IS_PY3K
+      PyList_SET_ITEM(res, i, PyUnicode_FromString(v.c_str()));
+#else
       PyList_SET_ITEM(res, i, PyString_FromString(v.c_str()));
+#endif
       ++ i;
     }
     return res;
@@ -784,7 +831,7 @@ extra_configListSrc(PyObject* self, PyObject* arg)
   if (not module) return 0;
 
   // parse args
-  const char* parm = PyString_AsString(arg);
+  const char* parm = PyString_AsString_Compatible(arg).c_str();
   if (not parm) return 0;
 
   // call C++ module method, take care of all exceptions

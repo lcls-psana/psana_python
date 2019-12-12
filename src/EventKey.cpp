@@ -10,6 +10,10 @@
 //
 //------------------------------------------------------------------------
 
+#if PY_MAJOR_VERSION >= 3
+#define IS_PY3K
+#endif
+
 //-----------------------
 // This Class's Header --
 //-----------------------
@@ -27,6 +31,7 @@
 #include "psana_python/PdsDetInfo.h"
 #include "psana_python/PdsProcInfo.h"
 #include "psddl_python/ConverterMap.h"
+#include "psana_python/PyUtil.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -118,7 +123,7 @@ type_name(PyTypeObject* type)
 
   if (type->tp_flags & Py_TPFLAGS_HEAPTYPE) {
     if(PyObject *mod = PyDict_GetItemString(type->tp_dict, "__module__")) {
-      name = PyString_AsString(mod);
+      name = PyString_AsString_Compatible(mod);
       name += ".";
       name += type->tp_name;
     }    
@@ -158,14 +163,22 @@ PyObject*
 EventKey_alias(PyObject* self, PyObject* )
 {
   PSEvt::EventKey& cself = psana_python::EventKey::cppObject(self);
+#ifdef IS_PY3K
+  return PyUnicode_FromString(cself.alias().c_str());
+#else
   return PyString_FromString(cself.alias().c_str());
+#endif
 }
 
 PyObject*
 EventKey_key(PyObject* self, PyObject* )
 {
   PSEvt::EventKey& cself = psana_python::EventKey::cppObject(self);
+#ifdef IS_PY3K
+  return PyUnicode_FromString(cself.key().c_str());
+#else
   return PyString_FromString(cself.key().c_str());
+#endif
 }
 
 }

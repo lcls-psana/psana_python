@@ -10,6 +10,10 @@
 //
 //------------------------------------------------------------------------
 
+#if PY_MAJOR_VERSION >= 3
+#define IS_PY3K
+#endif
+
 //-----------------------
 // This Class's Header --
 //-----------------------
@@ -30,6 +34,7 @@
 #include "psana_python/Exceptions.h"
 #include "psana_python/Env.h"
 #include "psana_python/PythonModule.h"
+#include "psana_python/PyUtil.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -170,16 +175,28 @@ DataSource_jump(PyObject* self, PyObject* args)
 
   std::vector<std::string> filenames;
   std::vector<int64_t> offsets;
+#ifdef IS_PY3K
+  std::string lastBeginCalibCycleDgram = PyString_AsString_Compatible(py_lastBeginCalibCycleDgram);
+#else
   std::string lastBeginCalibCycleDgram(PyString_AsString(py_lastBeginCalibCycleDgram), PyString_Size(py_lastBeginCalibCycleDgram));
+#endif
 
+#ifdef IS_PY3K
+  if (PyUnicode_Check(py_filenames) or PyBytes_Check(py_filenames)) {
+#else
   if (PyString_Check(py_filenames)) {
-    filenames.push_back(PyString_AsString(py_filenames));
+#endif
+    filenames.push_back(PyString_AsString_Compatible(py_filenames));
   } else if (PyList_Check(py_filenames)) {
     size_t size = PyList_Size(py_filenames);
     for (size_t i = 0; i < size; i++) {
       PyObject *elt = PyList_GetItem(py_filenames, i);
+#ifdef IS_PY3K
+      if (PyUnicode_Check(elt) or PyBytes_Check(elt)) {
+#else
       if (PyString_Check(elt)) {
-        filenames.push_back(PyString_AsString(elt));
+#endif
+        filenames.push_back(PyString_AsString_Compatible(elt));
       } else {
         const char *msg = "First argument to jump must be a string or list of strings";
         MsgLog(pyDSlogger, error, msg);

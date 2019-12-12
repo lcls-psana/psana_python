@@ -10,6 +10,10 @@
 //
 //------------------------------------------------------------------------
 
+#if PY_MAJOR_VERSION >= 3
+#define IS_PY3K
+#endif
+
 //-----------------------
 // This Class's Header --
 //-----------------------
@@ -93,14 +97,22 @@ PyObject*
 PdsProcInfo_processId(PyObject* self, PyObject* )
 {
   Pds::ProcInfo& cself = psana_python::PdsProcInfo::cppObject(self);
+#ifdef IS_PY3K
+  return PyLong_FromLong(cself.processId());
+#else
   return PyInt_FromLong(cself.processId());
+#endif
 }
 
 PyObject*
 PdsProcInfo_ipAddr(PyObject* self, PyObject* )
 {
   Pds::ProcInfo& cself = psana_python::PdsProcInfo::cppObject(self);
+#ifdef IS_PY3K
+  return PyLong_FromLong(cself.ipAddr());
+#else
   return PyInt_FromLong(cself.ipAddr());
+#endif
 }
 
 }

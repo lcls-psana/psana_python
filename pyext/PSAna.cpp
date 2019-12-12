@@ -10,6 +10,10 @@
 //
 //------------------------------------------------------------------------
 
+#if PY_MAJOR_VERSION >= 3
+#define IS_PY3K
+#endif
+
 //-----------------------
 // This Class's Header --
 //-----------------------
@@ -23,6 +27,7 @@
 // Collaborating Class Headers --
 //-------------------------------
 #include "DataSource.h"
+#include "psana_python/PyUtil.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -96,15 +101,23 @@ PSAna_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds)
   PyObject *key, *value;
   PyDictPosType pos = 0;
   while (options and PyDict_Next(options, &pos, &key, &value)) {
+#ifdef IS_PY3K
+    if (not (PyUnicode_Check(key) or PyBytes_Check(key))) {
+#else
     if (not PyString_Check(key)) {
+#endif
       PyErr_SetString(PyExc_TypeError, "Error: PSAna options keys must be strings");
       return 0;
     }
+#ifdef IS_PY3K
+    if (not (PyUnicode_Check(value) or PyBytes_Check(value))) {
+#else
     if (not PyString_Check(value)) {
+#endif
       PyErr_SetString(PyExc_TypeError, "Error: PSAna options keys must be strings");
       return 0;
     }
-    optMap[PyString_AsString(key)] = PyString_AsString(value);
+    optMap[PyString_AsString_Compatible(key)] = PyString_AsString_Compatible(value);
   }
 
   // allocate 
@@ -142,11 +155,15 @@ try {
     inpVec.reserve(size);
     for (int i = 0; i != size; ++ i) {
       PyObject* inp = PyList_GET_ITEM(PyTuple_GET_ITEM(args, 0), i);
+#ifdef IS_PY3K
+      if (not (PyUnicode_Check(inp) or PyBytes_Check(inp))) {
+#else
       if (not PyString_Check(inp)) {
+#endif
         PyErr_SetString(PyExc_TypeError, "Error: PSAna.dataSource expects list of strings as an argument");
         return 0;
       }
-      inpVec.push_back(PyString_AsString(inp));
+      inpVec.push_back(PyString_AsString_Compatible(inp));
     }
   } else {
     // any number of string arguments
@@ -154,11 +171,15 @@ try {
     inpVec.reserve(size);
     for (int i = 0; i != size; ++ i) {
       PyObject* inp = PyTuple_GET_ITEM(args, i);
+#ifdef IS_PY3K
+      if (not (PyUnicode_Check(inp) or PyBytes_Check(inp))) {
+#else
       if (not PyString_Check(inp)) {
+#endif
         PyErr_SetString(PyExc_TypeError, "Error: PSAna.dataSource expects strings as an arguments");
         return 0;
       }
-      inpVec.push_back(PyString_AsString(inp));
+      inpVec.push_back(PyString_AsString_Compatible(inp));
     }
   }
     

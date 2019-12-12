@@ -10,6 +10,10 @@
 //
 //------------------------------------------------------------------------
 
+#if PY_MAJOR_VERSION >= 3
+#define IS_PY3K
+#endif
+
 //-----------------------
 // This Class's Header --
 //-----------------------
@@ -94,8 +98,13 @@ EventId_time(PyObject* self, PyObject* )
   const PSTime::Time& time = cself->time();
 
   PyObject* tuple = PyTuple_New(2);
+#ifdef IS_PY3K
+  PyTuple_SET_ITEM(tuple, 0, PyLong_FromLong(time.sec()));
+  PyTuple_SET_ITEM(tuple, 1, PyLong_FromLong(time.nsec()));
+#else
   PyTuple_SET_ITEM(tuple, 0, PyInt_FromLong(time.sec()));
   PyTuple_SET_ITEM(tuple, 1, PyInt_FromLong(time.nsec()));
+#endif
 
   return tuple;
 }
@@ -115,28 +124,44 @@ PyObject*
 EventId_run(PyObject* self, PyObject* )
 {
   boost::shared_ptr<PSEvt::EventId> cself = psana_python::EventId::cppObject(self);
+#ifdef IS_PY3K
+  return PyLong_FromLong(cself->run());
+#else
   return PyInt_FromLong(cself->run());
+#endif
 }
 
 PyObject*
 EventId_fiducials(PyObject* self, PyObject* )
 {
   boost::shared_ptr<PSEvt::EventId> cself = psana_python::EventId::cppObject(self);
+#ifdef IS_PY3K
+  return PyLong_FromLong(cself->fiducials());
+#else
   return PyInt_FromLong(cself->fiducials());
+#endif
 }
 
 PyObject*
 EventId_ticks(PyObject* self, PyObject* )
 {
   boost::shared_ptr<PSEvt::EventId> cself = psana_python::EventId::cppObject(self);
+#ifdef IS_PY3K
+  return PyLong_FromLong(cself->ticks());
+#else
   return PyInt_FromLong(cself->ticks());
+#endif
 }
 
 PyObject*
 EventId_vector(PyObject* self, PyObject* )
 {
   boost::shared_ptr<PSEvt::EventId> cself = psana_python::EventId::cppObject(self);
+#ifdef IS_PY3K
+  return PyLong_FromLong(cself->vector());
+#else
   return PyInt_FromLong(cself->vector());
+#endif
 }
 
 }

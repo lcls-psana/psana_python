@@ -10,6 +10,10 @@
 //
 //------------------------------------------------------------------------
 
+#if PY_MAJOR_VERSION >= 3
+#define IS_PY3K
+#endif
+
 //-----------------------
 // This Class's Header --
 //-----------------------
@@ -109,7 +113,11 @@ nameList(const std::vector<std::string>& names)
 {
   PyObject* list = PyList_New(names.size());
   for (unsigned i = 0; i != names.size(); ++ i) {
+#ifdef IS_PY3K
+    PyList_SET_ITEM(list, i, PyUnicode_FromString(names[i].c_str()));
+#else
     PyList_SET_ITEM(list, i, PyString_FromString(names[i].c_str()));
+#endif
   }
   return list;
 }
@@ -144,7 +152,11 @@ EpicsStore_alias(PyObject* self, PyObject* args)
   if (not PyArg_ParseTuple( args, "s:EpicsStore.alias", &arg)) return 0;
 
   const std::string& res = cself->alias(arg);
+#ifdef IS_PY3K
+  return PyUnicode_FromString(res.c_str());
+#else
   return PyString_FromString(res.c_str());
+#endif
 }
 
 PyObject*
@@ -156,7 +168,11 @@ EpicsStore_pvName(PyObject* self, PyObject* args)
   if (not PyArg_ParseTuple( args, "s:EpicsStore.pvName", &arg)) return 0;
 
   const std::string& res = cself->pvName(arg);
+#ifdef IS_PY3K
+  return PyUnicode_FromString(res.c_str());
+#else
   return PyString_FromString(res.c_str());
+#endif
 }
 
 PyObject*
@@ -183,6 +199,36 @@ EpicsStore_value(PyObject* self, PyObject* args)
   }
 
   switch (hdr->dbrType()) {
+#ifdef IS_PY3K
+  case Psana::Epics::DBR_TIME_STRING:
+    return PyUnicode_FromString((dynamic_pointer_cast<Psana::Epics::EpicsPvTimeString>(hdr))->value(index));
+  case Psana::Epics::DBR_TIME_SHORT:
+    return PyLong_FromLong((dynamic_pointer_cast<Psana::Epics::EpicsPvTimeShort>(hdr))->value(index));
+  case Psana::Epics::DBR_TIME_FLOAT:
+    return PyFloat_FromDouble((dynamic_pointer_cast<Psana::Epics::EpicsPvTimeFloat>(hdr))->value(index));
+  case Psana::Epics::DBR_TIME_ENUM:
+    return PyLong_FromLong((dynamic_pointer_cast<Psana::Epics::EpicsPvTimeEnum>(hdr))->value(index));
+  case Psana::Epics::DBR_TIME_CHAR:
+    return PyLong_FromLong((dynamic_pointer_cast<Psana::Epics::EpicsPvTimeChar>(hdr))->value(index));
+  case Psana::Epics::DBR_TIME_LONG:
+    return PyLong_FromLong((dynamic_pointer_cast<Psana::Epics::EpicsPvTimeLong>(hdr))->value(index));
+  case Psana::Epics::DBR_TIME_DOUBLE:
+    return PyFloat_FromDouble((dynamic_pointer_cast<Psana::Epics::EpicsPvTimeDouble>(hdr))->value(index));
+  case Psana::Epics::DBR_CTRL_STRING:
+    return PyUnicode_FromString((dynamic_pointer_cast<Psana::Epics::EpicsPvCtrlString>(hdr))->value(index));
+  case Psana::Epics::DBR_CTRL_SHORT:
+    return PyLong_FromLong((dynamic_pointer_cast<Psana::Epics::EpicsPvCtrlShort>(hdr))->value(index));
+  case Psana::Epics::DBR_CTRL_FLOAT:
+    return PyFloat_FromDouble((dynamic_pointer_cast<Psana::Epics::EpicsPvCtrlFloat>(hdr))->value(index));
+  case Psana::Epics::DBR_CTRL_ENUM:
+    return PyLong_FromLong((dynamic_pointer_cast<Psana::Epics::EpicsPvCtrlEnum>(hdr))->value(index));
+  case Psana::Epics::DBR_CTRL_CHAR:
+    return PyLong_FromLong((dynamic_pointer_cast<Psana::Epics::EpicsPvCtrlChar>(hdr))->value(index));
+  case Psana::Epics::DBR_CTRL_LONG:
+    return PyLong_FromLong((dynamic_pointer_cast<Psana::Epics::EpicsPvCtrlLong>(hdr))->value(index));
+  case Psana::Epics::DBR_CTRL_DOUBLE:
+    return PyFloat_FromDouble((dynamic_pointer_cast<Psana::Epics::EpicsPvCtrlDouble>(hdr))->value(index));
+#else
   case Psana::Epics::DBR_TIME_STRING:
     return PyString_FromString((dynamic_pointer_cast<Psana::Epics::EpicsPvTimeString>(hdr))->value(index));
   case Psana::Epics::DBR_TIME_SHORT:
@@ -211,6 +257,7 @@ EpicsStore_value(PyObject* self, PyObject* args)
     return PyInt_FromLong((dynamic_pointer_cast<Psana::Epics::EpicsPvCtrlLong>(hdr))->value(index));
   case Psana::Epics::DBR_CTRL_DOUBLE:
     return PyFloat_FromDouble((dynamic_pointer_cast<Psana::Epics::EpicsPvCtrlDouble>(hdr))->value(index));
+#endif
   default:
     Py_RETURN_NONE;
   }
@@ -234,8 +281,13 @@ EpicsStore_status(PyObject* self, PyObject* args)
   }
 
   PyObject* tuple = PyTuple_New(3);
+#ifdef IS_PY3K
+  PyTuple_SET_ITEM(tuple, 0, PyLong_FromLong(status));
+  PyTuple_SET_ITEM(tuple, 1, PyLong_FromLong(severity));
+#else
   PyTuple_SET_ITEM(tuple, 0, PyInt_FromLong(status));
   PyTuple_SET_ITEM(tuple, 1, PyInt_FromLong(severity));
+#endif
   PyTuple_SET_ITEM(tuple, 2, PyFloat_FromDouble(time.sec() + time.nsec()*1e-9));
 
   return tuple;

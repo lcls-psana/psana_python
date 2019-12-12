@@ -10,6 +10,10 @@
 //
 //------------------------------------------------------------------------
 
+#if PY_MAJOR_VERSION >= 3
+#define IS_PY3K
+#endif
+
 //-----------------------
 // This Class's Header --
 //-----------------------
@@ -82,7 +86,11 @@ EventOffset_filenames(PyObject* self, PyObject* )
   const std::vector<std::string> &filenames = cself->filenames();
   PyObject *result = PyList_New(filenames.size());
   for (size_t i = 0; i < filenames.size(); i++) {
+#ifdef IS_PY3K
+    PyList_SetItem(result, i, PyUnicode_FromString(filenames[i].c_str()));
+#else
     PyList_SetItem(result, i, PyString_FromString(filenames[i].c_str()));
+#endif
   }
   return result;
 }
@@ -91,7 +99,11 @@ PyObject*
 EventOffset_lastBeginCalibCycleDgram(PyObject* self, PyObject* )
 {
   boost::shared_ptr<PSEvt::EventOffset> cself = psana_python::EventOffset::cppObject(self);
+#ifdef IS_PY3K
+  return PyUnicode_FromStringAndSize(cself->lastBeginCalibCycleDgram()->c_str(), cself->lastBeginCalibCycleDgram()->size());
+#else
   return PyString_FromStringAndSize(cself->lastBeginCalibCycleDgram()->c_str(), cself->lastBeginCalibCycleDgram()->size());
+#endif
 }
 
 }

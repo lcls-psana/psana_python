@@ -10,6 +10,10 @@
 //
 //------------------------------------------------------------------------
 
+#if PY_MAJOR_VERSION >= 3
+#define IS_PY3K
+#endif
+
 //-----------------------
 // This Class's Header --
 //-----------------------
@@ -116,56 +120,88 @@ PyObject*
 Env_fwkName(PyObject* self, PyObject*)
 {
   boost::shared_ptr<PSEnv::Env>& cself = Env::cppObject(self);
+#ifdef IS_PY3K
+  return PyUnicode_FromString(cself->fwkName().c_str());
+#else
   return PyString_FromString(cself->fwkName().c_str());
+#endif
 }
 
 PyObject*
 Env_jobName(PyObject* self, PyObject*)
 {
   boost::shared_ptr<PSEnv::Env>& cself = Env::cppObject(self);
+#ifdef IS_PY3K
+  return PyUnicode_FromString(cself->jobName().c_str());
+#else
   return PyString_FromString(cself->jobName().c_str());
+#endif
 }
 
 PyObject*
 Env_jobNameSub(PyObject* self, PyObject*)
 {
   boost::shared_ptr<PSEnv::Env>& cself = Env::cppObject(self);
+#ifdef IS_PY3K
+  return PyUnicode_FromString(cself->jobNameSub().c_str());
+#else
   return PyString_FromString(cself->jobNameSub().c_str());
+#endif
 }
 
 PyObject*
 Env_instrument(PyObject* self, PyObject*)
 {
   boost::shared_ptr<PSEnv::Env>& cself = Env::cppObject(self);
+#ifdef IS_PY3K
+  return PyUnicode_FromString(cself->instrument().c_str());
+#else
   return PyString_FromString(cself->instrument().c_str());
+#endif
 }
 
 PyObject*
 Env_experiment(PyObject* self, PyObject*)
 {
   boost::shared_ptr<PSEnv::Env>& cself = Env::cppObject(self);
+#ifdef IS_PY3K
+  return PyUnicode_FromString(cself->experiment().c_str());
+#else
   return PyString_FromString(cself->experiment().c_str());
+#endif
 }
 
 PyObject*
 Env_expNum(PyObject* self, PyObject*)
 {
   boost::shared_ptr<PSEnv::Env>& cself = Env::cppObject(self);
+#ifdef IS_PY3K
+  return PyLong_FromLong(cself->expNum());
+#else
   return PyInt_FromLong(cself->expNum());
+#endif
 }
 
 PyObject*
 Env_subprocess(PyObject* self, PyObject*)
 {
   boost::shared_ptr<PSEnv::Env>& cself = Env::cppObject(self);
+#ifdef IS_PY3K
+  return PyLong_FromLong(cself->subprocess());
+#else
   return PyInt_FromLong(cself->subprocess());
+#endif
 }
 
 PyObject*
 Env_calibDir(PyObject* self, PyObject*)
 {
   boost::shared_ptr<PSEnv::Env>& cself = Env::cppObject(self);
+#ifdef IS_PY3K
+  return PyUnicode_FromString(cself->calibDir().c_str());
+#else
   return PyString_FromString(cself->calibDir().c_str());
+#endif
 }
 
 PyObject*

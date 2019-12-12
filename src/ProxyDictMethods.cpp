@@ -10,6 +10,10 @@
 //
 //------------------------------------------------------------------------
 
+#if PY_MAJOR_VERSION >= 3
+#define IS_PY3K
+#endif
+
 //-----------------------
 // This Class's Header --
 //-----------------------
@@ -31,6 +35,7 @@
 #include "psddl_python/ConverterMap.h"
 #include "PSEvt/DataProxy.h"
 #include "PSEvt/Exceptions.h"
+#include "psana_python/PyUtil.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
@@ -57,10 +62,14 @@ ProxyDictMethods::keys(PSEvt::ProxyDictI& proxyDict, PyObject* args)
   if (obj) {
     if (psana_python::Source::Object_TypeCheck(obj)) {
       src = psana_python::Source::cppObject(obj);
+#ifdef IS_PY3K
+    } else if (PyUnicode_Check(obj) or PyBytes_Check(obj)) {
+#else
     } else if (PyString_Check(obj)) {
+#endif
       // this can throw
       try {
-        src = PSEvt::Source(PyString_AsString(obj));
+        src = PSEvt::Source(PyString_AsString_Compatible(obj));
       } catch (const std::exception& ex) {
         PyErr_SetString(PyExc_ValueError, ex.what());
         return 0;
@@ -141,17 +150,25 @@ ProxyDictMethods::arg_get_put(PyObject* args, bool needExact, const PSEvt::Alias
       if (needExact and not msrc.isExact()) {
         PyErr_SetString(PyExc_ValueError, "get/put(...) expecting exact source, found wildcard");
       }
+#ifdef IS_PY3K
+    } else if (not arg2 and (PyUnicode_Check(arg1) or PyBytes_Check(arg1))) {
+#else
     } else if (not arg2 and PyString_Check(arg1)) {
+#endif
       // second argument is string and no third argument
-      key = PyString_AsString(arg1);
+      key = PyString_AsString_Compatible(arg1);
     } else {
       // anything else is not expected
       PyErr_SetString(PyExc_TypeError, "get/put(...) unexpected type of second argument");
     }
   }
   if (arg2) {
+#ifdef IS_PY3K
+    if (PyUnicode_Check(arg2) or PyBytes_Check(arg2)) {
+#else
     if (PyString_Check(arg2)) {
-      key = PyString_AsString(arg2);
+#endif
+      key = PyString_AsString_Compatible(arg2);
     } else {
       PyErr_SetString(PyExc_TypeError, "get/put(...) unexpected type of third argument");
     }
@@ -167,7 +184,7 @@ ProxyDictMethods::get_compat_string(PSEvt::ProxyDictI& proxyDict, PyObject* arg0
    *  get(string)            - gets any Python object stored with put(object, string)
    */
 
-  std::string key(PyString_AsString(arg0));
+  std::string key(PyString_AsString_Compatible(arg0));
 
   // get any PyObject with no address and a key
   boost::shared_ptr<void> vdata = proxyDict.get(&typeid(const PyObject), PSEvt::Source(PSEvt::Source::null), key, 0);
@@ -191,7 +208,11 @@ ProxyDictMethods::get_compat_typeid(PSEvt::ProxyDictI& proxyDict, PyObject* arg0
    */
 
   // integer means get all types matching PDS TypeId
+#ifdef IS_PY3K
+  int pdsTypeId = PyLong_AsLong(arg0);
+#else
   int pdsTypeId = PyInt_AsLong(arg0);
+#endif
   if (pdsTypeId < 0 or pdsTypeId >= Pds::TypeId::NumberOf) {
     return PyErr_Format(PyExc_ValueError, "Event.get(int, ...): argument value outside range 0..%d", Pds::TypeId::NumberOf-1);
   }
@@ -199,10 +220,14 @@ ProxyDictMethods::get_compat_typeid(PSEvt::ProxyDictI& proxyDict, PyObject* arg0
   // get an address
   PSEvt::Source source;
   if (arg1) {
+#ifdef IS_PY3K
+    if (PyUnicode_Check(arg1) or PyBytes_Check(arg1)) {
+#else
     if (PyString_Check(arg1)) {
+#endif
       // this can throw
       try {
-        source = PSEvt::Source(PyString_AsString(arg1));
+        source = PSEvt::Source(PyString_AsString_Compatible(arg1));
       } catch (const std::exception& ex) {
         PyErr_SetString(PyExc_ValueError, ex.what());
         return 0;

@@ -10,6 +10,10 @@
 //
 //------------------------------------------------------------------------
 
+#if PY_MAJOR_VERSION >= 3
+#define IS_PY3K
+#endif
+
 //-----------------------
 // This Class's Header --
 //-----------------------
@@ -160,7 +164,11 @@ AliasMap_alias(PyObject* self, PyObject* args)
   }
 
   const std::string& alias = cself->alias(PdsSrc::cppObject(srcObj));
+#ifdef IS_PY3K
+  return PyUnicode_FromStringAndSize(alias.data(), alias.size());
+#else
   return PyString_FromStringAndSize(alias.data(), alias.size());
+#endif
 }
 
 PyObject*

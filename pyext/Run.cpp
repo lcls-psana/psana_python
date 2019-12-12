@@ -10,6 +10,10 @@
 //
 //------------------------------------------------------------------------
 
+#if PY_MAJOR_VERSION >= 3
+#define IS_PY3K
+#endif
+
 //-----------------------
 // This Class's Header --
 //-----------------------
@@ -134,7 +138,11 @@ PyObject*
 Run_run(PyObject* self, PyObject* )
 {
   psana_python::pyext::Run* py_this = static_cast<psana_python::pyext::Run*>(self);
+#ifdef IS_PY3K
+  return PyLong_FromLong(py_this->m_obj.run());
+#else
   return PyInt_FromLong(py_this->m_obj.run());
+#endif
 }
 
 PyObject*

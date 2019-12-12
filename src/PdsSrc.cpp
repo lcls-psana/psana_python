@@ -10,6 +10,10 @@
 //
 //------------------------------------------------------------------------
 
+#if PY_MAJOR_VERSION >= 3
+#define IS_PY3K
+#endif
+
 //-----------------------
 // This Class's Header --
 //-----------------------
@@ -67,21 +71,33 @@ PyObject*
 PdsSrc_level(PyObject* self, PyObject* )
 {
   Pds::Src& cself = psana_python::PdsSrc::cppObject(self);
+#ifdef IS_PY3K
+  return PyLong_FromLong(cself.level());
+#else
   return PyInt_FromLong(cself.level());
+#endif
 }
 
 PyObject*
 PdsSrc_log(PyObject* self, PyObject* )
 {
   Pds::Src& cself = psana_python::PdsSrc::cppObject(self);
+#ifdef IS_PY3K
+  return PyLong_FromLong(cself.log());
+#else
   return PyInt_FromLong(cself.log());
+#endif
 }
 
 PyObject*
 PdsSrc_phy(PyObject* self, PyObject* )
 {
   Pds::Src& cself = psana_python::PdsSrc::cppObject(self);
+#ifdef IS_PY3K
+  return PyLong_FromLong(cself.phy());
+#else
   return PyInt_FromLong(cself.phy());
+#endif
 }
 
 }
