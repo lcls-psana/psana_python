@@ -35,6 +35,29 @@
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
 //-----------------------------------------------------------------------
 
+#if PY_MAJOR_VERSION >= 3
+#define IS_PY3K
+#endif
+
+#ifdef IS_PY3K
+#define DDL_CREATE_MODULE(m_name, m_methods, m_doc) \
+  static struct PyModuleDef moduledef = { \
+    PyModuleDef_HEAD_INIT, \
+    "(m_name)",\
+    "(m_doc)", \
+    -1,                  \
+    (m_methods),                    \
+    NULL,                 \
+    NULL,                 \
+    NULL,                \
+    NULL,                \
+  }; \
+  PyObject* module = PyModule_Create(&moduledef)
+#else
+#define DDL_CREATE_MODULE(m_name, m_methods, m_doc) \
+  PyObject* module = Py_InitModule3( "(m_name)", (m_methods), "(m_doc)")
+#endif
+
 namespace psana_python {
 
   // defined in src/CreateWrappers.cpp
@@ -51,7 +74,7 @@ extern "C"
 PyMODINIT_FUNC init_psana()
 {
   // Initialize the module
-  PyObject* module = Py_InitModule3( "_psana", 0, "The Python module for psana" );
+  DDL_CREATE_MODULE( "_psana", 0, "The Python module for psana" );
   psana_python::pyext::DataSource::initType( module );
   psana_python::pyext::EventIter::initType( module );
   psana_python::pyext::PSAna::initType( module );
