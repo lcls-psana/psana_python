@@ -10,6 +10,10 @@
 //
 //------------------------------------------------------------------------
 
+#if PY_MAJOR_VERSION >= 3
+#define IS_PY3K
+#endif
+
 //-----------------------
 // This Class's Header --
 //-----------------------
@@ -65,7 +69,12 @@ std::vector<PyTypeObject*>
 StringCvt::from_py_types() const
 {
   std::vector<PyTypeObject*> types;
+#ifdef IS_PY3K
+  types.push_back(&PyUnicode_Type);
+  types.push_back(&PyBytes_Type);
+#else
   types.push_back(&PyString_Type);
+#endif
   return types;
 }
 
@@ -74,7 +83,12 @@ std::vector<PyTypeObject*>
 StringCvt::to_py_types() const
 {
   std::vector<PyTypeObject*> types;
+#ifdef IS_PY3K
+  types.push_back(&PyUnicode_Type);
+  types.push_back(&PyBytes_Type);
+#else
   types.push_back(&PyString_Type);
+#endif
   return types;
 }
 
