@@ -10,6 +10,10 @@
 //
 //------------------------------------------------------------------------
 
+#if PY_MAJOR_VERSION >= 3
+#define IS_PY3K
+#endif
+
 //-----------------------
 // This Class's Header --
 //-----------------------
@@ -470,7 +474,11 @@ cpp_module(PyObject* self)
     }
 
     // store it inside Python object
+#ifdef IS_PY3K
+    pytools::pyshared_ptr pymodule = pytools::make_pyshared(PyCapsule_New(static_cast<void*>(module), NULL, NULL));
+#else
     pytools::pyshared_ptr pymodule = pytools::make_pyshared(PyCObject_FromVoidPtr(static_cast<void*>(module), NULL));
+#endif
     if (PyObject_SetAttrString(self, "__psana_cpp_module__", pymodule.get()) < 0) {
       delete module;
       return 0;
@@ -482,13 +490,21 @@ cpp_module(PyObject* self)
     
     pytools::pyshared_ptr pymod = pytools::make_pyshared(PyObject_GetAttrString(self, "__psana_cpp_module__"));
     if (not pymod) return 0;
+#ifdef IS_PY3K
+    if (not PyCapsule_CheckExact(pymod.get())) {
+#else
     if (not PyCObject_Check(pymod.get())) {
+#endif
       PyErr_SetString(PyExc_TypeError, "incorrect type of __psana_cpp_module__ attribute");
       return 0;
     }
   
     // unwrap it
+#ifdef IS_PY3K
+    return static_cast<psana_python::PythonModule*>(PyCapsule_GetPointer(pymod.get(), NULL));
+#else
     return static_cast<psana_python::PythonModule*>(PyCObject_AsVoidPtr(pymod.get()));
+#endif
     
   }
 }
