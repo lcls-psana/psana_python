@@ -10,10 +10,6 @@
 //
 //------------------------------------------------------------------------
 
-#if PY_MAJOR_VERSION >= 3
-#define IS_PY3K
-#endif
-
 //-----------------------
 // This Class's Header --
 //-----------------------
@@ -29,7 +25,11 @@
 // Collaborating Class Headers --
 //-------------------------------
 #include "PSEvt/DataProxy.h"
-#include "psana_python/PyUtil.h"
+#include "pytools/PyUtil.h"
+
+#if PY_MAJOR_VERSION >= 3
+#define IS_PY3K
+#endif
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --

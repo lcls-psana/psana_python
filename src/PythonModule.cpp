@@ -37,7 +37,7 @@
 #include "psana_python/Env.h"
 #include "psana_python/Event.h"
 #include "psana_python/Source.h"
-#include "psana_python/PyUtil.h"
+#include "pytools/PyUtil.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --

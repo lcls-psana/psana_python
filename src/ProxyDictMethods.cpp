@@ -35,7 +35,7 @@
 #include "psddl_python/ConverterMap.h"
 #include "PSEvt/DataProxy.h"
 #include "PSEvt/Exceptions.h"
-#include "psana_python/PyUtil.h"
+#include "pytools/PyUtil.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --

@@ -27,7 +27,7 @@
 // Collaborating Class Headers --
 //-------------------------------
 #include "DataSource.h"
-#include "psana_python/PyUtil.h"
+#include "pytools/PyUtil.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --

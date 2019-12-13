@@ -40,7 +40,7 @@
 #include "psana_python/Source.h"
 #include "psana_python/ProxyDictMethods.h"
 #include "pytools/make_pyshared.h"
-#include "psana_python/PyUtil.h"
+#include "pytools/PyUtil.h"
 //#include "psana_python/arg_get_put.h"
 
 //-----------------------------------------------------------------------

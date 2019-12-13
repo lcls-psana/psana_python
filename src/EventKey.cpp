@@ -31,7 +31,7 @@
 #include "psana_python/PdsDetInfo.h"
 #include "psana_python/PdsProcInfo.h"
 #include "psddl_python/ConverterMap.h"
-#include "psana_python/PyUtil.h"
+#include "pytools/PyUtil.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --

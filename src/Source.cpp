@@ -31,7 +31,7 @@
 #include "psana_python/AliasMap.h"
 #include "psana_python/PdsSrc.h"
 #include "psana_python/SrcMatch.h"
-#include "psana_python/PyUtil.h"
+#include "pytools/PyUtil.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --

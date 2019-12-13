@@ -34,7 +34,7 @@
 #include "psana_python/Exceptions.h"
 #include "psana_python/Env.h"
 #include "psana_python/PythonModule.h"
-#include "psana_python/PyUtil.h"
+#include "pytools/PyUtil.h"
 
 //-----------------------------------------------------------------------
 // Local Macros, Typedefs, Structures, Unions and Forward Declarations --
