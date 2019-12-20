@@ -71,7 +71,11 @@ namespace psana_python {
 
 // Module entry point
 extern "C"
+#ifdef IS_PY3K
+PyMODINIT_FUNC PyInit__psana()
+#else
 PyMODINIT_FUNC init_psana()
+#endif
 {
   // Initialize the module
   DDL_CREATE_MODULE( "_psana", 0, "The Python module for psana" );
@@ -85,4 +89,9 @@ PyMODINIT_FUNC init_psana()
   psana_python::pyext::EventTime::initType( module );
 
   psana_python::createWrappers(module);
+
+#ifdef IS_PY3K
+  return module;
+#endif
 }
+
