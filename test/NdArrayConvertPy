@@ -34,7 +34,7 @@ class NdArrayConvert( unittest.TestCase ) :
         assert os.path.exists(DATADIR), "Data dir: %s not found" % DATADIR
         assert os.path.exists(TESTDATA), "Test data %s not found" % TESTDATA
         try:
-            file(TESTDATA,'r')
+            open(TESTDATA,'r')
         except IOError:
             raise Exception("Cannot read test data: %s" % TESTDATA)
 
