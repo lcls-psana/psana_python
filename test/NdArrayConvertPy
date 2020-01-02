@@ -3,7 +3,7 @@
 # Description:
 #   Test script for ndarray conversion through event store, C++ -> Python
 #   and Python -> C++
-#   
+#
 #------------------------------------------------------------------------
 
 
@@ -26,10 +26,10 @@ TESTDATA = os.path.join(DATADIR,'test_042_Translator_t1.xtc')
 class NdArrayConvert( unittest.TestCase ) :
 
     def setUp(self) :
-    	""" 
-    	Method called to prepare the test fixture. This is called immediately 
-    	before calling the test method; any exception raised by this method 
-    	will be considered an error rather than a test failure.  
+        """
+        Method called to prepare the test fixture. This is called immediately
+        before calling the test method; any exception raised by this method
+        will be considered an error rather than a test failure.
         """
         assert os.path.exists(DATADIR), "Data dir: %s not found" % DATADIR
         assert os.path.exists(TESTDATA), "Test data %s not found" % TESTDATA
@@ -37,17 +37,17 @@ class NdArrayConvert( unittest.TestCase ) :
             file(TESTDATA,'r')
         except IOError:
             raise Exception("Cannot read test data: %s" % TESTDATA)
-                            
+
 
     def tearDown(self) :
         """
-        Method called immediately after the test method has been called and 
-        the result recorded. This is called even if the test method raised 
-        an exception, so the implementation in subclasses may need to be 
-        particularly careful about checking internal state. Any exception raised 
-        by this method will be considered an error rather than a test failure. 
-        This method will only be called if the setUp() succeeds, regardless 
-        of the outcome of the test method. 
+        Method called immediately after the test method has been called and
+        the result recorded. This is called even if the test method raised
+        an exception, so the implementation in subclasses may need to be
+        particularly careful about checking internal state. Any exception raised
+        by this method will be considered an error rather than a test failure.
+        This method will only be called if the setUp() succeeds, regardless
+        of the outcome of the test method.
         """
         pass
 
@@ -86,7 +86,7 @@ class NdArrayConvert( unittest.TestCase ) :
         failMsg += "but no error generated. "
         failMsg += "Expected error:\n%s\ncmd:\n%s\nreceived stderr=\n%s" % (expectedError, cmd, e )
         self.assertTrue(correctErrorGiven,msg=failMsg)
-        
+
     def test_Cpp_to_Python(self):
         '''test that C++ const and nonconst ndarrays are converted correctly to Python'''
         cmd = 'psana -n 1  -c "" -m psana_test.PsanaModulePutNDArrayCpp,psana_test.PsanaModuleGetArrayPy'
@@ -102,7 +102,7 @@ class NdArrayConvert( unittest.TestCase ) :
         self.assertFalse(errors,msg=failMsg)
 
     def test_Python_ReadOnly_for_const(self):
-        '''if Python thinks a const ndarray is non-const, should generate error, 
+        '''if Python thinks a const ndarray is non-const, should generate error,
         likewise for thinking non-const is const'''
         cmd = 'psana -n 1  -c "" -m psana_test.PsanaModulePutNDArrayCpp,psana_test.PsanaModuleGetArrayPy'
         cmd += ' -o psana_test.PsanaModulePutNDArrayCpp.const_key=constkey'
@@ -124,7 +124,7 @@ class NdArrayConvert( unittest.TestCase ) :
         failMsgWhenCantWriteToNonConst +="expected error: %s\n" % expectedNonConstWriteErrorMsg
         failMsgWhenCantWriteToNonConst += "but it did dot. stderr=\n%s" % e
         self.assertTrue(failedToWriteToNonConst, msg=failMsgWhenCantWriteToNonConst)
-        
+
     def test_Python_to_Cpp(self):
         '''are both const and nonconst ndarrays going from Python to Cpp?'''
         cmd = 'psana -n 1  -c "" -m psana_test.PsanaModulePutArrayPy,psana_test.PsanaModuleGetNDArrayCpp'

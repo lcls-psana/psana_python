@@ -10,12 +10,12 @@
 
 """Unit test for python bindings for psana framework
 
-This software was developed for the LCLS project.  If you use all or 
+This software was developed for the LCLS project.  If you use all or
 part of it, please give an appropriate acknowledgement.
 
 @see RelatedModule
 
-@version $Id$ 
+@version $Id$
 
 @author Andy Salnikov
 """
@@ -56,22 +56,22 @@ _input = '/reg/g/pcds/package/anatestdata/opal.xtc'
 class DataSourceTestPy ( unittest.TestCase ) :
 
     def setUp(self) :
-    	""" 
-    	Method called to prepare the test fixture. This is called immediately 
-    	before calling the test method; any exception raised by this method 
-    	will be considered an error rather than a test failure.  
-    	"""
+        """
+        Method called to prepare the test fixture. This is called immediately
+        before calling the test method; any exception raised by this method
+        will be considered an error rather than a test failure.
+        """
         pass
-    
+
     def tearDown(self) :
         """
-        Method called immediately after the test method has been called and 
-        the result recorded. This is called even if the test method raised 
-        an exception, so the implementation in subclasses may need to be 
-        particularly careful about checking internal state. Any exception raised 
-        by this method will be considered an error rather than a test failure. 
-        This method will only be called if the setUp() succeeds, regardless 
-        of the outcome of the test method. 
+        Method called immediately after the test method has been called and
+        the result recorded. This is called even if the test method raised
+        an exception, so the implementation in subclasses may need to be
+        particularly careful about checking internal state. Any exception raised
+        by this method will be considered an error rather than a test failure.
+        This method will only be called if the setUp() succeeds, regardless
+        of the outcome of the test method.
         """
         pass
 
@@ -79,30 +79,30 @@ class DataSourceTestPy ( unittest.TestCase ) :
     def test_eventIter(self):
 
         src = psana.dataSource(_input)
-    	nevents = len([e for e in src.events()])
+        nevents = len([e for e in src.events()])
 
-    	self.assertEqual( nevents, 96 )
+        self.assertEqual( nevents, 96 )
 
     def test_StepIter(self):
 
         src = psana.dataSource(_input)
-    	nsteps = len([step for step in src.steps()])
+        nsteps = len([step for step in src.steps()])
 
-    	self.assertEqual( nsteps, 1 )
+        self.assertEqual( nsteps, 1 )
 
     def test_RunIter(self):
 
         src = psana.dataSource(_input)
-    	nruns = len([run for run in src.runs()])
+        nruns = len([run for run in src.runs()])
 
-    	self.assertEqual( nruns, 1 )
+        self.assertEqual( nruns, 1 )
 
     def test_AllIter(self):
 
         src = psana.dataSource(_input)
-    	nruns = 0
-    	nsteps = 0
-    	nevents = 0
+        nruns = 0
+        nsteps = 0
+        nevents = 0
         for run in src.runs():
             nruns += 1
             for step in run.steps():
@@ -110,13 +110,13 @@ class DataSourceTestPy ( unittest.TestCase ) :
                 for evt in step.events():
                     nevents += 1
 
-    	self.assertEqual( nruns, 1 )
-    	self.assertEqual( nsteps, 1 )
-    	self.assertEqual( nevents, 96 )
+        self.assertEqual( nruns, 1 )
+        self.assertEqual( nsteps, 1 )
+        self.assertEqual( nevents, 96 )
 
 #
 #  run unit tests when imported as a main module
 #
 if __name__ == "__main__":
-   if os.path.exists(_input): 
+   if os.path.exists(_input):
        unittest.main()
