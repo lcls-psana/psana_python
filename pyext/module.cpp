@@ -43,19 +43,19 @@
 #define DDL_CREATE_MODULE(m_name, m_methods, m_doc) \
   static struct PyModuleDef moduledef = { \
     PyModuleDef_HEAD_INIT, \
-    "(m_name)",\
-    "(m_doc)", \
-    -1,                  \
-    (m_methods),                    \
-    NULL,                 \
-    NULL,                 \
-    NULL,                \
-    NULL,                \
+    m_name,    \
+    m_doc,     \
+    -1,        \
+    m_methods, \
+    NULL,      \
+    NULL,      \
+    NULL,      \
+    NULL,      \
   }; \
   PyObject* module = PyModule_Create(&moduledef)
 #else
 #define DDL_CREATE_MODULE(m_name, m_methods, m_doc) \
-  PyObject* module = Py_InitModule3( "(m_name)", (m_methods), "(m_doc)")
+  PyObject* module = Py_InitModule3( m_name, m_methods, m_doc)
 #endif
 
 namespace psana_python {
