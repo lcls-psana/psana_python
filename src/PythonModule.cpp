@@ -395,6 +395,7 @@ moduleFactory(const string& name)
     instance = pytools::make_pyshared(PyObject_Call(cls.get(), args.get(), kwargs.get()));
     if (not instance) {
       MsgLog(logger, debug, "failed to make class instance in pyana-compatibility mode: name=" + className);
+      PyErr_Clear();
     }
 
   }
