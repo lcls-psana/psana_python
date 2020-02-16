@@ -100,7 +100,7 @@ EventOffset_lastBeginCalibCycleDgram(PyObject* self, PyObject* )
 {
   boost::shared_ptr<PSEvt::EventOffset> cself = psana_python::EventOffset::cppObject(self);
 #ifdef IS_PY3K
-  return PyUnicode_FromStringAndSize(cself->lastBeginCalibCycleDgram()->c_str(), cself->lastBeginCalibCycleDgram()->size());
+  return PyBytes_FromStringAndSize(cself->lastBeginCalibCycleDgram()->c_str(), cself->lastBeginCalibCycleDgram()->size());
 #else
   return PyString_FromStringAndSize(cself->lastBeginCalibCycleDgram()->c_str(), cself->lastBeginCalibCycleDgram()->size());
 #endif
