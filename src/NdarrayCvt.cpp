@@ -30,7 +30,12 @@
 #include "MsgLogger/MsgLogger.h"
 #include "ndarray/ndarray.h"
 #include "psddl_python/ConverterMap.h"
-#include "psddl_python/psddl_python_numpy.h"
+// Use the same numpy API symbol defined by python_converter.cpp in this DSO.
+// psddl_python_numpy.h uses a symbol from libpsddl_python.so which is hidden
+// in NumPy 2.x and cannot be referenced across DSO boundaries.
+#define PY_ARRAY_UNIQUE_SYMBOL PSALG_NUMPY_NDARRAY_CONVERTER
+#define NO_IMPORT_ARRAY
+#include <numpy/arrayobject.h>
 #include "pytools/PyDataType.h"
 
 //-----------------------------------------------------------------------
@@ -233,12 +238,12 @@ NdarrayCvt<T, Rank>::convert(PSEvt::ProxyDictI& proxyDict, const PSEvt::Source& 
     }
 
     // set all flags
-    flags |= NPY_WRITEABLE;
+    flags |= NPY_ARRAY_WRITEABLE;
     if (::isCArray<Rank>(arr.shape(), arr.strides())) {
-      flags |= NPY_C_CONTIGUOUS;
+      flags |= NPY_ARRAY_C_CONTIGUOUS;
     }
     if (reinterpret_cast<size_t>(arr.data()) % itemsize == 0) {
-      flags |= NPY_ALIGNED;
+      flags |= NPY_ARRAY_ALIGNED;
     }
 
     data = (void*)(arr.data());
@@ -258,10 +263,10 @@ NdarrayCvt<T, Rank>::convert(PSEvt::ProxyDictI& proxyDict, const PSEvt::Source& 
 
     // set all flags
     if (::isCArray<Rank>(arr.shape(), arr.strides())) {
-      flags |= NPY_C_CONTIGUOUS;
+      flags |= NPY_ARRAY_C_CONTIGUOUS;
     }
     if (reinterpret_cast<size_t>(arr.data()) % itemsize == 0) {
-      flags |= NPY_ALIGNED;
+      flags |= NPY_ARRAY_ALIGNED;
     }
 
     data = (void*)(arr.data());

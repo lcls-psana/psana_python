@@ -19,13 +19,19 @@
 // C/C++ Headers --
 //-----------------
 #include <boost/make_shared.hpp>
+#include <vector>
 
 //-------------------------------
 // Collaborating Class Headers --
 //-------------------------------
 #include "MsgLogger/MsgLogger.h"
 #include "ndarray/ndarray.h"
-#include "psddl_python/psddl_python_numpy.h"
+// Use the same numpy API symbol defined by python_converter.cpp in this DSO.
+// psddl_python_numpy.h uses a symbol from libpsddl_python.so which is hidden
+// in NumPy 2.x and cannot be referenced across DSO boundaries.
+#define PY_ARRAY_UNIQUE_SYMBOL PSALG_NUMPY_NDARRAY_CONVERTER
+#define NO_IMPORT_ARRAY
+#include <numpy/arrayobject.h>
 #include "PSEvt/DataProxy.h"
 #include "pytools/make_pyshared.h"
 
@@ -69,7 +75,7 @@ namespace {
   bool makeAndSave(int rank, pytools::pyshared_ptr shndarr, const unsigned shape[], const int strides[],
       PSEvt::ProxyDictI& proxyDict, const Pds::Src& source, const std::string& key, bool modifiable)
   {
-    boost::shared_ptr<T> dataptr(shndarr, static_cast<T*>(PyArray_DATA(shndarr.get())));
+    boost::shared_ptr<T> dataptr(shndarr, static_cast<T*>(PyArray_DATA((PyArrayObject*)shndarr.get())));
 
     bool res = true;
     switch (rank) {
@@ -160,48 +166,48 @@ Ndarray2CppCvt::convert(PyObject* obj, PSEvt::ProxyDictI& proxyDict, const Pds::
   pytools::pyshared_ptr shndarr = pytools::make_pyshared(obj, false);
 
   // dimensions
-  const int rank = PyArray_NDIM(obj);
-  const int itemsize = PyArray_ITEMSIZE(obj);
-  unsigned shape[rank];
-  int strides[rank];
+  const int rank = PyArray_NDIM((PyArrayObject*)obj);
+  const int itemsize = PyArray_ITEMSIZE((PyArrayObject*)obj);
+  std::vector<unsigned> shape(rank);
+  std::vector<int> strides(rank);
   for (int i = 0; i != rank; ++ i) {
-    shape[i] = PyArray_DIM(obj, i);
-    strides[i] = PyArray_STRIDE(obj, i) / itemsize; // numpy strides are in bytes
+    shape[i] = PyArray_DIM((PyArrayObject*)obj, i);
+    strides[i] = PyArray_STRIDE((PyArrayObject*)obj, i) / itemsize; // numpy strides are in bytes
   }
 
-  bool modifiable = PyArray_CHKFLAGS(obj, NPY_WRITEABLE);
+  bool modifiable = PyArray_CHKFLAGS((PyArrayObject*)obj, NPY_ARRAY_WRITEABLE);
 
   bool result = true;
-  switch (PyArray_TYPE(obj)) {
+  switch (PyArray_TYPE((PyArrayObject*)obj)) {
   case NPY_INT8:
-    result = makeAndSave<int8_t>(rank, shndarr, shape, strides, proxyDict, source, key, modifiable);
+    result = makeAndSave<int8_t>(rank, shndarr, shape.data(), strides.data(), proxyDict, source, key, modifiable);
     break;
   case NPY_UINT8:
-    result = makeAndSave<uint8_t>(rank, shndarr, shape, strides, proxyDict, source, key, modifiable);
+    result = makeAndSave<uint8_t>(rank, shndarr, shape.data(), strides.data(), proxyDict, source, key, modifiable);
     break;
   case NPY_INT16:
-    result = makeAndSave<int16_t>(rank, shndarr, shape, strides, proxyDict, source, key, modifiable);
+    result = makeAndSave<int16_t>(rank, shndarr, shape.data(), strides.data(), proxyDict, source, key, modifiable);
     break;
   case NPY_UINT16:
-    result = makeAndSave<uint16_t>(rank, shndarr, shape, strides, proxyDict, source, key, modifiable);
+    result = makeAndSave<uint16_t>(rank, shndarr, shape.data(), strides.data(), proxyDict, source, key, modifiable);
     break;
   case NPY_INT32:
-    result = makeAndSave<int32_t>(rank, shndarr, shape, strides, proxyDict, source, key, modifiable);
+    result = makeAndSave<int32_t>(rank, shndarr, shape.data(), strides.data(), proxyDict, source, key, modifiable);
     break;
   case NPY_UINT32:
-    result = makeAndSave<uint32_t>(rank, shndarr, shape, strides, proxyDict, source, key, modifiable);
+    result = makeAndSave<uint32_t>(rank, shndarr, shape.data(), strides.data(), proxyDict, source, key, modifiable);
     break;
   case NPY_INT64:
-    result = makeAndSave<int64_t>(rank, shndarr, shape, strides, proxyDict, source, key, modifiable);
+    result = makeAndSave<int64_t>(rank, shndarr, shape.data(), strides.data(), proxyDict, source, key, modifiable);
     break;
   case NPY_UINT64:
-    result = makeAndSave<uint64_t>(rank, shndarr, shape, strides, proxyDict, source, key, modifiable);
+    result = makeAndSave<uint64_t>(rank, shndarr, shape.data(), strides.data(), proxyDict, source, key, modifiable);
     break;
   case NPY_FLOAT32:
-    result = makeAndSave<float>(rank, shndarr, shape, strides, proxyDict, source, key, modifiable);
+    result = makeAndSave<float>(rank, shndarr, shape.data(), strides.data(), proxyDict, source, key, modifiable);
     break;
   case NPY_FLOAT64:
-    result = makeAndSave<double>(rank, shndarr, shape, strides, proxyDict, source, key, modifiable);
+    result = makeAndSave<double>(rank, shndarr, shape.data(), strides.data(), proxyDict, source, key, modifiable);
     break;
   default:
     result = false;
