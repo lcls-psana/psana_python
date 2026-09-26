@@ -115,13 +115,20 @@ namespace {
     boost::python::to_python_converter<Pds::DetInfo, PdsSrcConverter<Pds::DetInfo, psana_python::PdsDetInfo>, true>();
     boost::python::to_python_converter<Pds::ProcInfo, PdsSrcConverter<Pds::ProcInfo, psana_python::PdsProcInfo>, true>();
 
+    // Add additional python converters. NB: this must run before
+    // initNdarrayCvt()/Ndarray2CppCvt below: createConverters() is what
+    // calls numpy's _import_array() to populate the DSO-local
+    // PSALG_NUMPY_NDARRAY_CONVERTER API table (see NdarrayCvt.cpp /
+    // Ndarray2CppCvt.cpp), and NdarrayCvt<T,Rank>::to_py_types() /
+    // Ndarray2CppCvt dereference that table (e.g. &PyArray_Type) as soon
+    // as they are constructed. Running this first avoids dereferencing an
+    // uninitialized (NULL) numpy API table, which otherwise segfaults.
+    psana_python::createConverters();
+
     // must be after psddl_python as it needs numpy initialization which
     // happens in psddl_python
     psana_python::initNdarrayCvt(cmap, module);
     cmap.addConverter(boost::make_shared<psana_python::Ndarray2CppCvt>());
-
-    // Add additional python converters
-    psana_python::createConverters();
     
     // add few constants
     PyModule_AddIntConstant(module, "Normal", psana_python::PythonModule::Normal);
